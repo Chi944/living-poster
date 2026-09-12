@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { buildServer } from '../apps/api/src/server';
-import { assertLocalConfiguration, buildModelMessages, createOllamaProvider, interpretReply, type AiInput, type LocalProvider } from '../apps/api/src/provider';
+import { assertLocalConfiguration, buildModelMessages, createOllamaProvider, interpretReply, modelReplySchema, type AiInput, type LocalProvider } from '../apps/api/src/provider';
 import { EXAMPLES, validateScene, reviseScene } from '../packages/core/src/index';
 
 function fixture() {
@@ -151,6 +151,21 @@ describe('durable bounded local AI jobs',()=>{
 });
 
 describe('local-model-only provider and structured output',()=>{
+  it('validates exact scalar actions, accumulates motion tuning, and excludes forbidden wording and target IDs',()=>{
+    const result=interpretReply({plan:'Make only the requested changes.',kind:'edit',actions:[
+      {action:'animate',layerId:'headline',motion:'float'},
+      {action:'motionParameter',layerId:'headline',motion:'float',parameter:'amplitudeY',value:37},
+      {action:'move',layerId:'caption',axis:'y',delta:17},
+      {action:'fontSize',layerId:'caption',value:29},
+    ]},input());
+    expect(result.kind).toBe('edit');if(result.kind!=='edit')throw new Error('Missing edit');
+    expect(result.operations[1]).toMatchObject({behavior:{params:{amplitudeX:16,amplitudeY:37}}});
+    expect(result.operations[2]).toEqual({type:'setLayout',layerId:'caption',changes:{y:417}});
+    expect(result.operations[3]).toEqual({type:'setTypography',layerId:'caption',changes:{fontSize:29}});
+    expect(()=>modelReplySchema(input()).parse({kind:'edit',actions:[{action:'rewrite',layerId:'headline',text:'No'}]})).toThrow();
+    expect(()=>interpretReply({kind:'edit',actions:[{action:'colour',layerId:'invented',value:'#112233'}]},input())).toThrow();
+    expect(()=>interpretReply({kind:'edit',actions:[{action:'animate',layerId:'headline',motion:'float',radius:100}]},input())).toThrow();
+  });
   it('keeps complete layers while excluding private metadata and pointer paths, and bounds the input without truncating',()=>{
     const payload=input();const messages=buildModelMessages(payload);const content=JSON.parse(messages[1].content);
     expect(content.scene.layers).toEqual(payload.scene.layers);
@@ -169,11 +184,11 @@ describe('local-model-only provider and structured output',()=>{
     await expect(createOllamaProvider('http://127.0.0.1:11434','local-alias').generate(input(),new AbortController().signal)).rejects.toThrow('Cloud');vi.unstubAllGlobals();
   });
   it('translates actual model intents into narrow edits while preserving every unrelated property',()=>{
-    const result=interpretReply({kind:'edit',edits:[{type:'motion',layerId:'headline',behavior:'float'},{type:'layout',layerId:'caption',dy:40}]},input());
+    const result=interpretReply({kind:'edit',actions:[{action:'animate',layerId:'headline',motion:'float'},{action:'move',layerId:'caption',axis:'y',delta:40}]},input());
     expect(result.kind).toBe('edit');if(result.kind!=='edit')throw new Error('Wrong result');expect(result.operations).toHaveLength(2);
     expect(result.operations[0]).toMatchObject({type:'upsertBehavior',layerId:'headline',behavior:{type:'float',params:{amplitudeX:16,amplitudeY:28}}});
     expect(result.operations[1]).toEqual({type:'setLayout',layerId:'caption',changes:{y:440}});
-    expect(()=>interpretReply({kind:'edit',edits:[{type:'text',layerId:'headline',newText:'New words'}]},input())).toThrow();
+    expect(()=>interpretReply({kind:'edit',actions:[{action:'rewrite',layerId:'headline',text:'New words'}]},input())).toThrow();
     expect(interpretReply({kind:'clarify',question:'Which layer?'},input())).toEqual({kind:'clarify',question:'Which layer?'});
   });
 });
