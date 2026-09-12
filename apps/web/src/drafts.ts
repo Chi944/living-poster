@@ -1,6 +1,6 @@
 import {openDB} from 'idb';
 import type {Scene} from '../../../packages/core/src';
-export type OutboxItem = {id:string; documentId:string; projectId:string|null; name:string; scene:Scene; expectedHeadRevisionId:string|null;blocked?:boolean;};
+export type OutboxItem = {id:string; documentId:string; projectId:string|null; name:string; label?:string;scene:Scene; expectedHeadRevisionId:string|null;blocked?:boolean;};
 export type Recovery = {scene:Scene;documentId:string;projectId:string|null;serverHead:string|null;name:string;outbox:OutboxItem[];};
 const db = ()=>openDB('living-poster',1,{upgrade(db){db.createObjectStore('workspace');}});
 export async function recoverDraft():Promise<Recovery|undefined>{const d=await db();return d.get('workspace','current');}

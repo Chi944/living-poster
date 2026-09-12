@@ -16,7 +16,7 @@ type EditorState={
   beginGesture:()=>void;moveGesture:(dx:number,dy:number)=>void;endGesture:(cancel?:boolean)=>void;
   removeSelected:()=>void;reorder:(id:string,direction:number)=>void;
   beginAi:()=>AiCapture;applyAi:(capture:AiCapture,operations:EditOperation[],allowTextChanges:boolean)=>boolean;
-  enqueueSave:()=>Promise<void>;sync:()=>Promise<void>;
+  enqueueSave:(label?:string)=>Promise<void>;sync:()=>Promise<void>;
 };
 const initial=reviseScene(cloneScene(EXAMPLES[0].scene));
 const trimError=(error:unknown)=>error instanceof Error?error.message:'That change could not be applied.';
@@ -44,10 +44,10 @@ export const useEditor=create<EditorState>((set,get)=>({
  applyAi(capture,operations,allowTextChanges){const state=get();if(state.gesture||state.recording||capture.documentId!==state.documentId||capture.revisionId!==state.scene.revision.id||capture.generation!==state.requestGeneration||capture.epoch!==state.mutationEpoch)return false;
   const result=applyOperations(state.scene,operations,{allowTextChanges});validateGeometry?.(result.scene);set({scene:result.scene,past:[...state.past.slice(-79),state.scene],future:[],affected:result.affectedLayerIds,mutationEpoch:state.mutationEpoch+1,notice:result.summary,playing:false});return true;
  },
- async enqueueSave(){const state=get();if(state.gesture)return;if(state.outbox.some(item=>item.documentId===state.documentId&&item.scene.revision.id===state.scene.revision.id)){await get().sync();return;}
+ async enqueueSave(label){const state=get();if(state.gesture)return;if(state.outbox.some(item=>item.documentId===state.documentId&&item.scene.revision.id===state.scene.revision.id)){await get().sync();return;}
   if(state.serverHead===state.scene.revision.id){set({saveState:'Saved to local library'});return;}
   const previous=state.outbox.filter(item=>item.documentId===state.documentId).at(-1);
-  const item:OutboxItem={id:newId(),documentId:state.documentId,projectId:state.projectId,name:state.name,scene:cloneScene(state.scene),expectedHeadRevisionId:previous?.scene.revision.id??state.serverHead};
+  const item:OutboxItem={id:newId(),documentId:state.documentId,projectId:state.projectId,name:state.name,...(label?{label}:{}),scene:cloneScene(state.scene),expectedHeadRevisionId:previous?.scene.revision.id??state.serverHead};
   set({outbox:[...state.outbox,item],saveState:'Waiting to save'});await persistCurrent();await get().sync();
  },
  async sync(){await syncOutbox();},
@@ -60,7 +60,7 @@ async function syncOutbox(){
  try{while(useEditor.getState().outbox.length){const queue=useEditor.getState().outbox;const blocked=new Set(queue.filter(item=>item.blocked).map(item=>item.documentId));const item=queue.find(item=>!blocked.has(item.documentId));if(!item)break;useEditor.setState({saveState:'Saving to local library…'});
   try{let projectId=item.projectId,head:string;
    if(!projectId){const result=await post<{project:Project;scene:Scene}>('/projects',{name:item.name,scene:item.scene,operationId:item.id});projectId=result.project.id;head=result.project.headRevisionId;}
-   else{const result=await post(`/projects/${projectId}/revisions`,{scene:item.scene,expectedHeadRevisionId:item.expectedHeadRevisionId,operationId:item.id,label:item.name});head=result.headRevisionId;}
+   else{const result=await post(`/projects/${projectId}/revisions`,{scene:item.scene,expectedHeadRevisionId:item.expectedHeadRevisionId,operationId:item.id,label:item.label??item.name});head=result.headRevisionId;}
    useEditor.setState(state=>({outbox:state.outbox.filter(queued=>queued.id!==item.id).map(queued=>queued.documentId===item.documentId&&!queued.projectId?{...queued,projectId}:queued),...(state.documentId===item.documentId?{projectId,serverHead:head}:{}),saveState:state.scene.revision.id===head?'Saved to local library':'New changes on this device'}));await updateArchivedHead(item.documentId,projectId,head);await persistCurrent();
   }catch(error){const conflict=error instanceof ApiError&&error.status===409;useEditor.setState(state=>({...(conflict?{outbox:state.outbox.map(queued=>queued.documentId===item.documentId?{...queued,blocked:true}:queued)}:{}),saveState:conflict?'Save conflict · draft preserved':'Offline · save queued',notice:conflict?'This project changed elsewhere. Your draft is safe. Use “Save as new project” in the library.':trimError(error)}));if(conflict){await persistCurrent();continue;}break;}
  }}finally{syncing=false;}
