@@ -1,11 +1,93 @@
 import { FONT_IDS, type FontId } from "./schema";
 import { FONT_MANIFEST } from "./font-manifest";
 import { sha256 } from "./hash";
+export type FontCategory =
+  | "sans"
+  | "serif"
+  | "mono"
+  | "display"
+  | "handwriting";
+const FONT_FAMILIES: Record<
+  FontId,
+  { familyLabel: string; category: FontCategory; weight: 400 | 700 }
+> = {
+  "space-regular": {
+    familyLabel: "Space Grotesk",
+    category: "sans",
+    weight: 400,
+  },
+  "space-bold": { familyLabel: "Space Grotesk", category: "sans", weight: 700 },
+  "fraunces-regular": {
+    familyLabel: "Fraunces",
+    category: "serif",
+    weight: 400,
+  },
+  "fraunces-bold": { familyLabel: "Fraunces", category: "serif", weight: 700 },
+  "mono-regular": {
+    familyLabel: "IBM Plex Mono",
+    category: "mono",
+    weight: 400,
+  },
+  "mono-bold": { familyLabel: "IBM Plex Mono", category: "mono", weight: 700 },
+  "dm-regular": { familyLabel: "DM Sans", category: "sans", weight: 400 },
+  "dm-bold": { familyLabel: "DM Sans", category: "sans", weight: 700 },
+  "playfair-regular": {
+    familyLabel: "Playfair Display",
+    category: "serif",
+    weight: 400,
+  },
+  "playfair-bold": {
+    familyLabel: "Playfair Display",
+    category: "serif",
+    weight: 700,
+  },
+  "baskerville-regular": {
+    familyLabel: "Libre Baskerville",
+    category: "serif",
+    weight: 400,
+  },
+  "baskerville-bold": {
+    familyLabel: "Libre Baskerville",
+    category: "serif",
+    weight: 700,
+  },
+  "barlow-regular": {
+    familyLabel: "Barlow Condensed",
+    category: "sans",
+    weight: 400,
+  },
+  "barlow-bold": {
+    familyLabel: "Barlow Condensed",
+    category: "sans",
+    weight: 700,
+  },
+  "archivo-black": {
+    familyLabel: "Archivo Black",
+    category: "display",
+    weight: 400,
+  },
+  "caveat-regular": {
+    familyLabel: "Caveat",
+    category: "handwriting",
+    weight: 400,
+  },
+  "caveat-bold": {
+    familyLabel: "Caveat",
+    category: "handwriting",
+    weight: 700,
+  },
+  "nunito-regular": {
+    familyLabel: "Nunito Sans",
+    category: "sans",
+    weight: 400,
+  },
+  "nunito-bold": { familyLabel: "Nunito Sans", category: "sans", weight: 700 },
+};
 export const FONT_OPTIONS = FONT_IDS.map((id) => ({
   id,
-  label: `${id.startsWith("space") ? "Space Grotesk" : id.startsWith("fraunces") ? "Fraunces" : "IBM Plex Mono"} ${id.endsWith("bold") ? "Bold" : "Regular"}`,
+  ...FONT_FAMILIES[id],
+  label: `${FONT_FAMILIES[id].familyLabel}${id === "archivo-black" ? "" : FONT_FAMILIES[id].weight === 700 ? " Bold" : " Regular"}`,
   family: `LP-${id}`,
-  weight: id.endsWith("bold") ? 700 : 400,
   url: `/fonts/${id}.woff2`,
   assetHash: "bundled-v1",
   license: "SIL Open Font License 1.1",

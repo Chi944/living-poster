@@ -31,6 +31,11 @@ async function createFixture(page: Page, fixture: string) {
     const index = fixture.startsWith("example-") ? Number(fixture.slice(8)) : 0;
     const scene = structuredClone(core.EXAMPLES[index].scene);
     if (fixture === "all-fonts") {
+      scene.rendererVersion = core.CURRENT_RENDERER_VERSION;
+      scene.fonts = core.FONT_OPTIONS.map((font: any) => ({
+        id: font.id,
+        assetHash: font.assetHash,
+      }));
       scene.layers = core.FONT_OPTIONS.map((font: any, index: number) => ({
         id: `face-${index}`,
         name: font.label,
@@ -38,11 +43,11 @@ async function createFixture(page: Page, fixture: string) {
         visible: true,
         locked: false,
         opacity: 1,
-        layout: { x: 540, y: 180 + index * 180, rotationDeg: 0 },
+        layout: { x: 540, y: 110 + index * 60, rotationDeg: 0 },
         behaviors: [],
         text: "Aa ffi AV Café 0123",
         fontId: font.id,
-        fontSize: 64,
+        fontSize: 32,
         lineHeight: 1.1,
         trackingEm: 0.01,
         align: "center",
@@ -272,6 +277,8 @@ test("font bytes changed after successful loading are rejected during HTML packa
     const core = (window as any).__edgeCore,
       scene = structuredClone(core.EXAMPLES[0].scene);
     scene.layers[0].fontId = "mono-bold";
+    if (!scene.fonts.some((font: any) => font.id === "mono-bold"))
+      scene.fonts.push({ id: "mono-bold", assetHash: "bundled-v1" });
     try {
       await core.createHtml(scene);
       return "";

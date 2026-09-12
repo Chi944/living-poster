@@ -47,7 +47,13 @@ export function PosterPreview({
     />
   );
 }
-export function CanvasStage({ ready }: { ready: boolean }) {
+export function CanvasStage({
+  ready,
+  onEditText,
+}: {
+  ready: boolean;
+  onEditText?: () => void;
+}) {
   const canvas = useRef<HTMLCanvasElement>(null),
     frame = useRef<Frame | null>(null),
     drag = useRef<{ x: number; y: number; id: number } | null>(null),
@@ -269,12 +275,29 @@ export function CanvasStage({ ready }: { ready: boolean }) {
           aria-label="Poster artboard. Click to pause and select, drag to move, double-click text to edit."
           tabIndex={0}
           onPointerDown={(event) => {
+            // Commit pending fields before selection can unmount their editor.
+            const active = document.activeElement;
+            if (
+              active instanceof HTMLElement &&
+              active.matches("input,textarea,select,[contenteditable=true]")
+            )
+              active.blur();
             const p = point(event);
             pointerRef.current = p;
             // Recording uses movement only. A deliberate click always returns to editing.
             useEditor.getState().enterEditMode();
-            const id = frame.current ? hitTest(frame.current, p.x, p.y) : null;
             const state = useEditor.getState();
+            if (!ready) return;
+            try {
+              frame.current = evaluateScene(compileScene(state.scene), {
+                timeMs: state.timeMs,
+                pointer: state.pausedPointer ?? null,
+              });
+            } catch (error) {
+              setError(error instanceof Error ? error.message : "Render error");
+              return;
+            }
+            const id = hitTest(frame.current, p.x, p.y);
             if (event.shiftKey) state.select(id, true);
             else if (!id || !state.selected.includes(id)) state.select(id);
             if (id && state.scene.layers.find((l) => l.id === id)?.locked)
@@ -301,6 +324,7 @@ export function CanvasStage({ ready }: { ready: boolean }) {
               .scene.layers.find((l) => l.id === id);
             if (layer?.kind !== "text") return;
             useEditor.getState().select(layer.id);
+            onEditText?.();
             requestAnimationFrame(() => {
               const input = document.querySelector<HTMLTextAreaElement>(
                 'textarea[aria-label="Text"]',

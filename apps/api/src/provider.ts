@@ -2,6 +2,8 @@ import { z } from "zod";
 import {
   applyOperations,
   defaultBehavior,
+  FONT_IDS,
+  FONT_OPTIONS,
   type Scene,
   type EditOperation,
 } from "../../../packages/core/src/index";
@@ -72,14 +74,7 @@ export function modelReplySchema(input: AiInput) {
       .object({
         action: z.literal("font"),
         layerId: target,
-        value: z.enum([
-          "space-regular",
-          "space-bold",
-          "fraunces-regular",
-          "fraunces-bold",
-          "mono-regular",
-          "mono-bold",
-        ]),
+        value: z.enum(FONT_IDS),
       })
       .strict(),
     z
@@ -234,7 +229,8 @@ ACTION formats; include ONLY the fields shown for that action:
 {"action":"trackingEm","layerId":"ID","value":NUMBER}
 {"action":"opacity","layerId":"ID","value":ZERO_TO_ONE}
 {"action":"align","layerId":"ID","value":"left" or "center" or "right"}
-{"action":"font","layerId":"ID","value":"space-regular" or "space-bold" or "fraunces-regular" or "fraunces-bold" or "mono-regular" or "mono-bold"}
+{"action":"font","layerId":"ID","value":"BUNDLED_FONT_ID"}
+BUNDLED FONT CATALOG: ${FONT_OPTIONS.map((font) => `${font.label} = ${font.id}`).join(", ")}.
 {"action":"animate","layerId":"ID","motion":"float" or "orbit" or "wave" or "scatter" or "attract" or "repel" or "pulse" or "pendulum" or "bounce" or "reveal"}
 {"action":"anchor","layerId":"MOVING_ID","motion":"attract" or "orbit","anchorLayerId":"DESTINATION_ID"}
 {"action":"motionParameter","layerId":"ID","motion":"MOTION","parameter":"PARAMETER_FROM_EXISTING_BEHAVIOR","value":NUMBER}
@@ -269,7 +265,7 @@ export function buildModelMessages(input: AiInput) {
       (bytes, message) =>
         bytes + new TextEncoder().encode(message.content).byteLength,
       0,
-    ) > 12000
+    ) > 13000
   )
     throw new Error(
       "The scene and instruction are too large for the local model context. Use a smaller poster or a shorter instruction; manual editing remains available.",

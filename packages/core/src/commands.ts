@@ -90,6 +90,14 @@ export function applyOperations(
         if (layer.kind !== "text")
           throw new Error("Typography requires a text layer");
         Object.assign(layer, op.changes);
+        if (
+          op.changes.fontId &&
+          !next.fonts.some((font) => font.id === op.changes.fontId)
+        )
+          next.fonts.push({
+            id: op.changes.fontId,
+            assetHash: "bundled-v1",
+          });
         break;
       case "setFill":
         layer.fill = op.colour;

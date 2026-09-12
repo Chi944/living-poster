@@ -144,7 +144,7 @@ describe("canvas formats and renderer compatibility", () => {
   it("preserves legacy scenes and upgrades only a new revision", () => {
     const old = EXAMPLES[0]!.scene;
     expect(validateScene(old).rendererVersion).toBe("1.0.0");
-    expect(reviseScene(old).rendererVersion).toBe("1.1.0");
+    expect(reviseScene(old).rendererVersion).toBe(CURRENT_RENDERER_VERSION);
     expect(old.rendererVersion).toBe("1.0.0");
   });
   it("keeps the six original examples and adds four distinct formatted compositions", () => {
@@ -158,13 +158,13 @@ describe("canvas formats and renderer compatibility", () => {
     ]);
     expect(
       new Set(
-        EXAMPLES.slice(6).map(
+        EXAMPLES.slice(6, 10).map(
           (example) =>
             `${example.scene.artboard.width}/${example.scene.artboard.height}`,
         ),
       ).size,
     ).toBe(4);
-    for (const example of EXAMPLES.slice(6))
+    for (const example of EXAMPLES.slice(6, 10))
       expect(validateScene(example.scene).rendererVersion).toBe("1.1.0");
   });
   it("fits type, shapes, anchors and recorded pointers using one common transform", () => {

@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import {
   EXAMPLES,
+  FONT_OPTIONS,
   CANVAS_PRESETS,
   resizeScene,
   cloneScene,
@@ -54,6 +55,7 @@ import { Inspector } from "./Inspector";
 import { AiComposer } from "./AiComposer";
 import { Timeline } from "./Timeline";
 import { HostedConnector } from "./HostedConnector";
+import { TemplateBrowser } from "./TemplateBrowser";
 import { exportPng, exportHtml, downloadScene } from "./exports";
 function Modal({
   title,
@@ -73,8 +75,16 @@ function Modal({
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "Tab") {
-        const items = element.current?.querySelectorAll<HTMLElement>(
-          "button,input,select,textarea,a[href]",
+        const items = Array.from(
+          element.current?.querySelectorAll<HTMLElement>(
+            "button,input,select,textarea,a[href],summary,[tabindex]",
+          ) ?? [],
+        ).filter(
+          (item) =>
+            !item.matches(":disabled") &&
+            item.tabIndex >= 0 &&
+            item.getClientRects().length > 0 &&
+            getComputedStyle(item).visibility !== "hidden",
         );
         if (items?.length) {
           const first = items[0],
@@ -607,9 +617,13 @@ function ExportDialog({ onClose }: { onClose: () => void }) {
 function LayersPanel({
   ready,
   onExamples,
+  onPick,
+  onAdd,
 }: {
   ready: boolean;
   onExamples: () => void;
+  onPick: () => void;
+  onAdd: () => void;
 }) {
   const layers = useEditor((s) => s.scene.layers),
     selected = useEditor((s) => s.selected),
@@ -656,6 +670,7 @@ function LayersPanel({
         scene.fonts.push({ id: "space-bold", assetHash: "bundled-v1" });
     }, `Added ${kind} layer`);
     useEditor.getState().select(id);
+    onAdd();
   };
   return (
     <aside className="left-rail" aria-label="Layers and starting points">
@@ -685,7 +700,10 @@ function LayersPanel({
             <button
               className="layer-main"
               aria-pressed={selected.includes(layer.id)}
-              onClick={(e) => useEditor.getState().select(layer.id, e.shiftKey)}
+              onClick={(e) => {
+                useEditor.getState().select(layer.id, e.shiftKey);
+                onPick();
+              }}
             >
               {layer.kind === "text" ? (
                 <Type size={13} />
@@ -749,40 +767,19 @@ function LayersPanel({
           <Trash2 size={13} />
         </button>
       </div>
-      <div className="rail-bottom">
-        <div className="section-caption">
-          A PLACE TO START
-          <button onClick={onExamples} aria-label="Browse all examples">
-            <ArrowUpRight size={14} />
-          </button>
-        </div>
-        <div className="mini-examples">
-          {EXAMPLES.slice(0, 3).map((example) => (
-            <button
-              key={example.id}
-              title={example.title}
-              onClick={() => {
-                if (!useEditor.getState().replace(example.scene)) return;
-                useEditor.setState({ name: example.title });
-              }}
-            >
-              {ready ? (
-                <PosterPreview scene={example.scene} />
-              ) : (
-                <span>{example.title}</span>
-              )}
-            </button>
-          ))}
-        </div>
-        <button className="browse-examples" onClick={onExamples}>
-          Explore {EXAMPLES.length} starting points
-          <ArrowUpRight size={13} />
+      <div className="rail-bottom compact-rail-bottom">
+        <button
+          className="button full"
+          onClick={onExamples}
+          aria-label="Browse all examples"
+        >
+          <Shapes size={15} />
+          Templates<span>{EXAMPLES.length}</span>
+          <ArrowUpRight size={14} />
         </button>
-        <div className="keyboard-tip">
-          <span>Shift click</span> to select more
-          <br />
-          <span>↑ ↓ ← →</span> to nudge
-        </div>
+        <p className="small-note">
+          Shift-click to select more · Arrow keys to nudge
+        </p>
       </div>
     </aside>
   );
@@ -811,8 +808,14 @@ export function App() {
     setShareUrl("");
   }, []);
   const [drafts, setDrafts] = useState<ArchivedDraft[]>([]);
-  const [mobileLayers, setMobileLayers] = useState(false);
-  const [exampleFormat, setExampleFormat] = useState("all");
+  const [mobileView, setMobileView] = useState("canvas");
+  const [toolPanel, setToolPanel] = useState<
+    "style" | "layout" | "motion" | "ai"
+  >("style");
+  const chooseTool = (panel: typeof toolPanel) => {
+    setToolPanel(panel);
+    document.querySelector(".tool-content")?.scrollTo(0, 0);
+  };
   const savedProjectName = useRef(name);
   useEffect(() => {
     savedProjectName.current = useEditor.getState().name;
@@ -891,7 +894,7 @@ export function App() {
   }, [scene, projectId, capabilities?.authenticated, gesture]);
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
-      if (dialog || shareUrl) return;
+      if (dialog || shareUrl || document.querySelector("dialog[open]")) return;
       const target = event.target as HTMLElement;
       const editing =
         target instanceof HTMLInputElement ||
@@ -917,14 +920,18 @@ export function App() {
       } else if (event.key === "Delete" || event.key === "Backspace") {
         event.preventDefault();
         state.removeSelected();
-      } else if (event.code === "Space") {
+      } else if (
+        event.code === "Space" &&
+        !target.closest("button, a, summary, [role=tab]")
+      ) {
         event.preventDefault();
         state.setPlayback(!state.playing);
       } else if (
         ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
           event.key,
         ) &&
-        state.selected.length
+        state.selected.length &&
+        !target.closest("button, a, summary, [role=tab]")
       ) {
         event.preventDefault();
         const n = event.shiftKey ? 10 : 1;
@@ -1097,17 +1104,31 @@ export function App() {
           </button>
         </div>
       </header>
-      <main className={`workspace ${mobileLayers ? "show-mobile-layers" : ""}`}>
-        <button
-          className="mobile-layers-toggle"
-          aria-expanded={mobileLayers}
-          onClick={() => setMobileLayers(!mobileLayers)}
-        >
-          <Layers size={13} />
-          {mobileLayers ? "Hide layers" : "Layers & add elements"}
-          <ChevronDown size={13} />
-        </button>
-        <LayersPanel ready={ready} onExamples={() => setDialog("examples")} />
+      <nav className="mobile-view-nav" aria-label="Studio views">
+        {[
+          ["canvas", "Canvas"],
+          ["layers", "Layers"],
+          ["tools", "Tools"],
+        ].map(([id, label]) => (
+          <button
+            key={id}
+            aria-pressed={mobileView === id}
+            onClick={() => setMobileView(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      <main className={`workspace mobile-view-${mobileView}`}>
+        <LayersPanel
+          ready={ready}
+          onExamples={() => setDialog("examples")}
+          onPick={() => setMobileView("tools")}
+          onAdd={() => {
+            setMobileView("tools");
+            chooseTool("style");
+          }}
+        />
         <section className="center-column">
           <div className="canvas-toolbar">
             <div className="canvas-format-control">
@@ -1153,30 +1174,93 @@ export function App() {
               <ArrowUpRight size={12} />
             </button>
           </div>
-          <CanvasStage ready={ready} />
+          <CanvasStage
+            ready={ready}
+            onEditText={() => {
+              chooseTool("style");
+              setMobileView("tools");
+            }}
+          />
         </section>
         <aside
           className="right-rail"
           aria-label="Layer properties and language editing"
         >
-          <Inspector />
-          <AiComposer
-            capabilities={capabilities}
-            onAuthenticate={() => {
-              if (!capabilities) return;
-              setDialog(
-                capabilities.runtime === "browser" ? "settings" : "auth",
-              );
-            }}
-          />
+          <div className="tool-tabs" role="tablist" aria-label="Editing tools">
+            {(
+              [
+                ["style", "Text & style"],
+                ["layout", "Layout"],
+                ["motion", "Motion"],
+                ["ai", "AI"],
+              ] as const
+            ).map(([id, label], index) => (
+              <button
+                key={id}
+                id={`tool-${id}`}
+                role="tab"
+                aria-selected={toolPanel === id}
+                aria-controls="tools-panel"
+                tabIndex={toolPanel === id ? 0 : -1}
+                onClick={() => chooseTool(id)}
+                onKeyDown={(event) => {
+                  const ids = ["style", "layout", "motion", "ai"] as const;
+                  if (
+                    ["ArrowLeft", "ArrowRight", "Home", "End"].includes(
+                      event.key,
+                    )
+                  ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const next =
+                      event.key === "Home"
+                        ? 0
+                        : event.key === "End"
+                          ? 3
+                          : (index + (event.key === "ArrowRight" ? 1 : 3)) % 4;
+                    chooseTool(ids[next]);
+                    document.getElementById(`tool-${ids[next]}`)?.focus();
+                  }
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div
+            id="tools-panel"
+            className="tool-content"
+            role="tabpanel"
+            aria-labelledby={`tool-${toolPanel}`}
+          >
+            <div hidden={toolPanel === "ai"}>
+              <Inspector
+                panel={toolPanel === "ai" ? "style" : toolPanel}
+                ready={ready}
+              />
+            </div>
+            <div hidden={toolPanel !== "ai"}>
+              <AiComposer
+                capabilities={capabilities}
+                onAuthenticate={() => {
+                  if (!capabilities) return;
+                  setDialog(
+                    capabilities.runtime === "browser" ? "settings" : "auth",
+                  );
+                }}
+              />
+            </div>
+          </div>
         </aside>
       </main>
-      <Timeline />
+      <Timeline onPreview={() => setMobileView("canvas")} />
       <div className="statusbar" role="status" aria-label="Studio status">
         <span>
           <i /> {notice || "A typography workbench for the way you feel."}
         </span>
-        <span>LIVING POSTER · VOL. 001</span>
+        <span>
+          {FONT_OPTIONS.length} font styles · {EXAMPLES.length} templates
+        </span>
       </div>
       {fontError && (
         <div className="font-error" role="alert">
@@ -1214,132 +1298,14 @@ export function App() {
       )}
       {dialog === "export" && <ExportDialog onClose={close} />}
       {dialog === "examples" && (
-        <Modal title="Find your starting point" wide onClose={close}>
-          <div className="modal-body">
-            <p className="muted">
-              A blank canvas or a composition with a little character. Every
-              element is yours to edit.
-            </p>
-            <div className="section-caption">START FRESH</div>
-            <div className="blank-canvases">
-              {CANVAS_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  aria-label={`Create blank ${preset.label.toLowerCase()} canvas`}
-                  onClick={() => {
-                    const blank = cloneScene(EXAMPLES[0].scene);
-                    blank.id = newId();
-                    blank.layers = [];
-                    blank.pointer = { mode: "disabled" };
-                    const next = resizeScene(
-                      blank,
-                      preset.width,
-                      preset.height,
-                    );
-                    if (!useEditor.getState().replace(next)) return;
-                    useEditor.setState({
-                      name: `Untitled ${preset.label.toLowerCase()}`,
-                      notice:
-                        "Your blank canvas is ready. Add text or a shape from the Layers panel.",
-                    });
-                    setMobileLayers(true);
-                    close();
-                  }}
-                >
-                  <span
-                    className="blank-canvas-icon"
-                    style={{ aspectRatio: `${preset.width}/${preset.height}` }}
-                  >
-                    <Plus size={15} />
-                  </span>
-                  <strong>{preset.label}</strong>
-                  <small>
-                    {preset.width} × {preset.height}
-                  </small>
-                </button>
-              ))}
-            </div>
-            <div className="template-heading">
-              <div className="section-caption">START WITH A COMPOSITION</div>
-              <select
-                aria-label="Filter templates by format"
-                value={exampleFormat}
-                onChange={(event) => setExampleFormat(event.target.value)}
-              >
-                <option value="all">All formats</option>
-                {CANVAS_PRESETS.map((preset) => (
-                  <option key={preset.id} value={preset.id}>
-                    {preset.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="example-grid">
-              {EXAMPLES.filter(
-                (example) =>
-                  exampleFormat === "all" ||
-                  CANVAS_PRESETS.some(
-                    (preset) =>
-                      preset.id === exampleFormat &&
-                      preset.width === example.scene.artboard.width &&
-                      preset.height === example.scene.artboard.height,
-                  ),
-              ).map((example, index) => (
-                <button
-                  key={example.id}
-                  onClick={() => {
-                    if (!useEditor.getState().replace(example.scene)) return;
-                    useEditor.setState({ name: example.title });
-                    close();
-                  }}
-                >
-                  <div
-                    className="example-art"
-                    style={{
-                      aspectRatio: `${example.scene.artboard.width}/${example.scene.artboard.height}`,
-                    }}
-                  >
-                    {ready && <PosterPreview scene={example.scene} />}
-                    <span>
-                      {String(index + 1).padStart(2, "0")}
-                      <ArrowUpRight size={18} />
-                    </span>
-                  </div>
-                  <strong>{example.title}</strong>
-                  <small>{example.description}</small>
-                </button>
-              ))}
-            </div>
-            {drafts.length > 0 && (
-              <div className="recent-drafts">
-                <div className="section-caption">RECENT DEVICE DRAFTS</div>
-                {drafts.slice(0, 8).map((draft) => (
-                  <button
-                    className="button"
-                    key={draft.documentId}
-                    onClick={() => {
-                      const state = useEditor.getState();
-                      if (!state.replace(draft.scene)) return;
-                      useEditor.setState({
-                        documentId: draft.documentId,
-                        projectId: draft.projectId,
-                        serverHead: draft.serverHead,
-                        name: draft.name,
-                        notice: "Recovered device draft",
-                      });
-                      close();
-                    }}
-                  >
-                    <FolderOpen size={12} />
-                    {draft.name}
-                    <small>
-                      {new Date(draft.updatedAt).toLocaleDateString()}
-                    </small>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+        <Modal title="Templates & blank canvases" wide onClose={close}>
+          <TemplateBrowser
+            ready={ready}
+            drafts={drafts}
+            onClose={close}
+            onBlank={() => setMobileView("layers")}
+            onTemplate={() => setMobileView("canvas")}
+          />
         </Modal>
       )}
       {dialog === "settings" && (
@@ -1441,7 +1407,9 @@ export function App() {
                 )}
             </div>
             <p className="small-note">
-              Bundled typefaces: Space Grotesk, Fraunces and IBM Plex Mono.{" "}
+              Bundled typefaces:{" "}
+              {new Set(FONT_OPTIONS.map((font) => font.familyLabel)).size} free
+              families, {FONT_OPTIONS.length} styles.{" "}
               <a href="/fonts/LICENSES.txt" target="_blank" rel="noreferrer">
                 Font licenses
               </a>

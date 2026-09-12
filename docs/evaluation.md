@@ -1,16 +1,28 @@
 # Evaluation and release evidence
 
-## Version 1.1 expansion
+## Version 1.2 fonts, templates and editor
 
-The canvas and motion release passes **116 unit/integration tests**, **26 native browser tests**, and **6 hosted browser tests**. The browser suites cover recovery from interrupted recording, pending-field validation, editing after animated selection, four canvas formats, all ten offline exports at five exact frames, browser saving and reload, immutable portable sharing across browser profiles, damaged-link handling, and delayed startup without a password prompt. The bundled-font geometry probe covers ten templates in four formats with exact loop endpoints and no safety corrections at its sampled times.
+Version 1.2 passes **122 unit/integration tests**, **47 native browser tests**, and **6 hosted browser tests** against the locally served browser build. This includes font hash/coverage checks, legacy renderer compatibility, atomic font changes, tabbed editing, font search and automatic size fitting with Undo, template search/filtering, mobile workspace views, browser persistence and portable sharing.
 
-The final local Qwen3 4B prompt passes **20/20** cases in the existing release holdout (p95 3.32 seconds) and **7/8** new motion checks (p95 4.76 seconds), with **$0 API cost**. The failed new check asks for a heartbeat: the model sometimes invents a numeric motion parameter, which validation rejects while leaving the scene unchanged. Manual Heartbeat and other recipes work independently of model interpretation. These are machine-scored checks, not a claim of perfect creative understanding or human review.
+All 22 template exports match five exact evaluated frames in the tested browser. The all-font specimen embeds and replays all 19 font faces offline. The actual-font geometry probe validates all 22 templates across four canvas formats, for **88 variants**, with exact loop endpoints and zero bounds corrections at its sampled times. These checks use real bundled font bytes; they do not imply identical rasterization across different operating systems or browsers.
+
+The live local Qwen3 4B font evaluation passed **7/8** cases, with **8.94 seconds p95 latency** and **$0 API cost**. The request for Libre Baskerville Regular produced an invalid action/reference and was safely rejected with the poster unchanged. That font remains available through the manual picker. The retained [font evaluation report](../evals/results/2026-09-12T22-27-57-082Z-qwen3-4b.json) records every outcome, latency, token count and provider/fixture hash. No paid API, cloud model or generation credit was used. Independent human creative review remains pending.
+
+The current provider also passed **19/20** cases in the existing release holdout, with **19 valid results**, **3.047 seconds p95 latency**, and **$0 API cost**. `release-10` produced an invalid action/reference and was rejected without changing the scene. The [current holdout report](../evals/results/2026-09-12T22-36-05-299Z-qwen3-4b.json) retains that failure. The historical 20/20 result below belongs to the previous 1.1 provider run.
+
+The updated benchmark completed a functional smoke run across 24 cases: all 22 templates and the two stress fixtures, using all 19 fonts and each scene's actual canvas dimensions. This smoke run verifies that the expanded benchmark runs; it does not replace the historical full-duration performance measurements below.
+
+## Version 1.1 expansion (historical)
+
+The 1.1 canvas and motion release passed **116 unit/integration tests**, **26 native browser tests**, and **6 hosted browser tests**. Its browser suites covered recovery from interrupted recording, pending-field validation, editing after animated selection, four canvas formats, all ten offline exports at five exact frames, browser saving and reload, immutable portable sharing across browser profiles, damaged-link handling, and delayed startup without a password prompt. Its bundled-font geometry probe covered ten templates in four formats with exact loop endpoints and no safety corrections at its sampled times.
+
+The previous 1.1 local Qwen3 4B prompt passed **20/20** cases in the existing release holdout (p95 3.32 seconds) and **7/8** new motion checks (p95 4.76 seconds), with **$0 API cost**. The failed new check asked for a heartbeat: the model sometimes invented a numeric motion parameter, which validation rejected while leaving the scene unchanged. Manual Heartbeat and other recipes work independently of model interpretation. These are machine-scored checks, not a claim of perfect creative understanding or human review.
 
 Final reports: [legacy regression](../evals/results/2026-09-12T21-57-17-338Z-qwen3-4b.json) and [motion expansion](../evals/results/2026-09-12T21-56-41-730Z-qwen3-4b.json). Earlier failed/intermediate reports are retained. The measurements below document the original release.
 
 Measured on 13 September 2026 in Singapore; filenames use UTC. All inference was local. No paid API, cloud model, subscription, or generation credit was used.
 
-## Automated verification
+## Original-release automated verification (historical)
 
 | Check                           | Result                                                                              |
 | ------------------------------- | ----------------------------------------------------------------------------------- |
@@ -25,7 +37,7 @@ Browser tests cover text editing, dragging, nudging, undo/redo, immediate rename
 
 Export tests compare exact RGBA hashes at five timeline positions for all six compositions, all six font faces, rotated shapes with a recorded pointer, and an empty scene. Downloaded HTML opens with networking disabled and makes zero HTTP requests. Another test checks exact PNG equality at a selected frame and verifies markup-looking poster text remains inert. Missing players returned as an HTML fallback, changed font bytes, and font-loading failures produce errors before a broken export can be downloaded.
 
-## Real model evaluation
+## Original-release real model evaluation (historical)
 
 Runtime: Ollama 0.32.0, `qwen3:4b` Q4_K_M, model digest `359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7`. Machine: Intel i5-12400, 32 GB RAM, RTX 3050 8 GB. Requests use temperature zero, a 16,384-token context, a 2,000-token output ceiling, and no automatic inference retries. Warm latency varies with machine load.
 
@@ -62,9 +74,9 @@ $env:EVAL_CASES = 'evals/release-holdout.json'
 npm run eval:local
 ```
 
-## Rendering performance
+## Original-release rendering performance (historical)
 
-The [engine benchmark](../tests/core-artifacts/performance.json) samples each case for 30 seconds after warm-up. Headless Chromium 153 used a 1080×1350 backing canvas at DPR 2 with SwiftShader. Six compositions measured 0.6–0.8 ms p95 for evaluation plus paint-command submission. The 24-layer / 400-grapheme / 60-behavior fixture measured 1.9 ms; the 64-layer / 1,024-grapheme / 256-behavior limit fixture measured 4.5 ms. All measured engine targets passed.
+The retained original-release [engine benchmark](../tests/core-artifacts/performance.json) sampled each case for 30 seconds after warm-up. Headless Chromium 153 used a 1080×1350 backing canvas at DPR 2 with SwiftShader. Six compositions measured 0.6–0.8 ms p95 for evaluation plus paint-command submission. The 24-layer / 400-grapheme / 60-behavior fixture measured 1.9 ms; the 64-layer / 1,024-grapheme / 256-behavior limit fixture measured 4.5 ms. All measured engine targets passed. This historical run does not measure the 22-template library, new font families, or 1.2 editor chrome.
 
 These timings exclude React chrome and physical display presentation. rAF callback p95 was 16.7–16.8 ms; this is not a guarantee that every device presents at 60 fps. Full counts, percentiles, bounds corrections and conditions are recorded. Run `npm run bench` on your machine.
 

@@ -1,0 +1,224 @@
+{
+  "startedAt": "2026-09-12T22:27:57.082Z",
+  "finishedAt": "2026-09-12T22:28:17.946Z",
+  "model": "qwen3:4b",
+  "runtime": "Ollama local",
+  "cost": 0,
+  "caseSet": "evals/fonts-v3.json",
+  "caseSetSha256": "f12a533233e38dccbf637895a07cee6b450bf1055995a8a8ed63106a5115a532",
+  "providerSha256": "b72b902ba5960a25a07c2b95e9f4502a30a616b6a8161e9745e79ff20066805a",
+  "total": 8,
+  "passed": 7,
+  "valid": 7,
+  "correctTargets": 7,
+  "determinateCases": 8,
+  "preserved": 7,
+  "p50LatencyMs": 1614,
+  "p95LatencyMs": 8940,
+  "humanReview": "Pending independent human creative review; not replaced by automated checks.",
+  "results": [
+    {
+      "id": "font-dm",
+      "category": "typography",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 8940,
+      "inputTokens": 1976,
+      "outputTokens": 67,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-headline",
+            "changes": {
+              "fontId": "dm-bold"
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "font-playfair",
+      "category": "typography",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1537,
+      "inputTokens": 1970,
+      "outputTokens": 64,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "fontId": "playfair-regular"
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "font-baskerville",
+      "category": "typography",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1614,
+      "cost": 0,
+      "error": "The local model proposed an invalid action or layer reference. Try a narrower instruction; your poster is unchanged."
+    },
+    {
+      "id": "font-barlow",
+      "category": "typography",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1533,
+      "inputTokens": 1971,
+      "outputTokens": 66,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-headline",
+            "changes": {
+              "fontId": "barlow-bold"
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "font-archivo",
+      "category": "typography",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1498,
+      "inputTokens": 1969,
+      "outputTokens": 63,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-headline",
+            "changes": {
+              "fontId": "archivo-black"
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "font-caveat",
+      "category": "typography",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1736,
+      "inputTokens": 1974,
+      "outputTokens": 76,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "fontId": "caveat-bold"
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "font-nunito",
+      "category": "typography",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1568,
+      "inputTokens": 1971,
+      "outputTokens": 66,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-caption",
+            "changes": {
+              "fontId": "nunito-regular"
+            }
+          }
+        ],
+        "summary": "Updated Caption."
+      }
+    },
+    {
+      "id": "font-compound",
+      "category": "typography",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2434,
+      "inputTokens": 1986,
+      "outputTokens": 119,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-headline",
+            "changes": {
+              "fontId": "playfair-bold"
+            }
+          },
+          {
+            "type": "setFill",
+            "layerId": "layer-headline",
+            "colour": "#403052"
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    }
+  ]
+}

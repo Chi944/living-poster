@@ -8,7 +8,6 @@ import {
   Shapes,
 } from "lucide-react";
 import {
-  FONT_OPTIONS,
   BEHAVIOR_OPTIONS,
   CANVAS_PRESETS,
   resizeScene,
@@ -20,6 +19,7 @@ import {
 } from "../../../packages/core/src";
 import { useEditor, updateLayer } from "./store";
 import { MOTION_RECIPES, recipeBehaviors } from "./motion-recipes";
+import { FontPicker } from "./FontPicker";
 const invalidate = () => {
   useEditor.getState().enterEditMode();
   useEditor.setState((s) => ({ mutationEpoch: s.mutationEpoch + 1 }));
@@ -424,7 +424,13 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
     </details>
   );
 }
-export function Inspector() {
+export function Inspector({
+  panel,
+  ready,
+}: {
+  panel: "style" | "layout" | "motion";
+  ready: boolean;
+}) {
   const selected = useEditor((s) => s.selected),
     scene = useEditor((s) => s.scene),
     layer = scene.layers.find((l) => l.id === selected[0]);
@@ -535,15 +541,6 @@ export function Inspector() {
             </div>
           </dl>
         </section>
-        <div className="inspector-tip">
-          <span>MAKE IT YOURS</span>
-          <p>
-            Start with a word.
-            <br />
-            Give it a little life.
-          </p>
-          <i>← Pick something on the canvas</i>
-        </div>
       </div>
     );
   return (
@@ -553,7 +550,7 @@ export function Inspector() {
         <h2>
           {selected.length > 1
             ? `${selected.length} layers selected`
-            : "Properties"}
+            : layer.name}
         </h2>
         <span>{layer.kind}</span>
       </div>
@@ -562,19 +559,7 @@ export function Inspector() {
           Showing {layer.name}. Drag and nudge move all selected layers.
         </div>
       )}
-      <div className="inspector-shortcuts">
-        <span>SHAPE YOUR LAYER</span>
-        <button
-          onClick={() =>
-            document
-              .getElementById("motion-recipes")
-              ?.scrollIntoView({ block: "start", behavior: "smooth" })
-          }
-        >
-          Try 12 motion recipes ↓
-        </button>
-      </div>
-      <section className="inspector-section">
+      <section className="inspector-section" hidden={panel !== "layout"}>
         <TextField
           label="Layer name"
           value={layer.name}
@@ -584,6 +569,11 @@ export function Inspector() {
             })
           }
         />
+      </section>
+      <section
+        className="inspector-section"
+        hidden={panel !== "style" || layer.kind !== "text"}
+      >
         {layer.kind === "text" && (
           <TextField
             label="Text"
@@ -597,34 +587,13 @@ export function Inspector() {
           />
         )}
       </section>
-      <section className="inspector-section">
+      <section className="inspector-section" hidden={panel !== "style"}>
         <div className="section-caption">
           {layer.kind === "text" ? "TYPOGRAPHY" : "SHAPE"}
         </div>
         {layer.kind === "text" ? (
           <>
-            <label className="field">
-              <span>Typeface</span>
-              <select
-                value={layer.fontId}
-                onChange={(e) =>
-                  useEditor.getState().commit((s) => {
-                    const l = s.layers.find((x) => x.id === layer.id);
-                    if (l?.kind === "text") {
-                      l.fontId = e.target.value as TextLayer["fontId"];
-                      if (!s.fonts.some((f) => f.id === l.fontId))
-                        s.fonts.push({ id: l.fontId, assetHash: "bundled-v1" });
-                    }
-                  })
-                }
-              >
-                {FONT_OPTIONS.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <FontPicker layer={layer} ready={ready} />
             <div className="field-grid">
               <NumberField
                 label="Size"
@@ -762,7 +731,7 @@ export function Inspector() {
           />
         </div>
       </section>
-      <section className="inspector-section">
+      <section className="inspector-section" hidden={panel !== "layout"}>
         <div className="section-caption">POSITION</div>
         <div className="field-grid">
           <NumberField
@@ -803,7 +772,11 @@ export function Inspector() {
           />
         </div>
       </section>
-      <section className="inspector-section" id="motion-recipes">
+      <section
+        className="inspector-section"
+        id="motion-recipes"
+        hidden={panel !== "motion"}
+      >
         <div className="section-caption">
           TRY A MOVEMENT <span>12 RECIPES</span>
         </div>
@@ -846,7 +819,7 @@ export function Inspector() {
           Replaces this layer’s motion. Click the canvas to pause and edit.
         </p>
       </section>
-      <section className="inspector-section">
+      <section className="inspector-section" hidden={panel !== "motion"}>
         <div className="section-caption">
           FINE-TUNE MOTION <span>{layer.behaviors.length}/10</span>
         </div>

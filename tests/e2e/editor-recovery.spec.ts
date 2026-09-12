@@ -120,7 +120,9 @@ test("blank formats, animated canvas selection and double-click text editing wor
     .click();
   await expect(page.getByLabel("Artboard format")).toHaveValue("square");
   await page.getByRole("button", { name: "Text", exact: true }).click();
+  await page.getByRole("tab", { name: "Layout", exact: true }).click();
   await expect(page.getByLabel("Layer name")).toHaveValue("New text");
+  await page.getByRole("tab", { name: "Motion", exact: true }).click();
   await page.getByRole("button", { name: "Apply Heartbeat animation" }).click();
   await expect(
     page.getByRole("button", { name: "Pause playback" }),
@@ -132,6 +134,9 @@ test("blank formats, animated canvas selection and double-click text editing wor
     box.y + box.height * 0.484,
   );
   const text = page.getByRole("textbox", { name: "Text", exact: true });
+  await expect(
+    page.getByRole("tab", { name: "Text & style", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
   await expect(text).toBeFocused();
   await expect(
     page.getByRole("button", { name: "Play poster", exact: true }),
@@ -139,6 +144,7 @@ test("blank formats, animated canvas selection and double-click text editing wor
   await text.fill("THRIVE");
   await text.press("Tab");
   await expect(text).toHaveValue("THRIVE");
+  await page.getByRole("tab", { name: "Layout", exact: true }).click();
   const x = Number(
     await page.getByRole("spinbutton", { name: "X", exact: true }).inputValue(),
   );
@@ -151,8 +157,10 @@ test("blank formats, animated canvas selection and double-click text editing wor
   await expect(page.locator(".stage-meta")).toContainText("1920 × 1080");
   const resized = (await art.boundingBox())!;
   expect(resized.width / resized.height).toBeCloseTo(1920 / 1080, 1);
+  await page.getByRole("tab", { name: "Motion", exact: true }).click();
   await page.getByRole("button", { name: "Apply Spring animation" }).click();
   await page.getByRole("button", { name: "Edit canvas", exact: true }).click();
+  await page.getByRole("tab", { name: "Text & style", exact: true }).click();
   await text.fill("STILL EDITABLE");
   await text.press("Tab");
   await expect(text).toHaveValue("STILL EDITABLE");
@@ -163,8 +171,8 @@ test("templates can be filtered by canvas format", async ({ page }) => {
   await open(page);
   await page.getByRole("button", { name: "New canvas", exact: true }).click();
   await page.getByLabel("Filter templates by format").selectOption("story");
-  await expect(page.locator(".example-grid button")).toHaveCount(1);
-  await page.locator(".example-grid button").click();
+  await expect(page.locator(".example-grid button")).toHaveCount(4);
+  await page.locator(".example-grid button").first().click();
   await expect(page.getByLabel("Artboard format")).toHaveValue("story");
   await page.getByRole("button", { name: "Edit canvas", exact: true }).click();
   await expect(page.locator(".render-error")).toHaveCount(0);

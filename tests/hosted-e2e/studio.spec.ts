@@ -113,12 +113,14 @@ test("four blank formats resize correctly and remain editable after motion prese
       .click();
     await expect(page.getByLabel("Artboard format")).toHaveValue(format);
     await page.getByRole("button", { name: "Text", exact: true }).click();
+    await page.getByRole("tab", { name: "Motion", exact: true }).click();
     await page
       .getByRole("button", { name: "Apply Heartbeat animation" })
       .click();
     await page
       .getByRole("button", { name: "Edit canvas", exact: true })
       .click();
+    await page.getByRole("tab", { name: "Text & style", exact: true }).click();
     const text = page.getByRole("textbox", { name: "Text", exact: true });
     await text.fill(format.toUpperCase());
     await text.press("Tab");

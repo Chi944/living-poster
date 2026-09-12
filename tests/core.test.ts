@@ -80,7 +80,7 @@ function withBehavior(type: Behavior["type"]): Scene {
 
 describe("closed scene language", () => {
   it("validates all ten independent examples", () => {
-    expect(EXAMPLES).toHaveLength(10);
+    expect(EXAMPLES).toHaveLength(22);
     for (const example of EXAMPLES)
       expect(validateScene(example.scene)).toEqual(example.scene);
   });

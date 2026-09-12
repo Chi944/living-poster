@@ -64,6 +64,7 @@ test("manual typography, direct drag, keyboard nudge, undo/redo and reload", asy
   await expect(
     page.getByRole("textbox", { name: "Text", exact: true }),
   ).toHaveValue("MOTION");
+  await page.getByRole("tab", { name: "Layout", exact: true }).click();
   const x = Number(
     await page.getByRole("spinbutton", { name: /^X( px)?$/ }).inputValue(),
   );
@@ -125,19 +126,28 @@ test("manual typography, direct drag, keyboard nudge, undo/redo and reload", asy
   expect(errors).toEqual([]);
 });
 
-test("ten examples, shape creation, behavior controls and recorded pointer", async ({
+test("searchable templates, shape creation, behavior controls and recorded pointer", async ({
   page,
 }) => {
   await open(page);
   await page.getByRole("button", { name: "Browse all examples" }).click();
-  expect(await page.locator(".example-grid button").count()).toBe(10);
+  await expect(page.locator(".example-grid button")).toHaveCount(6);
+  await expect(page.locator(".template-filter-row")).toContainText(
+    "22 templates",
+  );
+  await page
+    .getByRole("textbox", { name: "Search templates", exact: true })
+    .fill("Personal Space");
+  await expect(page.locator(".example-grid button")).toHaveCount(1);
   await page
     .locator(".example-grid button")
     .filter({ hasText: "Personal Space" })
     .click();
   await expect(page.getByLabel("Project name")).toHaveValue("PERSONAL SPACE");
   await page.getByRole("button", { name: "Shape", exact: true }).click();
+  await page.getByRole("tab", { name: "Layout", exact: true }).click();
   await expect(page.getByLabel("Layer name")).toHaveValue("New shape");
+  await page.getByRole("tab", { name: "Motion", exact: true }).click();
   await page.getByRole("button", { name: "Add behaviour" }).click();
   await page.getByRole("button", { name: "Float", exact: true }).click();
   await page
@@ -396,6 +406,7 @@ test("a corrected pending AI instruction supersedes the old reply and preserves 
   );
   await open(page);
   await selectHeadline(page);
+  await page.getByRole("tab", { name: "AI", exact: true }).click();
   const prompt = page.getByLabel("Describe a change");
   await prompt.fill("Change the headline colour.");
   await page.getByRole("button", { name: "Apply AI instruction" }).click();
@@ -408,10 +419,14 @@ test("a corrected pending AI instruction supersedes the old reply and preserves 
     "Response superseded",
   );
   await expect(prompt).toHaveValue("Use a different blue for the headline.");
+  await page.getByRole("tab", { name: "Text & style", exact: true }).click();
   await expect(page.getByLabel("Fill", { exact: true })).toHaveValue("#20211f");
+  await page.getByRole("tab", { name: "AI", exact: true }).click();
   await page.getByRole("button", { name: "Apply AI instruction" }).click();
   await expect(page.locator(".ai-message.applied")).toBeVisible();
+  await page.getByRole("tab", { name: "Text & style", exact: true }).click();
   await expect(page.getByLabel("Fill", { exact: true })).toHaveValue("#124578");
+  await page.getByRole("tab", { name: "AI", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Undo this change", exact: true }),
   ).toBeVisible();
@@ -422,5 +437,6 @@ test("a corrected pending AI instruction supersedes the old reply and preserves 
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await page.getByRole("tab", { name: "Text & style", exact: true }).click();
   await expect(page.getByLabel("Fill", { exact: true })).toHaveValue("#20211f");
 });

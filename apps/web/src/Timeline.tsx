@@ -2,7 +2,7 @@ import { Pause, Play, RotateCcw, MousePointer2, Circle, X } from "lucide-react";
 import { closePointerLoop } from "../../../packages/core/src";
 import { useEditor } from "./store";
 import { pointerRef } from "./CanvasStage";
-export function Timeline() {
+export function Timeline({ onPreview }: { onPreview?: () => void } = {}) {
   const playing = useEditor((s) => s.playing),
     time = useEditor((s) => s.timeMs),
     duration = useEditor((s) => s.scene.timeline.durationMs),
@@ -44,7 +44,10 @@ export function Timeline() {
         <button
           className="play-button"
           aria-label={playing ? "Pause playback" : "Play poster"}
-          onClick={() => useEditor.getState().setPlayback(!playing)}
+          onClick={() => {
+            if (!playing) onPreview?.();
+            useEditor.getState().setPlayback(!playing);
+          }}
         >
           {playing ? (
             <Pause size={15} fill="currentColor" />
@@ -151,11 +154,13 @@ export function Timeline() {
           aria-label={
             recording ? "Cancel pointer recording" : "Record pointer loop"
           }
-          onClick={() =>
-            recording
-              ? useEditor.getState().cancelRecording()
-              : useEditor.getState().beginRecording()
-          }
+          onClick={() => {
+            if (recording) useEditor.getState().cancelRecording();
+            else {
+              onPreview?.();
+              useEditor.getState().beginRecording();
+            }
+          }}
         >
           {recording ? (
             <X size={12} />

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { FONT_MANIFEST } from "./font-manifest";
 
-export const CURRENT_RENDERER_VERSION = "1.1.0" as const;
+export const CURRENT_RENDERER_VERSION = "1.2.0" as const;
 export const CANVAS_PRESETS = [
   { id: "portrait", label: "Portrait", width: 1080, height: 1350 },
   { id: "square", label: "Square", width: 1080, height: 1080 },
@@ -16,6 +16,19 @@ export const FONT_IDS = [
   "fraunces-bold",
   "mono-regular",
   "mono-bold",
+  "dm-regular",
+  "dm-bold",
+  "playfair-regular",
+  "playfair-bold",
+  "baskerville-regular",
+  "baskerville-bold",
+  "barlow-regular",
+  "barlow-bold",
+  "archivo-black",
+  "caveat-regular",
+  "caveat-bold",
+  "nunito-regular",
+  "nunito-bold",
 ] as const;
 export const FontIdSchema = z.enum(FONT_IDS);
 export type FontId = z.infer<typeof FontIdSchema>;
@@ -263,7 +276,7 @@ export const PointerSchema = z.discriminatedUnion("mode", [
 const RawSceneSchema = z
   .object({
     schemaVersion: z.literal(1),
-    rendererVersion: z.enum(["1.0.0", CURRENT_RENDERER_VERSION]),
+    rendererVersion: z.enum(["1.0.0", "1.1.0", CURRENT_RENDERER_VERSION]),
     id,
     revision: z.object({ id, parentId: id.nullable() }).strict(),
     seed: number.int().min(0).max(4294967295),
@@ -288,7 +301,7 @@ const RawSceneSchema = z
           .strict(),
       )
       .min(1)
-      .max(6),
+      .max(FONT_IDS.length),
     layers: z.array(LayerSchema).max(64),
     pointer: PointerSchema,
   })
@@ -317,6 +330,11 @@ export function supportedText(
 export const SceneSchema = RawSceneSchema.superRefine((s, ctx) => {
   const fail = (message: string, path: (string | number)[] = []) =>
     ctx.addIssue({ code: "custom", message, path });
+  if (
+    s.rendererVersion !== CURRENT_RENDERER_VERSION &&
+    s.fonts.some((font) => !FONT_IDS.slice(0, 6).includes(font.id))
+  )
+    fail("Expanded font library requires renderer 1.2.0", ["rendererVersion"]);
   if (
     !CANVAS_PRESETS.some(
       (preset) =>

@@ -1,7 +1,7 @@
 // Actual-font geometry probe. Run: node tests/core-browser-probe.mjs
 import { build } from "esbuild";
 import { chromium } from "@playwright/test";
-import { readFile, mkdir } from "node:fs/promises";
+import { readFile, readdir, mkdir } from "node:fs/promises";
 import path from "node:path";
 const root = process.cwd();
 const bundle = await build({
@@ -13,14 +13,9 @@ const bundle = await build({
   platform: "browser",
   target: "es2023",
 });
-const fontIds = [
-  "space-regular",
-  "space-bold",
-  "fraunces-regular",
-  "fraunces-bold",
-  "mono-regular",
-  "mono-bold",
-];
+const fontIds = (await readdir(path.join(root, "apps/web/public/fonts")))
+  .filter((file) => file.endsWith(".woff2"))
+  .map((file) => file.slice(0, -6));
 const sources = Object.fromEntries(
   await Promise.all(
     fontIds.map(async (id) => [
@@ -35,6 +30,7 @@ try {
     viewport: { width: 1140, height: 1000 },
     deviceScaleFactor: 1,
   });
+  page.on("pageerror", (error) => console.error(error));
   await page.setContent(
     "<style>body{margin:0;padding:24px;background:#e5e2db;display:grid;grid-template-columns:repeat(3,350px);gap:20px;font:12px monospace;align-items:start}canvas{display:block;width:350px;height:auto}p{margin:8px 0 0}</style>",
   );

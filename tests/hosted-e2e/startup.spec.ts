@@ -34,6 +34,7 @@ test("a delayed browser library chunk never opens local password dialogs", async
     await expect(
       page.getByRole("button", { name: "Connect", exact: true }),
     ).toHaveCount(0);
+    await page.getByRole("tab", { name: "AI", exact: true }).click();
     await page.getByLabel("Describe a change").fill("Make the headline float.");
     await expect(
       page.getByRole("button", { name: "Apply AI instruction" }),

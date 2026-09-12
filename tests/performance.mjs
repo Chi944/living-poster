@@ -1,15 +1,22 @@
 // Real Canvas 2D benchmark, no application server or AI calls required.
 // node tests/performance.mjs [--assert]; LP_BENCH_SECONDS=30 by default.
+// LP_BENCH_WARMUP_MS defaults to 1800; LP_BENCH_OUTPUT selects another report.
 import { build } from "esbuild";
 import { chromium } from "@playwright/test";
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { readFile, readdir, mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 const seconds = Number(process.env.LP_BENCH_SECONDS ?? 30);
 if (!Number.isFinite(seconds) || seconds < 1 || seconds > 120)
   throw new Error("LP_BENCH_SECONDS must be between 1 and 120.");
+const warmupMs = Number(process.env.LP_BENCH_WARMUP_MS ?? 1800);
+if (!Number.isFinite(warmupMs) || warmupMs < 0 || warmupMs > 10000)
+  throw new Error("LP_BENCH_WARMUP_MS must be between 0 and 10000.");
 const root = process.cwd(),
-  outputPath = path.join(root, "tests/core-artifacts/performance.json");
+  outputPath = path.resolve(
+    root,
+    process.env.LP_BENCH_OUTPUT ?? "tests/core-artifacts/performance.json",
+  );
 const bundle = await build({
   entryPoints: [path.join(root, "packages/core/src/index.ts")],
   bundle: true,
@@ -19,14 +26,9 @@ const bundle = await build({
   platform: "browser",
   target: "es2023",
 });
-const ids = [
-  "space-regular",
-  "space-bold",
-  "fraunces-regular",
-  "fraunces-bold",
-  "mono-regular",
-  "mono-bold",
-];
+const ids = (await readdir(path.join(root, "apps/web/public/fonts")))
+  .filter((file) => file.endsWith(".woff2"))
+  .map((file) => file.slice(0, -6));
 const sources = Object.fromEntries(
   await Promise.all(
     ids.map(async (id) => [
@@ -37,7 +39,7 @@ const sources = Object.fromEntries(
 );
 const browser = await chromium.launch({ headless: true });
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   recordedAt: new Date().toISOString(),
   conditions: {
     browser: browser.version(),
@@ -48,10 +50,10 @@ const report = {
     logicalCpus: os.cpus().length,
     totalMemoryGiB: Math.round(os.totalmem() / 1024 ** 3),
     durationSeconds: seconds,
-    warmupMs: 1800,
-    viewport: { width: 1280, height: 900 },
-    cssCanvas: { width: 540, height: 675 },
-    canvasBacking: { width: 1080, height: 1350 },
+    warmupMs,
+    viewport: { width: 1280, height: 1080 },
+    canvasSizing:
+      "Each case uses its artboard dimensions as backing pixels and half those dimensions in CSS; exact sizes are recorded per result.",
     dpr: 2,
     network: "disabled; font bytes embedded",
     timing:
@@ -77,7 +79,7 @@ try {
   );
   await page.goto("http://localhost/core-benchmark");
   await page.setContent(
-    '<style>body{margin:0;background:#e5e2db;display:grid;place-items:center;min-height:100vh}canvas{width:540px;height:675px}</style><canvas id="poster" width="1080" height="1350"></canvas>',
+    '<style>body{margin:0;background:#e5e2db;display:grid;place-items:center;min-height:100vh}canvas{display:block}</style><canvas id="poster"></canvas>',
   );
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   report.browserEnvironment = await page.evaluate(async (sources) => {
@@ -172,14 +174,26 @@ try {
   await mkdir(path.dirname(outputPath), { recursive: true });
   for (let index = 0; index < cases.length; index++) {
     const result = await page.evaluate(
-      async ({ index, seconds }) => {
+      async ({ index, seconds, warmupMs }) => {
         const core = globalThis.LivingPosterCore,
           { id, scene, category } = globalThis.benchmarkScenes[index],
           compileStart = performance.now(),
           compiled = core.compileScene(scene),
           compileMs = performance.now() - compileStart;
-        const ctx = document.querySelector("canvas").getContext("2d"),
-          warmupMs = 1800,
+        const canvas = document.querySelector("canvas"),
+          canvasBacking = {
+            width: scene.artboard.width,
+            height: scene.artboard.height,
+          },
+          cssCanvas = {
+            width: canvasBacking.width / 2,
+            height: canvasBacking.height / 2,
+          };
+        canvas.width = canvasBacking.width;
+        canvas.height = canvasBacking.height;
+        canvas.style.width = `${cssCanvas.width}px`;
+        canvas.style.height = `${cssCanvas.height}px`;
+        const ctx = canvas.getContext("2d"),
           evaluateTimes = [],
           paintTimes = [],
           combinedTimes = [],
@@ -238,6 +252,9 @@ try {
         return {
           id,
           category,
+          rendererVersion: scene.rendererVersion,
+          canvasBacking,
+          cssCanvas,
           layers: scene.layers.length,
           graphemes: compiled.glyphCount,
           behaviors: compiled.behaviorCount,
@@ -255,7 +272,7 @@ try {
               combined.p95Ms <= target.evaluatePaintP95Ms),
         };
       },
-      { index, seconds },
+      { index, seconds, warmupMs },
     );
     report.results.push(result);
     await writeFile(outputPath, JSON.stringify(report, null, 2) + "\n");

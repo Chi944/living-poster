@@ -49,7 +49,7 @@ describe("extended local model vocabulary", () => {
       const next = applyOperations(request.scene, reply.operations, {
         allowTextChanges: false,
       }).scene;
-      expect(next.rendererVersion).toBe("1.1.0");
+      expect(next.rendererVersion).toBe("1.2.0");
       const behavior = next.layers[0].behaviors.find(
         (behavior) => behavior.type === motion,
       )!;

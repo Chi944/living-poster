@@ -1,0 +1,10 @@
+[
+ {"id":"font-dm","category":"typography","instruction":"Set the headline typeface to DM Sans Bold. Keep its words unchanged.","targets":["Headline"],"required":[{"layer":"Headline","path":"fontId","value":"dm-bold"}],"allowed":{"Headline":["fontId"]}},
+ {"id":"font-playfair","category":"typography","instruction":"Use Playfair Display Regular for the subtitle.","targets":["Subtitle"],"required":[{"layer":"Subtitle","path":"fontId","value":"playfair-regular"}],"allowed":{"Subtitle":["fontId"]}},
+ {"id":"font-baskerville","category":"typography","instruction":"Set the caption in Libre Baskerville Regular.","targets":["Caption"],"required":[{"layer":"Caption","path":"fontId","value":"baskerville-regular"}],"allowed":{"Caption":["fontId"]}},
+ {"id":"font-barlow","category":"typography","instruction":"Use Barlow Condensed Bold for the headline.","targets":["Headline"],"required":[{"layer":"Headline","path":"fontId","value":"barlow-bold"}],"allowed":{"Headline":["fontId"]}},
+ {"id":"font-archivo","category":"typography","instruction":"Make the headline use Archivo Black.","targets":["Headline"],"required":[{"layer":"Headline","path":"fontId","value":"archivo-black"}],"allowed":{"Headline":["fontId"]}},
+ {"id":"font-caveat","category":"typography","instruction":"Change the subtitle font to Caveat Bold, preserving its wording.","targets":["Subtitle"],"required":[{"layer":"Subtitle","path":"fontId","value":"caveat-bold"}],"allowed":{"Subtitle":["fontId"]}},
+ {"id":"font-nunito","category":"typography","instruction":"Use Nunito Sans Regular for the caption.","targets":["Caption"],"required":[{"layer":"Caption","path":"fontId","value":"nunito-regular"}],"allowed":{"Caption":["fontId"]}},
+ {"id":"font-compound","category":"typography","instruction":"Set the headline font to Playfair Display Bold and its colour to #403052. Keep the words.","targets":["Headline"],"required":[{"layer":"Headline","path":"fontId","value":"playfair-bold"},{"layer":"Headline","path":"fill","value":"#403052"}],"allowed":{"Headline":["fontId","fill"]}}
+]

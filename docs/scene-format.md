@@ -4,7 +4,7 @@
 
 ## Version and validation
 
-New scenes use `schemaVersion: 1`, `rendererVersion: "1.1.0"`. Legacy 1.0.0 portrait scenes remain readable; edits create a fresh 1.1.0 revision. The new motions and formats require 1.1.0. Unknown versions fail validation. Previously exported HTML files retain their embedded renderer. Scene and nested objects use strict Zod schemas, so unknown properties fail instead of being silently discarded.
+New revisions use `schemaVersion: 1`, `rendererVersion: "1.2.0"`. Legacy 1.0.0 and 1.1.0 scenes remain readable with the original six font faces; edits create a fresh 1.2.0 revision. Renderer 1.0.0 retains its portrait format and original six motion types. The additional motions and formats require at least 1.1.0, and added font references require 1.2.0 even when no visible layer uses them. Unknown versions fail validation. Previously exported HTML files retain their embedded renderer. Scene and nested objects use strict Zod schemas, so unknown properties fail instead of being silently discarded.
 
 `validateScene(value)` performs structural and semantic validation in both Node and the browser. `compileScene(scene)` additionally checks font-dependent geometry in the browser. Compile only after `await loadFonts()`. The server does not substitute a second font rasterizer.
 
@@ -15,7 +15,7 @@ New scenes use `schemaVersion: 1`, `rendererVersion: "1.1.0"`. Legacy 1.0.0 port
 | `seed`     | Integer from 0 through 4,294,967,295                                                                 |
 | `artboard` | `Portrait 1080×1350, square 1080×1080, story 1080×1920 or landscape 1920×1080; background "#RRGGBB"` |
 | `timeline` | Duration 2,000–10,000 ms in 100 ms increments; `fps: 30`, `loop: true`                               |
-| `fonts`    | One to six unique `{ id, assetHash: "bundled-v1" }` references                                       |
+| `fonts`    | One to 19 unique `{ id, assetHash: "bundled-v1" }` references                                        |
 | `layers`   | Ordered back-to-front array, at most 64 layers                                                       |
 | `pointer`  | Disabled, fixed, or a saved recorded loop                                                            |
 
@@ -31,20 +31,39 @@ Shared fields are `id`, `name`, `kind`, `visible`, `locked`, `opacity`, `layout`
 
 For a **text layer**, X is the alignment anchor and Y is the first line's alphabetic baseline. For a **shape layer**, X and Y are its center. Both are the layer pivot used by layer rotation, attraction, and orbit.
 
-| Text field   | Range or vocabulary                                                                             |
-| ------------ | ----------------------------------------------------------------------------------------------- |
-| `text`       | Exact supported text, explicit `\n` line breaks; no automatic wrapping                          |
-| `fontId`     | `space-regular`, `space-bold`, `fraunces-regular`, `fraunces-bold`, `mono-regular`, `mono-bold` |
-| `fontSize`   | 12–300 logical units                                                                            |
-| `lineHeight` | 0.9–1.8 times font size                                                                         |
-| `trackingEm` | −0.03–0.20 times font size, between graphemes                                                   |
-| `align`      | `left`, `center`, or `right`                                                                    |
+| Text field   | Range or vocabulary                                                    |
+| ------------ | ---------------------------------------------------------------------- |
+| `text`       | Exact supported text, explicit `\n` line breaks; no automatic wrapping |
+| `fontId`     | One of the 19 bundled face IDs listed below                            |
+| `fontSize`   | 12–300 logical units                                                   |
+| `lineHeight` | 0.9–1.8 times font size                                                |
+| `trackingEm` | −0.03–0.20 times font size, between graphemes                          |
+| `align`      | `left`, `center`, or `right`                                           |
 
 Shape layers use `shape: "rect" | "ellipse"`, with width and height each 4–640. Rectangles may have a `cornerRadius` from 0–80, no greater than half the shorter side. Ellipses cannot have a corner radius.
 
-The three bundled families are Space Grotesk, Fraunces, and IBM Plex Mono, each in regular and bold. `font-manifest.ts` records SHA-256 and actual Unicode cmap ranges extracted from the six checked-in WOFF2 files. Character coverage is checked for the selected face, not merely against a font stylesheet's advertised Unicode range. Precomposed Latin accents and available punctuation work; unsupported characters produce a validation message. Text is never normalized or silently sent to a fallback font.
+The ten bundled families provide 19 faces:
 
-`loadFonts()` loads all six bundled faces. `loadFonts({ "space-bold": "data:font/woff2;base64,..." })` loads only the supplied faces; `loadFonts({})` loads none. It verifies bytes against the manifest before constructing and awaiting `FontFace`. The offline player decodes embedded bytes without making a network request.
+| Family            | Regular ID            | Bold ID            | Category    |
+| ----------------- | --------------------- | ------------------ | ----------- |
+| Space Grotesk     | `space-regular`       | `space-bold`       | Sans        |
+| Fraunces          | `fraunces-regular`    | `fraunces-bold`    | Serif       |
+| IBM Plex Mono     | `mono-regular`        | `mono-bold`        | Mono        |
+| DM Sans           | `dm-regular`          | `dm-bold`          | Sans        |
+| Playfair Display  | `playfair-regular`    | `playfair-bold`    | Serif       |
+| Libre Baskerville | `baskerville-regular` | `baskerville-bold` | Serif       |
+| Barlow Condensed  | `barlow-regular`      | `barlow-bold`      | Sans        |
+| Archivo Black     | `archivo-black`       | —                  | Display     |
+| Caveat            | `caveat-regular`      | `caveat-bold`      | Handwriting |
+| Nunito Sans       | `nunito-regular`      | `nunito-bold`      | Sans        |
+
+Archivo Black uses its single 400-weight file; its letterforms are already heavy. `FONT_OPTIONS` exposes each face's ID, display label, `familyLabel`, category, CSS family, weight, URL, immutable asset reference, license, SHA-256 and cmap coverage. These metadata power the searchable visual picker without adding UI fields to scene JSON.
+
+`font-manifest.ts` records SHA-256 and actual Unicode cmap ranges extracted from the 19 checked-in WOFF2 files. The original six files retain their exact hashes. Character coverage is checked for the selected face, not merely against a font stylesheet's advertised Unicode range. For example, the bundled Playfair subset lacks U+00B5, and Archivo Black lacks the combining acute accent U+0301. Precomposed Latin accents and available punctuation work; unsupported characters produce a validation message. Text is never normalized or silently sent to a fallback font.
+
+`scripts/assets.mjs` verifies installed font bytes against the frozen manifest and checks their OFL notices before copying any assets. A font package update that changes bytes fails the build for review. `scripts/generate-font-manifest.py` regenerates SHA-256 and Unicode cmap ranges from reviewed font binaries using fontTools and Brotli; Python is needed only for this maintenance step, not for normal installs or builds.
+
+`loadFonts()` loads all 19 bundled faces. `loadFonts({ "space-bold": "data:font/woff2;base64,..." })` loads only the supplied faces; `loadFonts({})` loads none. It verifies bytes against the manifest before constructing and awaiting `FontFace`. The offline player decodes embedded bytes without making a network request.
 
 Static and animated text use the same grapheme layout. `Intl.Segmenter` assigns stable indices, each grapheme is measured separately, and spaces advance without producing a paint unit. Native cross-grapheme kerning is disabled. A grapheme's ink box, rather than its advance width alone, determines its rotation center and bounds. Explicit line breaks advance by `fontSize × lineHeight`. Metrics are cached by face, size, and grapheme; evaluation never measures text.
 
@@ -118,6 +137,8 @@ Live pointer input is transient and overrides saved input only when explicitly s
 
 Operations are `setLayout`, `setTypography`, `setFill`, `setOpacity`, `upsertBehavior`, `removeBehavior`, `setText`, and `reorderLayer`. An upsert matches an existing behavior ID; tuning existing motion retains that ID. Text edits require explicit wording permission and an exact `expectedOldText` match. IDs, arbitrary property paths, executable code, and full-scene replacements are not writable operation fields. `beforeLayerId: null` moves a layer to the end of the array, the front of paint order.
 
+A `setTypography` font change adds the chosen face to the scene's font references when needed, without duplicates, and upgrades the new revision to 1.2.0. Unsupported characters still reject the entire operation batch. The manual picker additionally compiles the chosen font with real browser metrics and reduces only that layer's size when necessary to fit. Its font and size change is one undoable command; wording, position and behaviors remain unchanged.
+
 ```ts
 await loadFonts();
 const compiled = compileScene(validateScene(sceneJson));
@@ -129,4 +150,4 @@ const selectedLayerId = hitTest(frame, x, y);
 
 Frames contain `width`, `height`, solid `background`, ordered `units`, per-layer `bounds`, `baseBounds`, `boundsCorrections`, `glyphCount`, and `behaviorCount`. The same evaluator and painter power previews, PNGs, shares, and offline HTML. Given identical compiled scene, renderer/font build, absolute time, and pointer input, evaluated transforms are repeatable. Browser/OS text rasterization may differ; universal PNG byte identity is not claimed.
 
-Verification: `tests/core.test.ts`, `node tests/core-browser-probe.mjs`, and `node tests/performance.mjs`. The browser probe checks actual bundled font geometry and loop endpoints for all ten compositions in all four formats and generates `tests/core-artifacts/gallery.png`.
+Verification includes `tests/core.test.ts`, `tests/fonts-v3.test.ts`, and `node tests/core-browser-probe.mjs`. The browser probe checks actual bundled font geometry and exact loop endpoints for all 22 compositions in all four formats: 88 format variants. It generates `tests/core-artifacts/gallery.png`. Historical renderer timing results in `tests/core-artifacts/performance.json` cover the original six examples and are not measurements of every new font or template.
