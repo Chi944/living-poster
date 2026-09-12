@@ -952,14 +952,16 @@ export function App() {
     return () => document.removeEventListener("keydown", handler);
   }, [dialog, shareUrl]);
   const save = async () => {
-    if (!capabilities?.authenticated) {
+    if (!capabilities) return;
+    if (!capabilities.authenticated) {
       setDialog("auth");
       return;
     }
     await useEditor.getState().enqueueSave();
   };
   const share = async (savedProjectId?: string, revisionId?: string) => {
-    if (!capabilities?.authenticated) {
+    if (!capabilities) return;
+    if (!capabilities.authenticated) {
       setDialog("auth");
       return;
     }
@@ -1014,6 +1016,7 @@ export function App() {
           />
           <button
             aria-label="Open project library"
+            disabled={!capabilities}
             onClick={() =>
               setDialog(capabilities?.authenticated ? "library" : "auth")
             }
@@ -1054,6 +1057,7 @@ export function App() {
           </div>
           <button
             className="button library-button"
+            disabled={!capabilities}
             onClick={() =>
               setDialog(capabilities?.authenticated ? "library" : "auth")
             }
@@ -1061,12 +1065,16 @@ export function App() {
             <FolderOpen size={14} />
             Library
           </button>
-          <button className="button save-button" onClick={() => void save()}>
+          <button
+            className="button save-button"
+            disabled={!capabilities}
+            onClick={() => void save()}
+          >
             Save
           </button>
           <button
             className="button"
-            disabled={shareBusy}
+            disabled={shareBusy || !capabilities}
             onClick={() => void share()}
           >
             <Link size={14} />
@@ -1154,11 +1162,12 @@ export function App() {
           <Inspector />
           <AiComposer
             capabilities={capabilities}
-            onAuthenticate={() =>
+            onAuthenticate={() => {
+              if (!capabilities) return;
               setDialog(
-                capabilities?.runtime === "browser" ? "settings" : "auth",
-              )
-            }
+                capabilities.runtime === "browser" ? "settings" : "auth",
+              );
+            }}
           />
         </aside>
       </main>
@@ -1180,20 +1189,22 @@ export function App() {
       <div className="sr-only" role="status" aria-live="polite">
         {notice}
       </div>
-      {dialog === "auth" && (
-        <AuthDialog
-          capabilities={capabilities}
-          onClose={close}
-          onSuccess={() => {
-            setDialog(null);
-            void refreshCapabilities();
-            useEditor.setState({
-              notice:
-                "Local studio unlocked. Save your draft when you are ready.",
-            });
-          }}
-        />
-      )}
+      {dialog === "auth" &&
+        capabilities &&
+        capabilities.runtime !== "browser" && (
+          <AuthDialog
+            capabilities={capabilities}
+            onClose={close}
+            onSuccess={() => {
+              setDialog(null);
+              void refreshCapabilities();
+              useEditor.setState({
+                notice:
+                  "Local studio unlocked. Save your draft when you are ready.",
+              });
+            }}
+          />
+        )}
       {dialog === "library" && (
         <LibraryDialog
           onClose={close}

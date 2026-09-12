@@ -2,7 +2,7 @@
 
 ## Version 1.1 expansion
 
-The canvas and motion release passes **116 unit/integration tests**, **26 native browser tests**, and **5 hosted browser tests**. The browser suites cover recovery from interrupted recording, pending-field validation, editing after animated selection, four canvas formats, all ten offline exports at five exact frames, browser saving and reload, immutable portable sharing across browser profiles, and damaged-link handling. The bundled-font geometry probe covers ten templates in four formats with exact loop endpoints and no safety corrections at its sampled times.
+The canvas and motion release passes **116 unit/integration tests**, **26 native browser tests**, and **6 hosted browser tests**. The browser suites cover recovery from interrupted recording, pending-field validation, editing after animated selection, four canvas formats, all ten offline exports at five exact frames, browser saving and reload, immutable portable sharing across browser profiles, damaged-link handling, and delayed startup without a password prompt. The bundled-font geometry probe covers ten templates in four formats with exact loop endpoints and no safety corrections at its sampled times.
 
 The final local Qwen3 4B prompt passes **20/20** cases in the existing release holdout (p95 3.32 seconds) and **7/8** new motion checks (p95 4.76 seconds), with **$0 API cost**. The failed new check asks for a heartbeat: the model sometimes invents a numeric motion parameter, which validation rejects while leaving the scene unchanged. Manual Heartbeat and other recipes work independently of model interpretation. These are machine-scored checks, not a claim of perfect creative understanding or human review.
 

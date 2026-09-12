@@ -2,6 +2,8 @@
 
 Living Poster has two deployment modes. Both use the same editor, scene validator, renderer, fonts and exports.
 
+Production: **https://living-poster.vercel.app**. The production URL is public and requires no Vercel login.
+
 | Feature                   | Browser edition on Vercel                                   | Native local edition                                      |
 | ------------------------- | ----------------------------------------------------------- | --------------------------------------------------------- |
 | Storage                   | IndexedDB in this browser profile                           | SQLite on your computer plus browser draft recovery       |
@@ -20,6 +22,8 @@ npm run build:hosted
 ```
 
 The output is `dist/hosted`, with static assets, fonts and a standalone player. No cloud database, model endpoint, function, paid storage integration or API key is provisioned. Vercel's [Hobby plan](https://vercel.com/docs/plans/hobby) is intended for personal, noncommercial projects and has free usage limits. This project is a personal portfolio tool. No upgrade or payment method is required by the application.
+
+`npm run test:hosted` checks the built static site locally. Set `HOSTED_BASE_URL=https://living-poster.vercel.app` to run the same six tests against production; those tests use isolated browser profiles and never publish a project to server storage. A real model edit was also verified from the deployed HTTPS site using an isolated local Ollama instance, the exact allowed origin, and browser local-network permission.
 
 To reproduce deployment in another account, import the repository into Vercel and retain its checked-in settings. For a CLI deployment, run `vercel link` for your own project and `vercel --prod`. `.vercel/`, environment files, user databases, and local test outputs are excluded from Git and uploads.
 

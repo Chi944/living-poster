@@ -2,6 +2,8 @@
 
 A typography instrument where words float, orbit, ripple, scatter, pulse, swing, bounce, reveal, and respond to your pointer.
 
+**[Open the live studio](https://living-poster.vercel.app)** · [Public GitHub repository](https://github.com/Chi944/living-poster)
+
 ![The Living Poster studio](docs/assets/studio.png)
 
 [Watch the original 60-second demo](docs/assets/living-poster-demo.mp4) · [Explore ten example compositions](tests/core-artifacts/gallery.png)
