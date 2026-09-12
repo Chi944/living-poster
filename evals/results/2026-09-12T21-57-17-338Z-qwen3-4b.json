@@ -1,0 +1,675 @@
+{
+  "startedAt": "2026-09-12T21:57:17.338Z",
+  "finishedAt": "2026-09-12T21:58:06.169Z",
+  "model": "qwen3:4b",
+  "runtime": "Ollama local",
+  "cost": 0,
+  "caseSet": "evals/release-holdout.json",
+  "caseSetSha256": "ae3b5304a6c529070d9e7b4814c24313d3183b0d89ccbeca5ad7fb321df6d84e",
+  "providerSha256": "9b4e42ee5f03b62890d484901b4eceb6a59439d98a67d23c167db5286c26a36c",
+  "total": 20,
+  "passed": 20,
+  "valid": 20,
+  "correctTargets": 14,
+  "determinateCases": 14,
+  "preserved": 14,
+  "p50LatencyMs": 2323,
+  "p95LatencyMs": 3320,
+  "humanReview": "Pending independent human creative review; not replaced by automated checks.",
+  "results": [
+    {
+      "id": "release-01",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2940,
+      "inputTokens": 1815,
+      "outputTokens": 125,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-label",
+            "behavior": {
+              "id": "5421c1c0-9834-4512-807f-f8917d063847",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 16,
+                "amplitudeY": 28,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          }
+        ],
+        "summary": "Updated Label."
+      }
+    },
+    {
+      "id": "release-02",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1633,
+      "inputTokens": 1816,
+      "outputTokens": 69,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-caption",
+            "behavior": {
+              "id": "ccd5e670-8fa4-4c64-9eec-d6b8645f9d20",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "wave",
+              "scope": "glyph",
+              "params": {
+                "amplitude": 24,
+                "cycles": 2,
+                "wavelength": 8,
+                "phase": 0
+              }
+            }
+          }
+        ],
+        "summary": "Updated Caption."
+      }
+    },
+    {
+      "id": "release-03",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1680,
+      "inputTokens": 1818,
+      "outputTokens": 71,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setOpacity",
+            "layerId": "layer-circle",
+            "value": 0.65
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "release-04",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2314,
+      "inputTokens": 1817,
+      "outputTokens": 107,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "fontSize": 32
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "release-05",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2005,
+      "inputTokens": 1815,
+      "outputTokens": 93,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-circle",
+            "behavior": {
+              "id": "67744671-d2c5-4df6-99fd-d6d0288735be",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "orbit",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "point",
+                  "x": 460,
+                  "y": 720
+                },
+                "direction": 1,
+                "cycles": 1
+              }
+            }
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "release-06",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1756,
+      "inputTokens": 1814,
+      "outputTokens": 79,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-label",
+            "behavior": {
+              "id": "0b911146-8013-4e7d-9e71-b5e58ec3ee91",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "repel",
+              "scope": "layer",
+              "params": {
+                "radius": 280,
+                "maxDistance": 90
+              }
+            }
+          }
+        ],
+        "summary": "Updated Label."
+      }
+    },
+    {
+      "id": "release-07",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2323,
+      "inputTokens": 1828,
+      "outputTokens": 113,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setFill",
+            "layerId": "layer-headline",
+            "colour": "#803020"
+          },
+          {
+            "type": "setFill",
+            "layerId": "layer-subtitle",
+            "colour": "#204080"
+          }
+        ],
+        "summary": "Updated Headline, Subtitle."
+      }
+    },
+    {
+      "id": "release-08",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2894,
+      "inputTokens": 1820,
+      "outputTokens": 146,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-circle",
+            "changes": {
+              "x": 515
+            }
+          },
+          {
+            "type": "setLayout",
+            "layerId": "layer-circle",
+            "changes": {
+              "y": 732
+            }
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "release-09",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 4753,
+      "inputTokens": 1817,
+      "outputTokens": 258,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-label",
+            "behavior": {
+              "id": "31697624-6293-4545-ad2a-23740be71057",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 16,
+                "amplitudeY": 28,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "a8b8586a-d1f4-471f-8c07-386d76bf18fd",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "scatter",
+              "scope": "glyph",
+              "params": {
+                "radius": 90,
+                "rotationMaxDeg": 15,
+                "outEnd": 0.18,
+                "returnStart": 0.38
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline, Label."
+      }
+    },
+    {
+      "id": "release-10",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 3277,
+      "inputTokens": 1818,
+      "outputTokens": 168,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-caption",
+            "behavior": {
+              "id": "b82297c6-7068-4513-a827-efab177fa626",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "attract",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "point",
+                  "x": 540,
+                  "y": 675
+                },
+                "strength": 0.6,
+                "maxDistance": 140
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-label",
+            "behavior": {
+              "id": "8ee66001-a018-4e87-935c-a8fa368f8bfe",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "attract",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "point",
+                  "x": 540,
+                  "y": 675
+                },
+                "strength": 0.6,
+                "maxDistance": 140
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-caption",
+            "behavior": {
+              "id": "b82297c6-7068-4513-a827-efab177fa626",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "attract",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "layer",
+                  "layerId": "layer-circle"
+                },
+                "strength": 0.6,
+                "maxDistance": 140
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-label",
+            "behavior": {
+              "id": "8ee66001-a018-4e87-935c-a8fa368f8bfe",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "attract",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "layer",
+                  "layerId": "layer-headline"
+                },
+                "strength": 0.6,
+                "maxDistance": 140
+              }
+            }
+          }
+        ],
+        "summary": "Updated Caption, Label."
+      }
+    },
+    {
+      "id": "release-11",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1636,
+      "inputTokens": 1890,
+      "outputTokens": 69,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setFill",
+            "layerId": "layer-headline",
+            "colour": "#442244"
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "release-12",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1611,
+      "inputTokens": 1824,
+      "outputTokens": 66,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-label",
+            "behavior": {
+              "id": "2b7d75d4-1f83-4038-9063-c385d6b2e169",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "wave",
+              "scope": "glyph",
+              "params": {
+                "amplitude": 24,
+                "cycles": 2,
+                "wavelength": 8,
+                "phase": 0
+              }
+            }
+          }
+        ],
+        "summary": "Updated Label."
+      }
+    },
+    {
+      "id": "release-13",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 3320,
+      "inputTokens": 1822,
+      "outputTokens": 159,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-caption",
+            "changes": {
+              "x": 118
+            }
+          }
+        ],
+        "summary": "Updated Caption."
+      }
+    },
+    {
+      "id": "release-14",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2181,
+      "inputTokens": 1827,
+      "outputTokens": 80,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "trackingEm": 0.02
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "release-15",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 2408,
+      "inputTokens": 1810,
+      "outputTokens": 93,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "clarify",
+        "question": "Which layer should be made more transparent? Please specify the layer by name or describe its location/size."
+      }
+    },
+    {
+      "id": "release-16",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 1329,
+      "inputTokens": 1820,
+      "outputTokens": 39,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "clarify",
+        "question": "What colour should Circle be changed to?"
+      }
+    },
+    {
+      "id": "release-17",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 2968,
+      "inputTokens": 1912,
+      "outputTokens": 126,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "clarify",
+        "question": "Which layer should the float motion be applied to? The text 'GRAVITY' appears in two layers: layer-headline (text: 'GRAVITY') and layer-duplicate (text: 'GRAVITY')."
+      }
+    },
+    {
+      "id": "release-18",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 2490,
+      "inputTokens": 1813,
+      "outputTokens": 100,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "That request needs an effect outside this editor. Supported tools are text, rectangles, ellipses, typography, colour, layout, and float, orbit, wave, scatter, attract, pointer-repel, pulse, pendulum, bounce or reveal motion."
+      }
+    },
+    {
+      "id": "release-19",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 3036,
+      "inputTokens": 1819,
+      "outputTokens": 148,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "That request needs an effect outside this editor. Supported tools are text, rectangles, ellipses, typography, colour, layout, and float, orbit, wave, scatter, attract, pointer-repel, pulse, pendulum, bounce or reveal motion."
+      }
+    },
+    {
+      "id": "release-20",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 2269,
+      "inputTokens": 1816,
+      "outputTokens": 103,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "That request needs an effect outside this editor. Supported tools are text, rectangles, ellipses, typography, colour, layout, and float, orbit, wave, scatter, attract, pointer-repel, pulse, pendulum, bounce or reveal motion."
+      }
+    }
+  ]
+}

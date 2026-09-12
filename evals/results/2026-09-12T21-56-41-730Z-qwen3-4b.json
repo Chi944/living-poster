@@ -1,0 +1,255 @@
+{
+  "startedAt": "2026-09-12T21:56:41.730Z",
+  "finishedAt": "2026-09-12T21:57:01.035Z",
+  "model": "qwen3:4b",
+  "runtime": "Ollama local",
+  "cost": 0,
+  "caseSet": "evals/motion-v2.json",
+  "caseSetSha256": "3f53754921ff9cc522ebe78a2bb7ad150dc068ed23583ee765d874022a1126fe",
+  "providerSha256": "9b4e42ee5f03b62890d484901b4eceb6a59439d98a67d23c167db5286c26a36c",
+  "total": 8,
+  "passed": 7,
+  "valid": 7,
+  "correctTargets": 5,
+  "determinateCases": 6,
+  "preserved": 5,
+  "p50LatencyMs": 2130,
+  "p95LatencyMs": 4757,
+  "humanReview": "Pending independent human creative review; not replaced by automated checks.",
+  "results": [
+    {
+      "id": "v2-pulse",
+      "category": "motion",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 4757,
+      "cost": 0,
+      "error": "This parameter does not belong to the selected motion."
+    },
+    {
+      "id": "v2-pendulum",
+      "category": "motion",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2640,
+      "inputTokens": 1813,
+      "outputTokens": 126,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-circle",
+            "behavior": {
+              "id": "a39125aa-a97f-4fe4-a831-d8d784db413f",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "pendulum",
+              "scope": "layer",
+              "params": {
+                "angleDeg": 12,
+                "cycles": 2
+              }
+            }
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "v2-bounce",
+      "category": "motion",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1820,
+      "inputTokens": 1811,
+      "outputTokens": 80,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-subtitle",
+            "behavior": {
+              "id": "ae0f50c8-ae61-4280-942b-d7b67af637c5",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "bounce",
+              "scope": "glyph",
+              "params": {
+                "height": 54,
+                "cycles": 2,
+                "stagger": 0.4
+              }
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "v2-reveal",
+      "category": "motion",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 3218,
+      "inputTokens": 1816,
+      "outputTokens": 166,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-caption",
+            "behavior": {
+              "id": "eeb85c0d-b642-40e5-9be6-f3bda2278f12",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "reveal",
+              "scope": "glyph",
+              "params": {
+                "minOpacity": 0.08,
+                "stagger": 0.65
+              }
+            }
+          }
+        ],
+        "summary": "Updated Caption."
+      }
+    },
+    {
+      "id": "v2-legacy-float",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1637,
+      "inputTokens": 1815,
+      "outputTokens": 71,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "dafaa051-638d-47bd-832a-389501c423e1",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 16,
+                "amplitudeY": 28,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "v2-compound",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2130,
+      "inputTokens": 1822,
+      "outputTokens": 100,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "fef9b4b6-3e4a-4285-9b1d-9400807b9314",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "pulse",
+              "scope": "layer",
+              "params": {
+                "amount": 0.14,
+                "cycles": 2
+              }
+            }
+          },
+          {
+            "type": "setFill",
+            "layerId": "layer-headline",
+            "colour": "#227744"
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "v2-ambiguous",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 1602,
+      "inputTokens": 1809,
+      "outputTokens": 69,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "clarify",
+        "question": "Which layer should bounce? Please specify the layer name or ID."
+      }
+    },
+    {
+      "id": "v2-unsupported",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 1497,
+      "inputTokens": 1812,
+      "outputTokens": 57,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "That request needs an effect outside this editor. Supported tools are text, rectangles, ellipses, typography, colour, layout, and float, orbit, wave, scatter, attract, pointer-repel, pulse, pendulum, bounce or reveal motion."
+      }
+    }
+  ]
+}

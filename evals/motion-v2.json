@@ -1,0 +1,10 @@
+[
+  {"id":"v2-pulse","category":"motion","instruction":"Make the headline pulse like a heartbeat.","targets":["Headline"],"required":[{"layer":"Headline","behavior":"pulse"}],"allowed":{"Headline":["behaviors"]}},
+  {"id":"v2-pendulum","category":"motion","instruction":"Give the circle a pendulum swing.","targets":["Circle"],"required":[{"layer":"Circle","behavior":"pendulum"}],"allowed":{"Circle":["behaviors"]}},
+  {"id":"v2-bounce","category":"motion","instruction":"Make the subtitle letters bounce.","targets":["Subtitle"],"required":[{"layer":"Subtitle","behavior":"bounce"}],"allowed":{"Subtitle":["behaviors"]}},
+  {"id":"v2-reveal","category":"motion","instruction":"Let the caption letters reveal and fade in a loop.","targets":["Caption"],"required":[{"layer":"Caption","behavior":"reveal"}],"allowed":{"Caption":["behaviors"]}},
+  {"id":"v2-legacy-float","category":"preserve","instruction":"Keep the words unchanged and make the headline float.","targets":["Headline"],"required":[{"layer":"Headline","behavior":"float"}],"allowed":{"Headline":["behaviors"]}},
+  {"id":"v2-compound","category":"preserve","instruction":"Make the headline pulse and set its colour to #227744.","targets":["Headline"],"required":[{"layer":"Headline","behavior":"pulse"},{"layer":"Headline","path":"fill","value":"#227744"}],"allowed":{"Headline":["behaviors","fill"]}},
+  {"id":"v2-ambiguous","category":"ambiguous","instruction":"Make it bounce.","expectedKind":"clarify"},
+  {"id":"v2-unsupported","category":"unsupported","instruction":"Add smoke video behind the headline.","expectedKind":"unsupported"}
+]

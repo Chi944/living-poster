@@ -24,8 +24,15 @@ vi.mock("./drafts", () => ({
   archiveDraft: vi.fn(async () => {}),
   updateArchivedHead: vi.fn(async () => {}),
 }));
-import { EXAMPLES, cloneScene, newId } from "../../../packages/core/src";
-import { useEditor, setGeometryValidation } from "./store";
+import {
+  EXAMPLES,
+  cloneScene,
+  newId,
+  defaultBehavior,
+  compileScene,
+  evaluateScene,
+} from "../../../packages/core/src";
+import { useEditor, setGeometryValidation, previewPointerRef } from "./store";
 import { ApiError } from "./api";
 beforeEach(() => {
   transport.post.mockReset();
@@ -36,6 +43,7 @@ beforeEach(() => {
     past: [],
     future: [],
     gesture: null,
+    gestureBounds: null,
     mutationEpoch: 0,
     requestGeneration: 0,
     affected: [],
@@ -45,6 +53,122 @@ beforeEach(() => {
     outbox: [],
     playing: false,
     recording: false,
+    pausedPointer: undefined,
+  });
+});
+describe("editing after motion preview and pointer recording", () => {
+  it("manual edits and rejected changes always release recording without replacing the previous pointer path", () => {
+    const originalPath = cloneScene(useEditor.getState().scene).pointer;
+    useEditor.getState().beginRecording();
+    expect(useEditor.getState().recording).toBe(true);
+    useEditor.getState().commit((scene) => {
+      scene.layers[0].fill = "#123456";
+    });
+    expect(useEditor.getState().recording).toBe(false);
+    expect(useEditor.getState().playing).toBe(false);
+    expect(useEditor.getState().scene.pointer).toEqual(originalPath);
+    useEditor.getState().beginRecording();
+    setGeometryValidation(() => {
+      throw new Error("Text does not fit");
+    });
+    expect(useEditor.getState().commit(() => {})).toBe(false);
+    expect(useEditor.getState().recording).toBe(false);
+    expect(useEditor.getState().gesture).toBeNull();
+  });
+  it("pause, selection, undo and redo all recover a partially recorded loop", () => {
+    useEditor.getState().commit((scene) => {
+      scene.layers[0].fill = "#123456";
+    });
+    for (const action of [
+      () => useEditor.getState().setPlayback(false),
+      () => useEditor.getState().select("gravity-headline"),
+      () => useEditor.getState().undo(),
+      () => useEditor.getState().redo(),
+    ]) {
+      useEditor.getState().beginRecording();
+      action();
+      expect(useEditor.getState().recording).toBe(false);
+      expect(useEditor.getState().playing).toBe(false);
+      useEditor.getState().beginGesture();
+      expect(useEditor.getState().gesture).not.toBeNull();
+      useEditor.getState().endGesture(true);
+    }
+  });
+  it("freezes the painted pointer with the playhead so animated selection does not jump", () => {
+    const pointer = { x: 320, y: 470, presence: 1 };
+    previewPointerRef.current = pointer;
+    useEditor.setState({ playing: true, timeMs: 1270, livePointer: true });
+    useEditor.getState().select("gravity-headline");
+    pointer.x = 900;
+    expect(useEditor.getState().pausedPointer).toEqual({
+      x: 320,
+      y: 470,
+      presence: 1,
+    });
+    expect(useEditor.getState().timeMs).toBe(1270);
+    useEditor.getState().setPlayback(true);
+    expect(useEditor.getState().pausedPointer).toBeUndefined();
+  });
+  it("cancelling a recording invalidates an AI request and leaves content unchanged", () => {
+    const scene = useEditor.getState().scene;
+    const capture = useEditor.getState().beginAi();
+    useEditor.getState().beginRecording();
+    useEditor.getState().cancelRecording();
+    expect(useEditor.getState().scene).toBe(scene);
+    expect(useEditor.getState().applyAi(capture, [], false)).toBe(false);
+  });
+  it("dragging an orbiting shape follows the cursor at half a loop and remains undoable", () => {
+    const scene = cloneScene(EXAMPLES[0].scene);
+    const shape = scene.layers.find((layer) => layer.kind === "shape")!;
+    shape.layout = { x: 540, y: 675, rotationDeg: 0 };
+    shape.behaviors = [
+      defaultBehavior(
+        "orbit",
+        scene.timeline.durationMs,
+        shape,
+        scene.artboard,
+      ),
+    ];
+    scene.layers = [shape];
+    useEditor.setState({ scene, selected: [shape.id] });
+    const before = evaluateScene(compileScene(scene), {
+      timeMs: scene.timeline.durationMs / 2,
+      pointer: null,
+    });
+    useEditor.getState().beginGesture(before.baseBounds);
+    useEditor.getState().moveGesture(160, 30);
+    useEditor.getState().endGesture();
+    const after = evaluateScene(compileScene(useEditor.getState().scene), {
+      timeMs: scene.timeline.durationMs / 2,
+      pointer: null,
+    });
+    expect(after.units[0].x - before.units[0].x).toBeCloseTo(160);
+    expect(after.units[0].y - before.units[0].y).toBeCloseTo(30);
+    expect(useEditor.getState().past).toHaveLength(1);
+    useEditor.getState().undo();
+    expect(useEditor.getState().scene.layers).toEqual(scene.layers);
+  });
+  it("drags stop at ink margins instead of rendering invalid positions and reverting", () => {
+    const scene = cloneScene(EXAMPLES[0].scene);
+    const shape = scene.layers.find((layer) => layer.kind === "shape")!;
+    shape.layout = { x: 540, y: 675, rotationDeg: 0 };
+    shape.behaviors = [];
+    scene.layers = [shape];
+    useEditor.setState({ scene, selected: [shape.id] });
+    const frame = evaluateScene(compileScene(scene), {
+      timeMs: 0,
+      pointer: null,
+    });
+    useEditor.getState().beginGesture(frame.baseBounds);
+    useEditor.getState().moveGesture(5000, 5000);
+    useEditor.getState().endGesture();
+    const bounds = evaluateScene(compileScene(useEditor.getState().scene), {
+      timeMs: 0,
+      pointer: null,
+    }).baseBounds[shape.id];
+    expect(bounds.x + bounds.width).toBeCloseTo(scene.artboard.width - 16);
+    expect(bounds.y + bounds.height).toBeCloseTo(scene.artboard.height - 16);
+    expect(useEditor.getState().past).toHaveLength(1);
   });
 });
 describe("editor revision and AI races", () => {

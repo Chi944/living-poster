@@ -9,6 +9,8 @@ import {
   type Scene,
   type EditOperation,
   type Layer,
+  type PointerSample,
+  type Frame,
 } from "../../../packages/core/src";
 import { api, post, ApiError, type Project } from "./api";
 import {
@@ -30,6 +32,7 @@ type EditorState = {
   past: Scene[];
   future: Scene[];
   gesture: Scene | null;
+  gestureBounds: Frame["baseBounds"] | null;
   documentId: string;
   projectId: string | null;
   serverHead: string | null;
@@ -42,15 +45,20 @@ type EditorState = {
   timeMs: number;
   livePointer: boolean;
   recording: boolean;
+  pausedPointer: PointerSample | null | undefined;
   outbox: OutboxItem[];
   saveState: string;
   recovered: boolean;
+  enterEditMode: () => void;
+  setPlayback: (playing: boolean) => void;
+  beginRecording: () => void;
+  cancelRecording: () => void;
   commit: (change: (scene: Scene) => void, label?: string) => boolean;
   replace: (scene: Scene, project?: Project) => boolean;
   select: (id: string | null, multi?: boolean) => void;
   undo: () => void;
   redo: () => void;
-  beginGesture: () => void;
+  beginGesture: (bounds?: Frame["baseBounds"]) => void;
   moveGesture: (dx: number, dy: number) => void;
   endGesture: (cancel?: boolean) => void;
   removeSelected: () => void;
@@ -68,6 +76,11 @@ const initial = reviseScene(cloneScene(EXAMPLES[0].scene));
 const trimError = (error: unknown) =>
   error instanceof Error ? error.message : "That change could not be applied.";
 let validateGeometry: ((scene: Scene) => void) | null = null;
+// The input used for the last painted frame. Pausing freezes it with the clock,
+// so pointer-driven letters remain under the cursor when editing starts.
+export const previewPointerRef: { current: PointerSample | null } = {
+  current: null,
+};
 export function setGeometryValidation(
   validator: ((scene: Scene) => void) | null,
 ) {
@@ -79,6 +92,7 @@ export const useEditor = create<EditorState>((set, get) => ({
   past: [],
   future: [],
   gesture: null,
+  gestureBounds: null,
   documentId: newId(),
   projectId: null,
   serverHead: null,
@@ -91,10 +105,54 @@ export const useEditor = create<EditorState>((set, get) => ({
   timeMs: 0,
   livePointer: false,
   recording: false,
+  pausedPointer: undefined,
   outbox: [],
   saveState: "Saved on this device",
   recovered: false,
+  enterEditMode() {
+    const state = get();
+    set({
+      playing: false,
+      recording: false,
+      pausedPointer:
+        state.pausedPointer === undefined
+          ? structuredClone(previewPointerRef.current)
+          : state.pausedPointer,
+      ...(state.recording
+        ? {
+            livePointer: false,
+            mutationEpoch: state.mutationEpoch + 1,
+            notice:
+              "Recording cancelled · previous pointer path preserved. Ready to edit.",
+          }
+        : {}),
+    });
+  },
+  setPlayback(playing) {
+    if (!playing) get().enterEditMode();
+    else {
+      get().endGesture();
+      set({ playing: true, recording: false, pausedPointer: undefined });
+    }
+  },
+  beginRecording() {
+    get().endGesture(true);
+    set((state) => ({
+      recording: true,
+      playing: true,
+      livePointer: true,
+      pausedPointer: undefined,
+      timeMs: 0,
+      mutationEpoch: state.mutationEpoch + 1,
+      notice:
+        "Move your pointer across the canvas. One loop will be saved; Cancel or Escape keeps the previous path.",
+    }));
+  },
+  cancelRecording() {
+    get().enterEditMode();
+  },
   commit(change, label = "Updated poster") {
+    get().enterEditMode();
     const state = get();
     try {
       const next = cloneScene(state.scene);
@@ -111,6 +169,7 @@ export const useEditor = create<EditorState>((set, get) => ({
         notice: label,
         playing: false,
         gesture: null,
+        gestureBounds: null,
       });
       return true;
     } catch (error) {
@@ -146,6 +205,7 @@ export const useEditor = create<EditorState>((set, get) => ({
       past: [],
       future: [],
       gesture: null,
+      gestureBounds: null,
       selected: [],
       affected: [],
       mutationEpoch: state.mutationEpoch + 1,
@@ -154,6 +214,7 @@ export const useEditor = create<EditorState>((set, get) => ({
       playing: false,
       livePointer: false,
       recording: false,
+      pausedPointer: undefined,
       saveState: project ? "Saved to local library" : "Saved on this device",
       notice: project
         ? "Project opened"
@@ -162,6 +223,7 @@ export const useEditor = create<EditorState>((set, get) => ({
     return true;
   },
   select(id, multi = false) {
+    get().enterEditMode();
     set((state) => ({
       selected: id
         ? multi
@@ -173,6 +235,7 @@ export const useEditor = create<EditorState>((set, get) => ({
     }));
   },
   undo() {
+    get().enterEditMode();
     const state = get();
     if (state.gesture) {
       get().endGesture(true);
@@ -193,6 +256,7 @@ export const useEditor = create<EditorState>((set, get) => ({
     });
   },
   redo() {
+    get().enterEditMode();
     const state = get();
     if (!state.future.length) return;
     const next = cloneScene(state.future[0]);
@@ -207,9 +271,11 @@ export const useEditor = create<EditorState>((set, get) => ({
       notice: "Redid last change",
     });
   },
-  beginGesture() {
+  beginGesture(bounds) {
+    get().enterEditMode();
     set((state) => ({
       gesture: cloneScene(state.scene),
+      gestureBounds: bounds ? structuredClone(bounds) : null,
       playing: false,
       mutationEpoch: state.mutationEpoch + 1,
       affected: [],
@@ -219,10 +285,55 @@ export const useEditor = create<EditorState>((set, get) => ({
     const state = get();
     if (!state.gesture) return;
     const next = cloneScene(state.gesture);
+    let minX = -Infinity,
+      maxX = Infinity,
+      minY = -Infinity,
+      maxY = Infinity;
+    for (const layer of next.layers) {
+      if (!state.selected.includes(layer.id) || layer.locked) continue;
+      const box = state.gestureBounds?.[layer.id];
+      if (box) {
+        minX = Math.max(minX, 16 - box.x);
+        maxX = Math.min(maxX, next.artboard.width - 16 - box.x - box.width);
+        minY = Math.max(minY, 16 - box.y);
+        maxY = Math.min(maxY, next.artboard.height - 16 - box.y - box.height);
+      }
+      for (const behavior of layer.behaviors) {
+        if (
+          "anchor" in behavior.params &&
+          behavior.params.anchor.type === "point"
+        ) {
+          const anchor = behavior.params.anchor;
+          minX = Math.max(minX, -anchor.x);
+          maxX = Math.min(maxX, next.artboard.width - anchor.x);
+          minY = Math.max(minY, -anchor.y);
+          maxY = Math.min(maxY, next.artboard.height - anchor.y);
+        }
+      }
+    }
+    dx = Math.max(minX, Math.min(maxX, dx));
+    dy = Math.max(minY, Math.min(maxY, dy));
     next.layers.forEach((layer) => {
       if (state.selected.includes(layer.id) && !layer.locked) {
-        layer.layout.x = Math.max(16, Math.min(1064, layer.layout.x + dx));
-        layer.layout.y = Math.max(16, Math.min(1334, layer.layout.y + dy));
+        const x = Math.max(
+          16,
+          Math.min(next.artboard.width - 16, layer.layout.x + dx),
+        );
+        const y = Math.max(
+          16,
+          Math.min(next.artboard.height - 16, layer.layout.y + dy),
+        );
+        for (const behavior of layer.behaviors) {
+          if (
+            "anchor" in behavior.params &&
+            behavior.params.anchor.type === "point"
+          ) {
+            behavior.params.anchor.x += x - layer.layout.x;
+            behavior.params.anchor.y += y - layer.layout.y;
+          }
+        }
+        layer.layout.x = x;
+        layer.layout.y = y;
       }
     });
     set({ scene: next });
@@ -232,7 +343,7 @@ export const useEditor = create<EditorState>((set, get) => ({
     if (!state.gesture) return;
     const before = state.gesture;
     if (cancel || JSON.stringify(before) === JSON.stringify(state.scene)) {
-      set({ scene: before, gesture: null });
+      set({ scene: before, gesture: null, gestureBounds: null });
       return;
     }
     try {
@@ -243,10 +354,16 @@ export const useEditor = create<EditorState>((set, get) => ({
         past: [...state.past.slice(-79), before],
         future: [],
         gesture: null,
+        gestureBounds: null,
         notice: "Moved selection",
       });
     } catch (error) {
-      set({ scene: before, gesture: null, notice: trimError(error) });
+      set({
+        scene: before,
+        gesture: null,
+        gestureBounds: null,
+        notice: trimError(error),
+      });
     }
   },
   removeSelected() {
@@ -463,6 +580,12 @@ export async function initializeRecovery() {
         past: [],
         future: [],
         selected: [],
+        playing: false,
+        recording: false,
+        livePointer: false,
+        pausedPointer: undefined,
+        gesture: null,
+        gestureBounds: null,
         mutationEpoch: 1,
         requestGeneration: 1,
         recovered: true,

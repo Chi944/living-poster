@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import {
   EXAMPLES,
+  CANVAS_PRESETS,
+  resizeScene,
   cloneScene,
   compileScene,
   evaluateScene,
@@ -51,6 +53,7 @@ import { CanvasStage, PosterPreview, pointerRef } from "./CanvasStage";
 import { Inspector } from "./Inspector";
 import { AiComposer } from "./AiComposer";
 import { Timeline } from "./Timeline";
+import { HostedConnector } from "./HostedConnector";
 import { exportPng, exportHtml, downloadScene } from "./exports";
 function Modal({
   title,
@@ -216,9 +219,11 @@ function AuthDialog({
 function LibraryDialog({
   onClose,
   onShare,
+  portable = false,
 }: {
   onClose: () => void;
   onShare: (projectId: string, revisionId: string) => void;
+  portable?: boolean;
 }) {
   const [projects, setProjects] = useState<Project[]>([]),
     [revisions, setRevisions] = useState<any[] | null>(null),
@@ -293,9 +298,11 @@ function LibraryDialog({
                       try {
                         await api(`/shares/${share.id}`, { method: "DELETE" });
                         setShares(
-                          shares.map((s) =>
-                            s.id === share.id ? { ...s, revoked: true } : s,
-                          ),
+                          portable
+                            ? shares.filter((s) => s.id !== share.id)
+                            : shares.map((s) =>
+                                s.id === share.id ? { ...s, revoked: true } : s,
+                              ),
                         );
                       } catch (e) {
                         setError(
@@ -304,11 +311,17 @@ function LibraryDialog({
                       }
                     }}
                   >
-                    Revoke
+                    {portable ? "Remove from list" : "Revoke"}
                   </button>
                 )}
               </article>
             ))}
+            {portable && (
+              <p className="small-note">
+                Links contain a poster snapshot. Removing one from this list
+                cannot disable copies already shared.
+              </p>
+            )}
           </div>
         ) : revisions ? (
           <>
@@ -477,6 +490,7 @@ function ExportDialog({ onClose }: { onClose: () => void }) {
     [error, setError] = useState("");
   const live = useEditor((s) => s.livePointer);
   const savedPointer = useEditor((s) => s.scene.pointer.mode);
+  const artboard = useEditor((s) => s.scene.artboard);
   return (
     <Modal title="Let it out into the world" onClose={onClose}>
       <div className="modal-body">
@@ -492,7 +506,7 @@ function ExportDialog({ onClose }: { onClose: () => void }) {
             {
               id: "png",
               title: "A moment in time",
-              sub: "PNG · the current frame, 1080 × 1350",
+              sub: `PNG · the current frame, ${artboard.width} × ${artboard.height}`,
               symbol: "▧",
             },
             {
@@ -554,7 +568,11 @@ function ExportDialog({ onClose }: { onClose: () => void }) {
               if (pointerMode === "fixed")
                 scene.pointer = {
                   mode: "fixed",
-                  sample: pointerRef.current ?? { x: 540, y: 675, presence: 1 },
+                  sample: pointerRef.current ?? {
+                    x: scene.artboard.width / 2,
+                    y: scene.artboard.height / 2,
+                    presence: 1,
+                  },
                 };
               if (pointerMode === "disabled")
                 scene.pointer = { mode: "disabled" };
@@ -606,7 +624,11 @@ function LayersPanel({
         locked: false,
         opacity: 1,
         fill: "#20211f",
-        layout: { x: 540, y: kind === "text" ? 690 : 675, rotationDeg: 0 },
+        layout: {
+          x: scene.artboard.width / 2,
+          y: scene.artboard.height / 2 + (kind === "text" ? 15 : 0),
+          rotationDeg: 0,
+        },
         behaviors: [],
       };
       const layer: Layer =
@@ -753,7 +775,7 @@ function LayersPanel({
           ))}
         </div>
         <button className="browse-examples" onClick={onExamples}>
-          Explore six starting points
+          Explore {EXAMPLES.length} starting points
           <ArrowUpRight size={13} />
         </button>
         <div className="keyboard-tip">
@@ -780,6 +802,8 @@ export function App() {
     past = useEditor((s) => s.past.length),
     future = useEditor((s) => s.future.length),
     scene = useEditor((s) => s.scene),
+    playing = useEditor((s) => s.playing),
+    recording = useEditor((s) => s.recording),
     projectId = useEditor((s) => s.projectId),
     gesture = useEditor((s) => s.gesture);
   const close = useCallback(() => {
@@ -788,6 +812,7 @@ export function App() {
   }, []);
   const [drafts, setDrafts] = useState<ArchivedDraft[]>([]);
   const [mobileLayers, setMobileLayers] = useState(false);
+  const [exampleFormat, setExampleFormat] = useState("all");
   const savedProjectName = useRef(name);
   useEffect(() => {
     savedProjectName.current = useEditor.getState().name;
@@ -873,8 +898,9 @@ export function App() {
         target instanceof HTMLTextAreaElement ||
         target instanceof HTMLSelectElement ||
         target.isContentEditable;
-      if (editing) return;
       const state = useEditor.getState();
+      if (event.key === "Escape" && state.recording) state.cancelRecording();
+      if (editing) return;
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
         event.preventDefault();
         event.shiftKey ? state.redo() : state.undo();
@@ -885,6 +911,7 @@ export function App() {
         event.preventDefault();
         state.redo();
       } else if (event.key === "Escape") {
+        state.enterEditMode();
         state.endGesture(true);
         state.select(null);
       } else if (event.key === "Delete" || event.key === "Backspace") {
@@ -892,7 +919,7 @@ export function App() {
         state.removeSelected();
       } else if (event.code === "Space") {
         event.preventDefault();
-        useEditor.setState({ playing: !state.playing });
+        state.setPlayback(!state.playing);
       } else if (
         ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
           event.key,
@@ -1075,12 +1102,46 @@ export function App() {
         <LayersPanel ready={ready} onExamples={() => setDialog("examples")} />
         <section className="center-column">
           <div className="canvas-toolbar">
-            <div>
-              <span className="small-square" />
-              YOUR WORDS, IN MOTION
+            <div className="canvas-format-control">
+              <select
+                aria-label="Artboard format"
+                value={
+                  CANVAS_PRESETS.find(
+                    (p) =>
+                      p.width === scene.artboard.width &&
+                      p.height === scene.artboard.height,
+                  )?.id ?? "portrait"
+                }
+                onChange={(event) => {
+                  const preset = CANVAS_PRESETS.find(
+                    (p) => p.id === event.target.value,
+                  )!;
+                  useEditor.getState().commit((draft) => {
+                    const revision = draft.revision;
+                    Object.assign(
+                      draft,
+                      resizeScene(draft, preset.width, preset.height),
+                    );
+                    draft.revision = revision;
+                  }, `Composition fitted to ${preset.label.toLowerCase()} canvas`);
+                }}
+              >
+                {CANVAS_PRESETS.map((preset) => (
+                  <option key={preset.id} value={preset.id}>
+                    {preset.label} · {preset.width} × {preset.height}
+                  </option>
+                ))}
+              </select>
+              <button
+                className={`edit-mode-button ${!playing && !recording ? "active" : ""}`}
+                aria-pressed={!playing && !recording}
+                onClick={() => useEditor.getState().enterEditMode()}
+              >
+                <Type size={12} /> Edit canvas
+              </button>
             </div>
             <button onClick={() => setDialog("examples")}>
-              Change starting point
+              New canvas
               <ArrowUpRight size={12} />
             </button>
           </div>
@@ -1093,7 +1154,11 @@ export function App() {
           <Inspector />
           <AiComposer
             capabilities={capabilities}
-            onAuthenticate={() => setDialog("auth")}
+            onAuthenticate={() =>
+              setDialog(
+                capabilities?.runtime === "browser" ? "settings" : "auth",
+              )
+            }
           />
         </aside>
       </main>
@@ -1133,6 +1198,7 @@ export function App() {
         <LibraryDialog
           onClose={close}
           onShare={(id, revision) => void share(id, revision)}
+          portable={capabilities?.sharePolicy === "portable"}
         />
       )}
       {dialog === "export" && <ExportDialog onClose={close} />}
@@ -1140,10 +1206,74 @@ export function App() {
         <Modal title="Find your starting point" wide onClose={close}>
           <div className="modal-body">
             <p className="muted">
-              Six compositions. Six ways to make a little noise.
+              A blank canvas or a composition with a little character. Every
+              element is yours to edit.
             </p>
+            <div className="section-caption">START FRESH</div>
+            <div className="blank-canvases">
+              {CANVAS_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  aria-label={`Create blank ${preset.label.toLowerCase()} canvas`}
+                  onClick={() => {
+                    const blank = cloneScene(EXAMPLES[0].scene);
+                    blank.id = newId();
+                    blank.layers = [];
+                    blank.pointer = { mode: "disabled" };
+                    const next = resizeScene(
+                      blank,
+                      preset.width,
+                      preset.height,
+                    );
+                    if (!useEditor.getState().replace(next)) return;
+                    useEditor.setState({
+                      name: `Untitled ${preset.label.toLowerCase()}`,
+                      notice:
+                        "Your blank canvas is ready. Add text or a shape from the Layers panel.",
+                    });
+                    setMobileLayers(true);
+                    close();
+                  }}
+                >
+                  <span
+                    className="blank-canvas-icon"
+                    style={{ aspectRatio: `${preset.width}/${preset.height}` }}
+                  >
+                    <Plus size={15} />
+                  </span>
+                  <strong>{preset.label}</strong>
+                  <small>
+                    {preset.width} × {preset.height}
+                  </small>
+                </button>
+              ))}
+            </div>
+            <div className="template-heading">
+              <div className="section-caption">START WITH A COMPOSITION</div>
+              <select
+                aria-label="Filter templates by format"
+                value={exampleFormat}
+                onChange={(event) => setExampleFormat(event.target.value)}
+              >
+                <option value="all">All formats</option>
+                {CANVAS_PRESETS.map((preset) => (
+                  <option key={preset.id} value={preset.id}>
+                    {preset.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="example-grid">
-              {EXAMPLES.map((example, index) => (
+              {EXAMPLES.filter(
+                (example) =>
+                  exampleFormat === "all" ||
+                  CANVAS_PRESETS.some(
+                    (preset) =>
+                      preset.id === exampleFormat &&
+                      preset.width === example.scene.artboard.width &&
+                      preset.height === example.scene.artboard.height,
+                  ),
+              ).map((example, index) => (
                 <button
                   key={example.id}
                   onClick={() => {
@@ -1152,10 +1282,15 @@ export function App() {
                     close();
                   }}
                 >
-                  <div className="example-art">
+                  <div
+                    className="example-art"
+                    style={{
+                      aspectRatio: `${example.scene.artboard.width}/${example.scene.artboard.height}`,
+                    }}
+                  >
                     {ready && <PosterPreview scene={example.scene} />}
                     <span>
-                      0{index + 1}
+                      {String(index + 1).padStart(2, "0")}
                       <ArrowUpRight size={18} />
                     </span>
                   </div>
@@ -1203,11 +1338,18 @@ export function App() {
             <dl className="canvas-facts">
               <div>
                 <dt>Edition</dt>
-                <dd>Free · local</dd>
+                <dd>
+                  Free ·{" "}
+                  {capabilities?.runtime === "browser" ? "browser" : "local"}
+                </dd>
               </div>
               <div>
                 <dt>Storage</dt>
-                <dd>SQLite + device recovery</dd>
+                <dd>
+                  {capabilities?.runtime === "browser"
+                    ? "This browser · IndexedDB"
+                    : "SQLite + device recovery"}
+                </dd>
               </div>
               <div>
                 <dt>Language model</dt>
@@ -1223,9 +1365,16 @@ export function App() {
               </div>
             </dl>
             <p className="small-note">
-              Share links work while this server is reachable. Download an HTML
-              poster for a presentation that works anywhere, offline.
+              {capabilities?.runtime === "browser"
+                ? "No password is needed here. Your library is saved in this browser profile. Export scene files to keep a backup or continue on another device."
+                : "Share links work while this server is reachable. Download an HTML poster for a presentation that works anywhere, offline."}
             </p>
+            {capabilities?.runtime === "browser" && (
+              <HostedConnector
+                capabilities={capabilities}
+                onChanged={refreshCapabilities}
+              />
+            )}
             <div className="settings-actions">
               <button
                 className="button"
@@ -1266,18 +1415,19 @@ export function App() {
                   }}
                 />
               </label>
-              {capabilities?.authenticated && (
-                <button
-                  className="button"
-                  onClick={async () => {
-                    await post("/auth/logout", {});
-                    await refreshCapabilities();
-                    close();
-                  }}
-                >
-                  Lock studio
-                </button>
-              )}
+              {capabilities?.authenticated &&
+                capabilities?.runtime !== "browser" && (
+                  <button
+                    className="button"
+                    onClick={async () => {
+                      await post("/auth/logout", {});
+                      await refreshCapabilities();
+                      close();
+                    }}
+                  >
+                    Lock studio
+                  </button>
+                )}
             </div>
             <p className="small-note">
               Bundled typefaces: Space Grotesk, Fraunces and IBM Plex Mono.{" "}
@@ -1322,8 +1472,9 @@ export function App() {
               Copy link
             </button>
             <p className="small-note">
-              The local server must be reachable by your audience. Use an HTML
-              export for offline sharing.
+              {capabilities?.sharePolicy === "portable"
+                ? "Anyone with this link can open this snapshot. The link contains the poster and cannot be revoked after sharing."
+                : "The local server must be reachable by your audience. Use an HTML export for offline sharing."}
             </p>
           </div>
         </Modal>
@@ -1395,8 +1546,8 @@ export function Presentation({ token }: { token: string }) {
       ) : (
         <>
           <canvas
-            width={1080}
-            height={1350}
+            width={data.scene.artboard.width}
+            height={data.scene.artboard.height}
             ref={canvas}
             aria-label={data.title}
           />

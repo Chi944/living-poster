@@ -4,22 +4,22 @@
 
 ## Version and validation
 
-The accepted format is `schemaVersion: 1`, `rendererVersion: "1.0.0"`. Newer versions fail validation; there is no implicit migration. Scene and nested objects use strict Zod schemas, so unknown properties fail instead of being silently discarded.
+New scenes use `schemaVersion: 1`, `rendererVersion: "1.1.0"`. Legacy 1.0.0 portrait scenes remain readable; edits create a fresh 1.1.0 revision. The new motions and formats require 1.1.0. Unknown versions fail validation. Previously exported HTML files retain their embedded renderer. Scene and nested objects use strict Zod schemas, so unknown properties fail instead of being silently discarded.
 
 `validateScene(value)` performs structural and semantic validation in both Node and the browser. `compileScene(scene)` additionally checks font-dependent geometry in the browser. Compile only after `await loadFonts()`. The server does not substitute a second font rasterizer.
 
-| Field      | Accepted value                                                                |
-| ---------- | ----------------------------------------------------------------------------- |
-| `id`       | Stable, nonempty string of at most 100 characters; user-created IDs are UUIDs |
-| `revision` | `{ id, parentId: string \| null }`                                            |
-| `seed`     | Integer from 0 through 4,294,967,295                                          |
-| `artboard` | `{ width: 1080, height: 1350, background: "#RRGGBB" }`                        |
-| `timeline` | Duration 2,000–10,000 ms in 100 ms increments; `fps: 30`, `loop: true`        |
-| `fonts`    | One to six unique `{ id, assetHash: "bundled-v1" }` references                |
-| `layers`   | Ordered back-to-front array, at most 64 layers                                |
-| `pointer`  | Disabled, fixed, or a saved recorded loop                                     |
+| Field      | Accepted value                                                                                       |
+| ---------- | ---------------------------------------------------------------------------------------------------- |
+| `id`       | Stable, nonempty string of at most 100 characters; user-created IDs are UUIDs                        |
+| `revision` | `{ id, parentId: string \| null }`                                                                   |
+| `seed`     | Integer from 0 through 4,294,967,295                                                                 |
+| `artboard` | `Portrait 1080×1350, square 1080×1080, story 1080×1920 or landscape 1920×1080; background "#RRGGBB"` |
+| `timeline` | Duration 2,000–10,000 ms in 100 ms increments; `fps: 30`, `loop: true`                               |
+| `fonts`    | One to six unique `{ id, assetHash: "bundled-v1" }` references                                       |
+| `layers`   | Ordered back-to-front array, at most 64 layers                                                       |
+| `pointer`  | Disabled, fixed, or a saved recorded loop                                                            |
 
-The exact scene budget is **1,024 graphemes total**, at most 512 in one text layer. Spaces and line breaks count. Other limits are six behaviors per layer, one of each type, 256 behaviors total, 601 pointer samples, and 256 KiB of UTF-8 JSON. These are independent limits; meeting one does not bypass the others. Nonfinite numbers, duplicate layer/behavior IDs, missing anchors, unsupported fonts or characters, invalid ranges, and mismatched pointer endpoints fail validation.
+The exact scene budget is **1,024 graphemes total**, at most 512 in one text layer. Spaces and line breaks count. Other limits are ten behaviors per layer, one of each type, 256 behaviors total, 601 pointer samples, and 256 KiB of UTF-8 JSON. These are independent limits; meeting one does not bypass the others. Nonfinite numbers, duplicate layer/behavior IDs, missing anchors, unsupported fonts or characters, invalid ranges, and mismatched pointer endpoints fail validation.
 
 Every base ink box must fit the artboard's 16-unit inset, including base rotation. The compiler reports which layer needs a smaller size, another line break, or a different position. Each individual drawn unit must also fit when rotated; the compiler uses its diagonal as a conservative orientation-independent size bound. Invalid geometry must be repaired before rendering or export.
 
@@ -27,7 +27,7 @@ Every base ink box must fit the artboard's 16-unit inset, including base rotatio
 
 Shared fields are `id`, `name`, `kind`, `visible`, `locked`, `opacity`, `layout`, `fill`, and `behaviors`. Names contain 1–100 characters. Opacity is 0–1. Fill is a six-digit hexadecimal color. Array order alone determines stacking.
 
-`layout` contains `{ x, y, rotationDeg }`, with X in 0–1080, Y in 0–1350, and rotation in −180–180 degrees. These are base values and never receive evaluated animation offsets.
+`layout` contains `{ x, y, rotationDeg }`, with X in 0–artboard.width, Y in 0–artboard.height, and rotation in −180–180 degrees. These are base values and never receive evaluated animation offsets.
 
 For a **text layer**, X is the alignment anchor and Y is the first line's alphabetic baseline. For a **shape layer**, X and Y are its center. Both are the layer pivot used by layer rotation, attraction, and orbit.
 
@@ -50,7 +50,7 @@ Static and animated text use the same grapheme layout. `Intl.Segmenter` assigns 
 
 ## Behavior vocabulary
 
-Every behavior has `id`, `type`, `enabled`, `scope`, `startMs`, `endMs`, and `params`. Windows last at least 200 ms and fit within the loop. Scope is fixed by the type except for scatter.
+Every behavior has `id`, `type`, `enabled`, `scope`, `startMs`, `endMs`, and `params`. Windows last at least 200 ms and fit within the loop. Scope is fixed by the type except for scatter, bounce and reveal (layer or glyph scope on text).
 
 An anchor is either `{ type: "point", x, y }` or `{ type: "layer", layerId }`. A layer anchor always reads that layer's **base pivot**. It cannot name itself or a missing layer. Mutual base references have no recursive evaluation. Deleting an anchor removes dependent attraction/orbit behaviors in the same editor command.
 
@@ -78,7 +78,20 @@ Composition order is fixed:
 5. Translate each final rotated ink box into the 16-unit inset. Count these corrections in diagnostics.
 6. Paint in layer order and clip to the artboard.
 
-The safety projection may compress an arrangement near an edge; it never changes base layout or scales a glyph. Smooth timeline envelopes do not guarantee continuous velocity after safety projection or arbitrary live-pointer jumps.
+The safety projection may compress an arrangement near an edge; it never changes base layout. Pulse scales units intentionally before bounds are computed. Smooth timeline envelopes do not guarantee continuous velocity after safety projection or arbitrary live-pointer jumps.
+
+### Added in renderer 1.1.0
+
+| Type       | Parameters                                                          | Effect                                                                                                        |
+| ---------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `pulse`    | Layer; `amount` 0–0.35; integer `cycles` 1–4                        | Scales about the ink center by `1 + amount·E·(0.5 − 0.5 cos(2πcu))`; returns to scale 1 at the loop boundary  |
+| `pendulum` | Layer; `angleDeg` 0–25; integer `cycles` 1–4                        | Adds `angleDeg·E·sin(2πcu)` to the bounded common angle                                                       |
+| `bounce`   | Layer or glyph; `height` 0–120; integer `cycles` 1–4; `stagger` 0–1 | An enveloped upward absolute-sine hop; glyph scope offsets phase along the text                               |
+| `reveal`   | Layer or glyph; `minOpacity` 0–1; `stagger` 0–1                     | Smoothly fades down to a minimum and back to full opacity; glyph scope offsets the fade center along the text |
+
+Scale and opacity participate in painting, bounds and hit testing; nearly invisible units are not selectable by their invisible ink. The layer list remains available for editing them. Every new behavior is evaluated from absolute time with exact base-state loop endpoints.
+
+`CANVAS_PRESETS` is the authoritative format list. `resizeScene(scene,width,height)` returns a fresh revision and uniformly fits the composition inside the new inset. It scales positions, typography, shapes, length-based motion parameters, point anchors and saved pointer samples together, preserving aspect ratios and layer-anchor relationships. Canvas previews, pointer coordinates, presentations, PNGs and offline players all read the scene's actual dimensions.
 
 ## Pointer input and repeatability
 
@@ -116,4 +129,4 @@ const selectedLayerId = hitTest(frame, x, y);
 
 Frames contain `width`, `height`, solid `background`, ordered `units`, per-layer `bounds`, `baseBounds`, `boundsCorrections`, `glyphCount`, and `behaviorCount`. The same evaluator and painter power previews, PNGs, shares, and offline HTML. Given identical compiled scene, renderer/font build, absolute time, and pointer input, evaluated transforms are repeatable. Browser/OS text rasterization may differ; universal PNG byte identity is not claimed.
 
-Verification: `tests/core.test.ts`, `node tests/core-browser-probe.mjs`, and `node tests/performance.mjs`. The browser probe checks actual bundled font geometry and loop endpoints for all six compositions and generates `tests/core-artifacts/gallery.png`.
+Verification: `tests/core.test.ts`, `node tests/core-browser-probe.mjs`, and `node tests/performance.mjs`. The browser probe checks actual bundled font geometry and loop endpoints for all ten compositions in all four formats and generates `tests/core-artifacts/gallery.png`.

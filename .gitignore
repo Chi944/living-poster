@@ -2,8 +2,13 @@ node_modules/
 dist/
 data/
 .env
+.env.local
+.env.*.local
+.vercel/
 .superpowers/
 test-results/
 playwright-report/
 apps/web/public/player.js
 *.log
+
+.vercel

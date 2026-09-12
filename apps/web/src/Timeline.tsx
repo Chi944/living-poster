@@ -1,4 +1,4 @@
-import { Pause, Play, RotateCcw, MousePointer2, Circle } from "lucide-react";
+import { Pause, Play, RotateCcw, MousePointer2, Circle, X } from "lucide-react";
 import { closePointerLoop } from "../../../packages/core/src";
 import { useEditor } from "./store";
 import { pointerRef } from "./CanvasStage";
@@ -34,14 +34,17 @@ export function Timeline() {
         <button
           className="icon-button"
           aria-label="Restart playback"
-          onClick={() => useEditor.setState({ timeMs: 0 })}
+          onClick={() => {
+            useEditor.getState().cancelRecording();
+            useEditor.setState({ timeMs: 0, pausedPointer: undefined });
+          }}
         >
           <RotateCcw size={15} />
         </button>
         <button
           className="play-button"
           aria-label={playing ? "Pause playback" : "Play poster"}
-          onClick={() => useEditor.setState({ playing: !playing })}
+          onClick={() => useEditor.getState().setPlayback(!playing)}
         >
           {playing ? (
             <Pause size={15} fill="currentColor" />
@@ -69,18 +72,18 @@ export function Timeline() {
           max={duration}
           step={10}
           value={time}
-          disabled={recording}
           style={
             {
               "--progress": `${(time / duration) * 100}%`,
             } as React.CSSProperties
           }
-          onChange={(e) =>
+          onChange={(e) => {
+            useEditor.getState().enterEditMode();
             useEditor.setState({
-              playing: false,
               timeMs: Number(e.target.value),
-            })
-          }
+              pausedPointer: undefined,
+            });
+          }}
         />
       </div>
       <label className="duration-control">
@@ -88,7 +91,6 @@ export function Timeline() {
         <select
           aria-label="Loop duration"
           value={duration}
-          disabled={recording}
           onChange={(e) => changeDuration(Number(e.target.value))}
         >
           {Array.from({ length: 81 }, (_, i) => 2000 + i * 100).map((d) => (
@@ -103,11 +105,14 @@ export function Timeline() {
         <select
           aria-label="Pointer mode"
           value={live ? "live" : pointer.mode}
-          disabled={recording}
           onChange={(e) => {
+            useEditor.getState().cancelRecording();
             const mode = e.target.value;
             if (mode === "live") {
-              useEditor.setState({ livePointer: true });
+              useEditor.setState({
+                livePointer: true,
+                pausedPointer: undefined,
+              });
               return;
             }
             useEditor.setState({ livePointer: false });
@@ -115,13 +120,18 @@ export function Timeline() {
               useEditor.getState().commit((s) => {
                 s.pointer = {
                   mode: "fixed",
-                  sample: pointerRef.current ?? { x: 540, y: 675, presence: 1 },
+                  sample: pointerRef.current ?? {
+                    x: s.artboard.width / 2,
+                    y: s.artboard.height / 2,
+                    presence: 1,
+                  },
                 };
               }, "Pointer frozen");
             if (mode === "disabled")
               useEditor.getState().commit((s) => {
                 s.pointer = { mode: "disabled" };
               }, "Pointer disabled");
+            useEditor.setState({ pausedPointer: undefined });
           }}
         >
           <option value="disabled">Pointer off</option>
@@ -133,20 +143,26 @@ export function Timeline() {
         </select>
         <button
           className={`record-button ${recording ? "active" : ""}`}
-          title="Record a single pointer loop"
-          disabled={recording}
+          title={
+            recording
+              ? "Cancel recording and keep the previous path"
+              : "Record a single pointer loop"
+          }
+          aria-label={
+            recording ? "Cancel pointer recording" : "Record pointer loop"
+          }
           onClick={() =>
-            useEditor.setState((s) => ({
-              recording: true,
-              livePointer: true,
-              playing: true,
-              timeMs: 0,
-              mutationEpoch: s.mutationEpoch + 1,
-            }))
+            recording
+              ? useEditor.getState().cancelRecording()
+              : useEditor.getState().beginRecording()
           }
         >
-          <Circle size={10} fill="currentColor" />
-          {recording ? "Recording" : "Record"}
+          {recording ? (
+            <X size={12} />
+          ) : (
+            <Circle size={10} fill="currentColor" />
+          )}
+          {recording ? "Cancel" : "Record"}
         </button>
       </div>
     </footer>

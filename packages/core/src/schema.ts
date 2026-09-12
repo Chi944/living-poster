@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { FONT_MANIFEST } from "./font-manifest";
 
+export const CURRENT_RENDERER_VERSION = "1.1.0" as const;
+export const CANVAS_PRESETS = [
+  { id: "portrait", label: "Portrait", width: 1080, height: 1350 },
+  { id: "square", label: "Square", width: 1080, height: 1080 },
+  { id: "story", label: "Story", width: 1080, height: 1920 },
+  { id: "landscape", label: "Landscape", width: 1920, height: 1080 },
+] as const;
+
 export const FONT_IDS = [
   "space-regular",
   "space-bold",
@@ -18,8 +26,8 @@ const colour = z
   .regex(/^#[0-9a-fA-F]{6}$/, "Use a six-digit hex colour");
 export const LayoutSchema = z
   .object({
-    x: number.min(0).max(1080),
-    y: number.min(0).max(1350),
+    x: number.min(0).max(1920),
+    y: number.min(0).max(1920),
     rotationDeg: number.min(-180).max(180),
   })
   .strict();
@@ -27,8 +35,8 @@ export const AnchorSchema = z.discriminatedUnion("type", [
   z
     .object({
       type: z.literal("point"),
-      x: number.min(0).max(1080),
-      y: number.min(0).max(1350),
+      x: number.min(0).max(1920),
+      y: number.min(0).max(1920),
     })
     .strict(),
   z.object({ type: z.literal("layer"), layerId: id }).strict(),
@@ -128,6 +136,59 @@ export const BehaviorSchema = z.discriminatedUnion("type", [
         .strict(),
     })
     .strict(),
+  z
+    .object({
+      ...common,
+      type: z.literal("pulse"),
+      scope: layerScope,
+      params: z
+        .object({
+          amount: number.min(0).max(0.35),
+          cycles: number.int().min(1).max(4),
+        })
+        .strict(),
+    })
+    .strict(),
+  z
+    .object({
+      ...common,
+      type: z.literal("pendulum"),
+      scope: layerScope,
+      params: z
+        .object({
+          angleDeg: number.min(0).max(25),
+          cycles: number.int().min(1).max(4),
+        })
+        .strict(),
+    })
+    .strict(),
+  z
+    .object({
+      ...common,
+      type: z.literal("bounce"),
+      scope: z.enum(["layer", "glyph"]),
+      params: z
+        .object({
+          height: number.min(0).max(120),
+          cycles: number.int().min(1).max(4),
+          stagger: number.min(0).max(1),
+        })
+        .strict(),
+    })
+    .strict(),
+  z
+    .object({
+      ...common,
+      type: z.literal("reveal"),
+      scope: z.enum(["layer", "glyph"]),
+      params: z
+        .object({
+          minOpacity: number.min(0).max(1),
+          stagger: number.min(0).max(1),
+        })
+        .strict(),
+    })
+    .strict(),
 ]);
 export type Behavior = z.infer<typeof BehaviorSchema>;
 export type BehaviorType = Behavior["type"];
@@ -139,7 +200,7 @@ const shared = {
   locked: z.boolean(),
   opacity: number.min(0).max(1),
   layout: LayoutSchema,
-  behaviors: z.array(BehaviorSchema).max(6),
+  behaviors: z.array(BehaviorSchema).max(10),
   fill: colour,
 };
 export const TypographySchema = z
@@ -178,8 +239,8 @@ export type TextLayer = z.infer<typeof TextLayerSchema>;
 export type ShapeLayer = z.infer<typeof ShapeLayerSchema>;
 export const PointerSampleSchema = z
   .object({
-    x: number.min(0).max(1080),
-    y: number.min(0).max(1350),
+    x: number.min(0).max(1920),
+    y: number.min(0).max(1920),
     presence: number.min(0).max(1),
   })
   .strict();
@@ -202,14 +263,14 @@ export const PointerSchema = z.discriminatedUnion("mode", [
 const RawSceneSchema = z
   .object({
     schemaVersion: z.literal(1),
-    rendererVersion: z.literal("1.0.0"),
+    rendererVersion: z.enum(["1.0.0", CURRENT_RENDERER_VERSION]),
     id,
     revision: z.object({ id, parentId: id.nullable() }).strict(),
     seed: number.int().min(0).max(4294967295),
     artboard: z
       .object({
-        width: z.literal(1080),
-        height: z.literal(1350),
+        width: number.int().min(1080).max(1920),
+        height: number.int().min(1080).max(1920),
         background: colour,
       })
       .strict(),
@@ -256,6 +317,29 @@ export function supportedText(
 export const SceneSchema = RawSceneSchema.superRefine((s, ctx) => {
   const fail = (message: string, path: (string | number)[] = []) =>
     ctx.addIssue({ code: "custom", message, path });
+  if (
+    !CANVAS_PRESETS.some(
+      (preset) =>
+        preset.width === s.artboard.width &&
+        preset.height === s.artboard.height,
+    )
+  )
+    fail("Choose a supported canvas format", ["artboard"]);
+  if (
+    s.rendererVersion === "1.0.0" &&
+    (s.artboard.width !== 1080 ||
+      s.artboard.height !== 1350 ||
+      s.layers.some((layer) =>
+        layer.behaviors.some((behavior) =>
+          ["pulse", "pendulum", "bounce", "reveal"].includes(behavior.type),
+        ),
+      ))
+  )
+    fail("New canvas formats and motions require renderer 1.1.0", [
+      "rendererVersion",
+    ]);
+  const inside = (point: { x: number; y: number }) =>
+    point.x <= s.artboard.width && point.y <= s.artboard.height;
   if (new TextEncoder().encode(JSON.stringify(s)).byteLength > 256 * 1024)
     fail("Scene exceeds 256 KiB");
   const ids = new Set<string>(),
@@ -266,6 +350,8 @@ export const SceneSchema = RawSceneSchema.superRefine((s, ctx) => {
   for (const [i, l] of s.layers.entries()) {
     if (ids.has(l.id)) fail("Duplicate layer ID", ["layers", i, "id"]);
     ids.add(l.id);
+    if (!inside(l.layout))
+      fail("Layer position is outside the canvas", ["layers", i, "layout"]);
     if (l.kind === "text") {
       const count = graphemes(l.text).length;
       totalGlyphs += count;
@@ -317,6 +403,15 @@ export const SceneSchema = RawSceneSchema.superRefine((s, ctx) => {
         ]);
       if (b.type === "attract" || b.type === "orbit") {
         const a = b.params.anchor;
+        if (a.type === "point" && !inside(a))
+          fail("Anchor is outside the canvas", [
+            "layers",
+            i,
+            "behaviors",
+            j,
+            "params",
+            "anchor",
+          ]);
         const target =
           a.type === "layer" ? s.layers.find((x) => x.id === a.layerId) : null;
         if (a.type === "layer" && (!target || target.id === l.id))
@@ -345,6 +440,8 @@ export const SceneSchema = RawSceneSchema.superRefine((s, ctx) => {
   }
   if (totalGlyphs > 1024) fail("Scene exceeds 1,024 graphemes", ["layers"]);
   if (totalBehaviors > 256) fail("Scene exceeds 256 behaviors", ["layers"]);
+  if (s.pointer.mode === "fixed" && !inside(s.pointer.sample))
+    fail("Pointer is outside the canvas", ["pointer"]);
   if (s.pointer.mode === "recorded") {
     const samples = s.pointer.samples,
       first = samples[0]!,
@@ -361,6 +458,8 @@ export const SceneSchema = RawSceneSchema.superRefine((s, ctx) => {
       fail("Recorded loop endpoints must match", ["pointer"]);
     if (samples.some((p, i) => i > 0 && p.timeMs <= samples[i - 1]!.timeMs))
       fail("Pointer timestamps must strictly increase", ["pointer"]);
+    if (samples.some((p) => !inside(p)))
+      fail("Pointer path is outside the canvas", ["pointer"]);
   }
 });
 export function validateScene(value: unknown): Scene {
@@ -387,12 +486,14 @@ export function cloneScene(scene: Scene): Scene {
 export function reviseScene(scene: Scene): Scene {
   const next = cloneScene(scene);
   next.revision = { id: newId(), parentId: scene.revision.id };
+  next.rendererVersion = CURRENT_RENDERER_VERSION;
   return next;
 }
 export function defaultBehavior(
   type: BehaviorType,
   durationMs: number,
   layer?: Layer,
+  artboard: { width: number; height: number } = { width: 1080, height: 1350 },
 ): Behavior {
   const c = { id: newId(), enabled: true, startMs: 0, endMs: durationMs };
   switch (type) {
@@ -434,7 +535,11 @@ export function defaultBehavior(
         type,
         scope: "layer",
         params: {
-          anchor: { type: "point", x: 540, y: 675 },
+          anchor: {
+            type: "point",
+            x: artboard.width / 2,
+            y: artboard.height / 2,
+          },
           strength: 0.6,
           maxDistance: 140,
         },
@@ -447,8 +552,8 @@ export function defaultBehavior(
         params: {
           anchor: {
             type: "point",
-            x: Math.max(16, (layer?.layout.x ?? 540) - 80),
-            y: layer?.layout.y ?? 675,
+            x: Math.max(16, (layer?.layout.x ?? artboard.width / 2) - 80),
+            y: layer?.layout.y ?? artboard.height / 2,
           },
           direction: 1,
           cycles: 1,
@@ -460,6 +565,34 @@ export function defaultBehavior(
         type,
         scope: "layer",
         params: { radius: 280, maxDistance: 90 },
+      };
+    case "pulse":
+      return {
+        ...c,
+        type,
+        scope: "layer",
+        params: { amount: 0.14, cycles: 2 },
+      };
+    case "pendulum":
+      return {
+        ...c,
+        type,
+        scope: "layer",
+        params: { angleDeg: 12, cycles: 2 },
+      };
+    case "bounce":
+      return {
+        ...c,
+        type,
+        scope: layer?.kind === "shape" ? "layer" : "glyph",
+        params: { height: 54, cycles: 2, stagger: 0.4 },
+      };
+    case "reveal":
+      return {
+        ...c,
+        type,
+        scope: layer?.kind === "shape" ? "layer" : "glyph",
+        params: { minOpacity: 0.08, stagger: 0.65 },
       };
   }
 }

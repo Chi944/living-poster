@@ -10,6 +10,19 @@ export async function api<T = any>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  if (import.meta.env.VITE_HOSTED === "true") {
+    const { hostedRequest } = await import("./hosted-api");
+    try {
+      return await hostedRequest(path, options);
+    } catch (error) {
+      throw new ApiError(
+        error instanceof Error
+          ? error.message
+          : "Browser storage is unavailable.",
+        (error as { status?: number }).status ?? 400,
+      );
+    }
+  }
   let response: Response;
   try {
     response = await fetch(`/api${path}`, {
@@ -44,8 +57,15 @@ export type Capabilities = {
   free: boolean;
   authenticated: boolean;
   needsSetup: boolean;
-  ai: { available: boolean; model: string; reason?: string };
+  ai: {
+    available: boolean;
+    model: string;
+    reason?: string;
+    connector?: { enabled: boolean; url: string; model: string };
+  };
   storage: string;
+  runtime?: "browser";
+  sharePolicy?: "portable";
 };
 export type Project = {
   id: string;

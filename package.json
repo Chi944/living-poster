@@ -1,6 +1,6 @@
 {
   "name": "living-poster",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,10 +9,12 @@
   "scripts": {
     "dev": "concurrently -k -n api,web \"tsx watch apps/api/src/index.ts\" \"vite --host 127.0.0.1\"",
     "build": "npm run typecheck && node scripts/build.mjs",
+    "build:hosted": "npm run typecheck && node scripts/build.mjs --hosted",
     "start": "node dist/server/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:hosted": "playwright test --config playwright.hosted.config.ts",
     "eval:local": "tsx scripts/evaluate.ts",
     "bench": "node tests/performance.mjs",
     "format": "prettier --write .",

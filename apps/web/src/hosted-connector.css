@@ -1,0 +1,67 @@
+.hosted-connector {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 18px;
+  margin: 22px 0;
+  background: #f8f7f1;
+}
+.hosted-connector-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+}
+.hosted-connector-heading > span {
+  margin-left: auto;
+  font-size: 10px;
+  color: #59634e;
+}
+.hosted-connector-fields {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 12px;
+  margin: 15px 0;
+}
+.hosted-connector-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 10px;
+  color: #4d5849;
+}
+.hosted-connector-fields input {
+  width: 100%;
+  min-width: 0;
+  background: #fffdf7;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 9px;
+  color: #242b20;
+  font-size: 11px;
+}
+.hosted-connector details {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 15px 0;
+}
+.hosted-connector summary {
+  cursor: pointer;
+}
+.hosted-connector li {
+  margin: 8px 0;
+}
+.hosted-connector code {
+  font-size: 10px;
+  overflow-wrap: anywhere;
+  background: #eeeee3;
+  border-radius: 2px;
+  padding: 2px 4px;
+}
+.hosted-connector .small-note {
+  line-height: 1.6;
+}
+@media (max-width: 560px) {
+  .hosted-connector-fields {
+    grid-template-columns: 1fr;
+  }
+}

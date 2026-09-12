@@ -63,6 +63,7 @@ export interface DrawUnit {
   width: number;
   height: number;
   rotationDeg: number;
+  scale: number;
   fill: string;
   opacity: number;
   text?: string;
@@ -73,8 +74,8 @@ export interface DrawUnit {
   bounds: Bounds;
 }
 export interface Frame {
-  width: 1080;
-  height: 1350;
+  width: number;
+  height: number;
   background: string;
   units: DrawUnit[];
   bounds: Record<string, Bounds>;
@@ -254,15 +255,22 @@ export function compileScene(
       if (
         bounds.x < 16 - 1e-7 ||
         bounds.y < 16 - 1e-7 ||
-        bounds.x + bounds.width > 1064 + 1e-7 ||
-        bounds.y + bounds.height > 1334 + 1e-7
+        bounds.x + bounds.width > scene.artboard.width - 16 + 1e-7 ||
+        bounds.y + bounds.height > scene.artboard.height - 16 + 1e-7
       )
         throw new Error(
           `“${layer.name}” extends outside the 16-unit margin. Move it inward, insert a line break, or reduce its size.`,
         );
       // A rectangle's diagonal is an upper bound at every possible animated orientation.
-      // Glyph maximum size is 300; shape maximum is 640, so both fit the 1048-unit width.
-      if (Math.hypot(unit.width, unit.height) > 1048)
+      // Include pulse's largest possible scale in the rotational safety budget.
+      const pulse = layer.behaviors.find(
+        (behavior) => behavior.enabled && behavior.type === "pulse",
+      );
+      const maxScale = pulse?.type === "pulse" ? 1 + pulse.params.amount : 1;
+      if (
+        Math.hypot(unit.width, unit.height) * maxScale >
+        Math.min(scene.artboard.width, scene.artboard.height) - 32
+      )
         throw new Error(
           `A drawn unit in “${layer.name}” is too large to rotate safely.`,
         );
@@ -327,7 +335,26 @@ function scatterEnvelope(
       ? 1
       : 1 - smooth((u - returnStart) / (1 - returnStart));
 }
-const ORDER = ["float", "orbit", "scatter", "attract", "repel"] as const;
+const ORDER = [
+  "float",
+  "orbit",
+  "scatter",
+  "attract",
+  "repel",
+  "pulse",
+  "pendulum",
+  "bounce",
+  "reveal",
+] as const;
+function revealOpacity(
+  u: number,
+  minimum: number,
+  stagger: number,
+  position: number,
+): number {
+  const center = 0.35 + position * stagger * 0.3;
+  return 1 - (1 - minimum) * smooth(1 - Math.abs(u - center) / 0.28);
+}
 export function evaluateScene(
   compiled: CompiledScene,
   input: { timeMs: number; pointer: PointerSample | null },
@@ -341,8 +368,8 @@ export function evaluateScene(
   const { scene } = compiled,
     t = loopTime(input.timeMs, scene.timeline.durationMs);
   const frame: Frame = {
-    width: 1080,
-    height: 1350,
+    width: scene.artboard.width,
+    height: scene.artboard.height,
     background: scene.artboard.background,
     units: [],
     bounds: Object.create(null),
@@ -356,7 +383,9 @@ export function evaluateScene(
     if (!l.visible || l.opacity === 0) continue;
     let dx = 0,
       dy = 0,
-      commonAngle = 0;
+      commonAngle = 0,
+      commonScale = 1,
+      commonOpacity = 1;
     for (const type of ORDER) {
       const b = l.behaviors.find((b) => b.type === type);
       if (!b) continue;
@@ -429,14 +458,50 @@ export function evaluateScene(
           dy += y * f;
           break;
         }
+        case "pulse": {
+          commonScale *=
+            1 +
+            b.params.amount *
+              e *
+              (0.5 - 0.5 * Math.cos(2 * Math.PI * b.params.cycles * u));
+          break;
+        }
+        case "pendulum": {
+          commonAngle +=
+            b.params.angleDeg * e * Math.sin(2 * Math.PI * b.params.cycles * u);
+          break;
+        }
+        case "bounce": {
+          if (b.scope === "layer")
+            dy -=
+              b.params.height *
+              e *
+              Math.abs(Math.sin(Math.PI * b.params.cycles * u));
+          break;
+        }
+        case "reveal": {
+          if (b.scope === "layer")
+            commonOpacity *= revealOpacity(u, b.params.minOpacity, 0, 0);
+          break;
+        }
       }
     }
     const offset = limit(dx, dy, 240);
     commonAngle = clamp(commonAngle, -25, 25);
+    // Breathe around the ink's center so left-aligned text does not drift as it scales.
+    const scaleOrigin = base
+      ? rotate(
+          base.x + base.width / 2 - l.layout.x,
+          base.y + base.height / 2 - l.layout.y,
+          -l.layout.rotationDeg * DEG,
+        )
+      : { x: 0, y: 0 };
+    const lastIndex = Math.max(1, units.at(-1)?.index ?? 1);
     for (const unit of units) {
       let gx = 0,
         gy = 0,
-        gAngle = 0;
+        gAngle = 0,
+        opacity = commonOpacity;
       for (const b of l.behaviors) {
         if (b.scope !== "glyph") continue;
         const u = phase(b, t);
@@ -464,29 +529,53 @@ export function evaluateScene(
           gy += v.y * h;
           gAngle += v.angle * h;
         }
+        if (b.type === "bounce") {
+          gy -=
+            b.params.height *
+            Math.sin(Math.PI * u) ** 2 *
+            Math.abs(
+              Math.sin(
+                Math.PI * b.params.cycles * u -
+                  (unit.index / lastIndex) * b.params.stagger * Math.PI,
+              ),
+            );
+        }
+        if (b.type === "reveal")
+          opacity *= revealOpacity(
+            u,
+            b.params.minOpacity,
+            b.params.stagger,
+            unit.index / lastIndex,
+          );
       }
       const local = limit(gx, gy, 180),
         p = rotate(
-          unit.x + local.x,
-          unit.y + local.y,
+          scaleOrigin.x + (unit.x + local.x - scaleOrigin.x) * commonScale,
+          scaleOrigin.y + (unit.y + local.y - scaleOrigin.y) * commonScale,
           (l.layout.rotationDeg + commonAngle) * DEG,
         );
       let x = l.layout.x + p.x + offset.x,
         y = l.layout.y + p.y + offset.y;
       const rotationDeg =
           l.layout.rotationDeg + clamp(commonAngle + gAngle, -25, 25),
-        box = unitBounds(x, y, unit.width, unit.height, rotationDeg * DEG);
+        box = unitBounds(
+          x,
+          y,
+          unit.width * commonScale,
+          unit.height * commonScale,
+          rotationDeg * DEG,
+        );
       const correctionX =
         box.x < 16
           ? 16 - box.x
-          : box.x + box.width > 1064
-            ? 1064 - box.x - box.width
+          : box.x + box.width > frame.width - 16
+            ? frame.width - 16 - box.x - box.width
             : 0;
       const correctionY =
         box.y < 16
           ? 16 - box.y
-          : box.y + box.height > 1334
-            ? 1334 - box.y - box.height
+          : box.y + box.height > frame.height - 16
+            ? frame.height - 16 - box.y - box.height
             : 0;
       if (correctionX || correctionY) {
         frame.boundsCorrections++;
@@ -500,8 +589,9 @@ export function evaluateScene(
         x,
         y,
         rotationDeg,
+        scale: commonScale,
         fill: l.fill,
-        opacity: l.opacity,
+        opacity: l.opacity * opacity,
         bounds: box,
       };
       frame.units.push(draw);
@@ -541,6 +631,7 @@ export function paintFrame(
     ctx.save();
     ctx.translate(unit.x, unit.y);
     ctx.rotate(unit.rotationDeg * DEG);
+    ctx.scale(unit.scale, unit.scale);
     ctx.fillStyle = unit.fill;
     ctx.globalAlpha = unit.opacity;
     if (unit.kind === "glyph") {
@@ -569,7 +660,10 @@ export function hitTest(frame: Frame, x: number, y: number): string | null {
   for (let i = frame.units.length - 1; i >= 0; i--) {
     const u = frame.units[i]!,
       p = rotate(x - u.x, y - u.y, -u.rotationDeg * DEG);
+    p.x /= u.scale;
+    p.y /= u.scale;
     if (
+      u.opacity > 0.01 &&
       Math.abs(p.x) <= u.width / 2 &&
       Math.abs(p.y) <= u.height / 2 &&
       (u.kind !== "ellipse" ||

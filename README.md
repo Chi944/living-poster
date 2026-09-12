@@ -1,12 +1,22 @@
 # Living Poster
 
-A typography instrument where words float, orbit, ripple, scatter, attract, and give your pointer some space.
+A typography instrument where words float, orbit, ripple, scatter, pulse, swing, bounce, reveal, and respond to your pointer.
 
 ![The Living Poster studio](docs/assets/studio.png)
 
-[Watch the 60-second demo](docs/assets/living-poster-demo.mp4) · [Explore the six example compositions](tests/core-artifacts/gallery.png)
+[Watch the original 60-second demo](docs/assets/living-poster-demo.mp4) · [Explore ten example compositions](tests/core-artifacts/gallery.png)
 
-Living Poster runs on your computer. The editor, persistent projects, revision history, read-only presentations, PNG exports, self-contained HTML exports, and real local AI editing require **no subscription, API key, paid service, or usage credits**. AI uses Ollama with a locally installed model. There is no cloud model fallback.
+Living Poster runs in your browser on free static hosting, or as a local application on your computer. The editor, projects, revision history, read-only presentations, PNG exports, self-contained HTML exports, and local AI editing require **no subscription, API key, paid service, or usage credits**. AI uses Ollama with a locally installed model. There is no cloud model fallback.
+
+## Browser edition on Vercel
+
+The Vercel build is a static website: `npm run build:hosted` produces `dist/hosted`. It uses no server functions, managed database, paid model, analytics service, or API secret. `vercel.json` configures the build and presentation routes. The linked project uses the free Hobby plan.
+
+**There is no password in the browser edition.** Projects and immutable revisions stay in IndexedDB in your browser profile. Clearing site data removes the library. Download scene JSON files for backups or to move between devices; browser storage is not cloud account sync.
+
+Sharing creates an immutable compressed snapshot inside a URL fragment. A recipient can open that link on another device without your browser running. The fragment contains the poster and is not sent to the Vercel server. Anyone with the full link can read it; removing an entry from your library cannot revoke copies. Animated HTML export is another portable, fully offline option.
+
+Manual tools and exports work immediately. **Studio settings → Connect local Ollama** enables real AI on your own computer after explicit connection. Follow the displayed `OLLAMA_ORIGINS` instructions and allow local-network access if your browser asks. Browser restrictions or unavailable local hardware can prevent that connection; the local edition below runs the same model through its Node server. See [hosting and local AI setup](docs/hosting.md).
 
 ## Run it
 
@@ -33,21 +43,21 @@ Open http://127.0.0.1:5175. The API runs on port 4317. The checked-in fonts are 
 
 ## Make a poster
 
-1. Choose one of six editable compositions: Gravity, Panic / Return, After Hours, Frequency, Small Worlds, or Personal Space.
-2. Edit wording in the inspector. Click or Shift-click layers on the canvas or layer list. Drag to position them; use arrow keys for 1-unit nudges, or Shift+arrow for 10.
-3. Add one of six procedural motions, set its parameters, and scrub the timeline. Changes always affect base layout independently of the animation.
+1. Choose **New canvas** for a blank portrait, square, story or landscape canvas, or one of ten editable compositions. The artboard format selector proportionately fits an existing composition to another format.
+2. Edit wording in the inspector. Double-click canvas text to focus its field. Click or Shift-click layers on the canvas or layer list. Drag to position them; use arrow keys for 1-unit nudges, or Shift+arrow for 10.
+3. Try twelve animation recipes or combine ten individual motion types. Tune parameters and scrub the timeline. Click an animated layer or use **Edit canvas** to freeze the frame and edit. Changes affect base layout independently of the animation.
 4. Describe a change in the local AI composer. Valid edits apply as one undoable operation and highlight affected layers. Material ambiguity asks for clarification; unsupported requests explain an alternative.
 5. Save revisions, share a read-only snapshot, or download a PNG, scene JSON, or animated HTML file.
 
-Ctrl/Cmd+Z undoes manual and AI edits. Ctrl/Cmd+Shift+Z redoes. Delete removes the selected layer outside text fields. Escape cancels an unfinished drag. Interface controls are keyboard-accessible; reduced-motion preferences start playback paused.
+Ctrl/Cmd+Z undoes manual and AI edits. Ctrl/Cmd+Shift+Z redoes. Delete removes the selected layer outside text fields. Escape cancels an unfinished drag or recording. **Cancel recording**, pausing playback, or editing a property also exits recording safely. Invalid field edits revert to the last valid value and can be corrected immediately. Interface controls are keyboard-accessible; reduced-motion preferences start playback paused.
 
 ## What is local, and what is shareable?
 
-Browser recovery uses IndexedDB. Persistent projects, revisions, password/session hashes, private instructions, and share snapshots use `data/living-poster.sqlite`. The entire `data/` directory is Git-ignored. Back it up to preserve your installation; stop the server before copying it, or use SQLite's supported backup tooling.
+In the native local edition, browser recovery uses IndexedDB. Persistent projects, revisions, password/session hashes, private instructions, and share snapshots use `data/living-poster.sqlite`. The entire `data/` directory is Git-ignored. Back it up to preserve your installation; stop the server before copying it, or use SQLite's supported backup tooling. The browser edition uses the different persistence and sharing rules described above.
 
 A share URL points to an immutable read-only snapshot served by **your running server**. A localhost link works on your own computer. For another person to open it, your server must be reachable from their device. This application does not silently upload posters or provision paid hosting. For effortless sharing without running a server, send the downloaded HTML file: it includes its renderer and fonts and opens offline.
 
-For deliberate LAN hosting, set `LP_HOST=0.0.0.0` and `LP_PUBLIC_HOST` to the computer's LAN IP or hostname. Complete owner setup on localhost first. Restart the server, then open the configured address at port 4317. Keep authoring access protected by your password. Public internet deployment is outside the tested configuration. The shipped server supports native localhost and explicitly configured LAN access; downloaded HTML is the portable sharing format.
+For deliberate LAN hosting, set `LP_HOST=0.0.0.0` and `LP_PUBLIC_HOST` to the computer's LAN IP or hostname. Complete owner setup on localhost first. Restart the server, then open the configured address at port 4317. Keep authoring access protected by your password. Use the static browser build for Vercel; the native SQLite server is intended for localhost or explicitly configured LAN access.
 
 Revoking a share prevents future requests to that URL. It cannot retract a file someone already downloaded.
 
@@ -74,6 +84,8 @@ npm test
 npm run build
 npx playwright install chromium
 npm run test:e2e
+npm run build:hosted
+npm run test:hosted
 npm run eval:local
 npm run bench
 ```
@@ -82,7 +94,7 @@ The unit/integration suites use controlled test adapters for transport failures 
 
 ## Release boundaries
 
-- One 1080×1350 artboard, a 2–10 second looping timeline, text and rectangle/ellipse layers.
+- Four artboard formats: portrait 1080×1350, square 1080×1080, story 1080×1920, and landscape 1920×1080. A 2–10 second looping timeline, text and rectangle/ellipse layers.
 - Six bundled font faces from Space Grotesk, Fraunces, and IBM Plex Mono. Font licenses and exact asset hashes live in `apps/web/public/fonts`.
 - Supported Latin typography, explicit line breaks and a consistent per-letter layout. Complex-script shaping, cross-letter ligatures and custom fonts are outside this release.
 - Bounded procedural motion, not a physics simulation. Motion can be constrained near artboard edges.
@@ -93,6 +105,7 @@ The unit/integration suites use controlled test adapters for transport failures 
 
 - [Scene format and motion rules](docs/scene-format.md)
 - [Architecture and reliability](docs/architecture.md)
+- [Vercel hosting and optional local AI](docs/hosting.md)
 - [Evaluation and performance](docs/evaluation.md)
 - [Portfolio case study](docs/case-study.md)
 - [60-second demo](docs/demo-script.md)

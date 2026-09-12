@@ -5,3 +5,5 @@ export * from "./font-manifest";
 export * from "./renderer";
 export * from "./pointer";
 export * from "./examples";
+export * from "./canvas";
+export * from "./motion-options";

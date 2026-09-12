@@ -91,14 +91,15 @@ function scene(
   background: string,
   layers: Layer[],
   seed: number,
+  format?: { width: number; height: number },
 ): Scene {
   return validateScene({
     schemaVersion: 1,
-    rendererVersion: "1.0.0",
+    rendererVersion: format ? "1.1.0" : "1.0.0",
     id: `example-${id}`,
     revision: { id: `example-${id}-v1`, parentId: null },
     seed,
-    artboard: { width: 1080, height: 1350, background },
+    artboard: { width: 1080, height: 1350, ...format, background },
     timeline: { durationMs: 6000, fps: 30, loop: true },
     fonts: FONT_IDS.map((id) => ({ id, assetHash: "bundled-v1" })),
     layers,
@@ -528,6 +529,244 @@ personal.pointer = {
     6000,
   ),
 };
+const alive = scene(
+  "feel-alive",
+  "#192B2A",
+  [
+    text(
+      "alive-header",
+      "THE EVERYDAY IS EXTRAORDINARY",
+      72,
+      102,
+      20,
+      "#EDBA95",
+      mono,
+    ),
+    shape("alive-halo", "ellipse", 540, 531, 640, 640, "#31534A", {
+      behaviors: [
+        motion("alive-halo-pulse", "pulse", { amount: 0.06, cycles: 2 }),
+      ],
+    }),
+    text("alive-feel", "FEEL", 540, 489, 240, "#F6C9A5", {
+      ...centered,
+      behaviors: [
+        motion("alive-feel-pulse", "pulse", { amount: 0.1, cycles: 2 }),
+      ],
+    }),
+    text("alive-alive", "ALIVE", 540, 722, 218, "#F6C9A5", {
+      ...centered,
+      behaviors: [
+        motion("alive-alive-pulse", "pulse", { amount: 0.1, cycles: 2 }),
+      ],
+    }),
+    shape("alive-dot", "ellipse", 87, 961, 24, 24, "#E18866"),
+    text(
+      "alive-footer",
+      "A LITTLE MORE, EVERY DAY.",
+      121,
+      969,
+      20,
+      "#EDBA95",
+      mono,
+    ),
+    text("alive-time", "07 / 10", 1008, 1019, 18, "#EDBA95", {
+      ...mono,
+      align: "right",
+    }),
+  ],
+  783161,
+  { width: 1080, height: 1080 },
+);
+const takeTime = scene(
+  "take-your-time",
+  "#F0DEA0",
+  [
+    text(
+      "time-header",
+      "NOT EVERYTHING NEEDS TO HURRY.",
+      90,
+      99,
+      24,
+      "#382C2C",
+      mono,
+    ),
+    text("time-edition", "STUDY 08 / 10", 1830, 99, 24, "#382C2C", {
+      ...mono,
+      align: "right",
+    }),
+    text("time-take", "TAKE", 90, 386, 230, "#382C2C"),
+    text("time-your", "YOUR", 90, 620, 230, "#382C2C"),
+    text("time-time", "TIME.", 90, 854, 230, "#382C2C"),
+    shape("time-rule", "rect", 1002, 566, 4, 600, "#BFAA79"),
+    shape("time-sun", "ellipse", 1453, 407, 260, 260, "#D26340", {
+      behaviors: [
+        motion("time-sun-pulse", "pulse", { amount: 0.08, cycles: 1 }),
+      ],
+    }),
+    text("time-slow", "slow", 1453, 724, 197, "#382C2C", {
+      ...centered,
+      fontId: "fraunces-regular",
+      trackingEm: -0.015,
+      behaviors: [
+        motion("time-slow-pendulum", "pendulum", { angleDeg: 15, cycles: 1 }),
+      ],
+    }),
+    text("time-note", "THERE IS ROOM TO BREATHE.", 1453, 862, 21, "#382C2C", {
+      ...mono,
+      ...centered,
+    }),
+    text(
+      "time-footer",
+      "GOOD THINGS FIND THEIR OWN RHYTHM.",
+      90,
+      1004,
+      22,
+      "#382C2C",
+      mono,
+    ),
+  ],
+  834711,
+  { width: 1920, height: 1080 },
+);
+const goodVibes = scene(
+  "good-vibes",
+  "#BDE9CA",
+  [
+    text(
+      "vibes-header",
+      "A DAILY DOSE OF OPTIMISM",
+      77,
+      124,
+      24,
+      "#283DCA",
+      mono,
+    ),
+    text("vibes-edition", "09 / 10", 1003, 185, 22, "#283DCA", {
+      ...mono,
+      align: "right",
+    }),
+    shape("vibes-ball", "ellipse", 540, 338, 104, 104, "#F07457", {
+      behaviors: [
+        motion("vibes-ball-bounce", "bounce", {
+          height: 70,
+          cycles: 2,
+          stagger: 0,
+        }),
+      ],
+    }),
+    ...["GOOD", "VIBES", "ONLY"].map((word, index) =>
+      text(
+        `vibes-word-${index}`,
+        word,
+        540,
+        712 + index * 291,
+        244,
+        "#283DCA",
+        {
+          ...centered,
+          behaviors: [
+            motion(
+              `vibes-bounce-${index}`,
+              "bounce",
+              {
+                height: 80 - index * 8,
+                cycles: 2,
+                stagger: 0.55 + index * 0.1,
+              },
+              "glyph",
+            ),
+          ],
+        },
+      ),
+    ),
+    shape("vibes-footer-ball", "ellipse", 540, 1532, 54, 54, "#F07457", {
+      behaviors: [
+        motion("vibes-footer-pulse", "pulse", { amount: 0.22, cycles: 2 }),
+      ],
+    }),
+    text("vibes-footer", "PASS THE FEELING ON.", 540, 1734, 28, "#283DCA", {
+      ...mono,
+      ...centered,
+    }),
+    text("vibes-note", "UPWARD. ONWARD. AGAIN.", 540, 1834, 20, "#283DCA", {
+      ...mono,
+      ...centered,
+    }),
+  ],
+  928113,
+  { width: 1080, height: 1920 },
+);
+const lessBetter = scene(
+  "less-but-better",
+  "#F0D9CC",
+  [
+    text(
+      "less-header",
+      "AN EXERCISE IN ESSENTIALS",
+      86,
+      112,
+      21,
+      "#7F3D30",
+      mono,
+    ),
+    text("less-edition", "10 / 10", 994, 171, 20, "#7F3D30", {
+      ...mono,
+      align: "right",
+    }),
+    ...["Less.", "But", "better."].map((word, index) =>
+      text(
+        `less-word-${index}`,
+        word,
+        93,
+        491 + index * 220,
+        index === 2 ? 169 : 185,
+        "#7F3D30",
+        {
+          fontId: "fraunces-regular",
+          trackingEm: -0.025,
+          behaviors: [
+            motion(
+              `less-reveal-${index}`,
+              "reveal",
+              { minOpacity: 0.08, stagger: 0.75 },
+              "glyph",
+            ),
+          ],
+        },
+      ),
+    ),
+    shape("less-mark", "rect", 100, 1119, 16, 66, "#7F3D30"),
+    text(
+      "less-footer",
+      "MAKE SPACE FOR WHAT MATTERS.",
+      131,
+      1118,
+      21,
+      "#7F3D30",
+      mono,
+    ),
+    text(
+      "less-note",
+      "LET EVERYTHING ELSE GO.",
+      131,
+      1157,
+      21,
+      "#7F3D30",
+      mono,
+    ),
+    text(
+      "less-loop",
+      "DISSOLVE / RESOLVE / REPEAT",
+      86,
+      1261,
+      20,
+      "#7F3D30",
+      mono,
+    ),
+  ],
+  1041811,
+  { width: 1080, height: 1350 },
+);
 export const EXAMPLES: PosterExample[] = [
   {
     id: "gravity",
@@ -580,5 +819,41 @@ export const EXAMPLES: PosterExample[] = [
     suggestedInstruction: "Make PERSONAL react more strongly to the pointer.",
     thumbnailTimeMs: 0,
     scene: personal,
+  },
+  {
+    id: "feel-alive",
+    title: "FEEL ALIVE",
+    description:
+      "Warm peach type breathes over an evergreen halo. A square study in pulse.",
+    suggestedInstruction: "Make FEEL pulse more strongly.",
+    thumbnailTimeMs: 0,
+    scene: alive,
+  },
+  {
+    id: "take-your-time",
+    title: "TAKE YOUR TIME",
+    description:
+      "A wide composition with a swaying serif and a patient, warm sun.",
+    suggestedInstruction: "Make slow swing more gently.",
+    thumbnailTimeMs: 0,
+    scene: takeTime,
+  },
+  {
+    id: "good-vibes",
+    title: "GOOD VIBES",
+    description:
+      "Mint, cobalt and letters that spring upward in a tall story format.",
+    suggestedInstruction: "Make VIBES bounce higher.",
+    thumbnailTimeMs: 0,
+    scene: goodVibes,
+  },
+  {
+    id: "less-but-better",
+    title: "LESS, BUT BETTER",
+    description:
+      "A quiet sequence of serif letters dissolves and resolves, one by one.",
+    suggestedInstruction: "Make better. reveal with less fading.",
+    thumbnailTimeMs: 0,
+    scene: lessBetter,
   },
 ];

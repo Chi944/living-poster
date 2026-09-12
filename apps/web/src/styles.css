@@ -2025,6 +2025,205 @@ h3 {
   flex-wrap: wrap;
   gap: 7px;
 }
+.canvas-format-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.canvas-format-control select {
+  font-size: 10px;
+  max-width: 190px;
+  color: #596449;
+  background: transparent;
+  border: 0;
+  padding: 5px 0;
+}
+.edit-mode-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #cbd2bf;
+  border-radius: 3px;
+  padding: 5px 8px;
+  white-space: nowrap;
+  font-size: 9px;
+}
+.edit-mode-button.active {
+  background: #e6edda;
+  color: #4d6337;
+  border-color: #aabc92;
+}
+.stage-cancel {
+  border-bottom: 1px solid currentColor;
+  color: #a83220;
+  padding: 0 0 2px;
+  margin-left: 10px;
+  font: inherit;
+}
+.motion-recipes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.inspector-shortcuts {
+  padding: 10px 19px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.inspector-shortcuts > span {
+  font:
+    7px Mono,
+    monospace;
+  color: #606a55;
+}
+.inspector-shortcuts button {
+  font-size: 9px;
+  color: #566c3c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.motion-recipes button {
+  padding: 9px 3px 7px;
+  border: 1px solid #d9dfcf;
+  background: #f9f9f2;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+.motion-recipes button:hover {
+  background: #e9eedf;
+  border-color: #a8b892;
+}
+.motion-recipes button > span:first-child {
+  font-size: 24px;
+  height: 26px;
+  line-height: 26px;
+  color: #7b8c60;
+}
+.motion-recipes button > span:last-child {
+  font-size: 8px;
+  line-height: 1.2;
+}
+.motion-recipes button:hover > span:first-child {
+  transform: translateY(-2px);
+  transition: transform 0.2s;
+}
+.blank-canvases {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 28px;
+}
+.blank-canvases button {
+  border: 1px solid #d4ddc7;
+  border-radius: 5px;
+  min-height: 132px;
+  padding: 15px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  background: #eef1e5;
+}
+.blank-canvases button:hover {
+  background: #e3ead7;
+  border-color: #9cac86;
+}
+.blank-canvases strong {
+  font-size: 11px;
+  margin-top: 10px;
+}
+.blank-canvases small {
+  font:
+    8px Mono,
+    monospace;
+  color: #667258;
+  margin-top: 5px;
+}
+.blank-canvas-icon {
+  height: 53px;
+  max-width: 88px;
+  background: #fbfaf4;
+  border: 1px solid #b8c3a9;
+  display: grid;
+  place-items: center;
+  box-shadow: 2px 3px 0 #dce4d0;
+  color: #8a9b74;
+}
+.template-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 14px;
+  gap: 10px;
+}
+.template-heading .section-caption {
+  margin-bottom: 0;
+}
+.template-heading select {
+  border: 1px solid #d4ddc7;
+  background: transparent;
+  padding: 6px;
+  font-size: 10px;
+  border-radius: 3px;
+}
+.example-grid > button {
+  align-self: start;
+}
+.example-art > canvas {
+  object-fit: contain;
+}
+@media (max-width: 1150px) {
+  .canvas-format-control {
+    gap: 7px;
+  }
+  .canvas-format-control select {
+    max-width: 130px;
+    font-size: 9px;
+  }
+  .edit-mode-button {
+    font-size: 8px;
+    padding: 4px 6px;
+  }
+  .canvas-toolbar {
+    padding: 0 12px;
+    gap: 8px;
+  }
+}
+@media (max-width: 940px) {
+  .canvas-toolbar > button {
+    display: flex;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+  .canvas-format-control select {
+    max-width: 96px;
+  }
+  .edit-mode-button svg {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .motion-recipes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .blank-canvases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .canvas-format-control select {
+    max-width: 158px;
+  }
+  .canvas-format-control {
+    gap: 12px;
+  }
+}
 .recent-drafts .section-caption {
   width: 100%;
   margin-bottom: 3px;

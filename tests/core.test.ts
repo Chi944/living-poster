@@ -79,8 +79,8 @@ function withBehavior(type: Behavior["type"]): Scene {
 }
 
 describe("closed scene language", () => {
-  it("validates all six independent examples", () => {
-    expect(EXAMPLES).toHaveLength(6);
+  it("validates all ten independent examples", () => {
+    expect(EXAMPLES).toHaveLength(10);
     for (const example of EXAMPLES)
       expect(validateScene(example.scene)).toEqual(example.scene);
   });
@@ -303,10 +303,10 @@ describe("absolute motion evaluation", () => {
             expect(u.bounds.x).toBeGreaterThanOrEqual(16 - 1e-6);
             expect(u.bounds.y).toBeGreaterThanOrEqual(16 - 1e-6);
             expect(u.bounds.x + u.bounds.width).toBeLessThanOrEqual(
-              1064 + 1e-6,
+              s.artboard.width - 16 + 1e-6,
             );
             expect(u.bounds.y + u.bounds.height).toBeLessThanOrEqual(
-              1334 + 1e-6,
+              s.artboard.height - 16 + 1e-6,
             );
             expect(Number.isFinite(u.rotationDeg)).toBe(true);
           }

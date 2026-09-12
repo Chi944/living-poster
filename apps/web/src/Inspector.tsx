@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   Plus,
@@ -9,6 +9,9 @@ import {
 } from "lucide-react";
 import {
   FONT_OPTIONS,
+  BEHAVIOR_OPTIONS,
+  CANVAS_PRESETS,
+  resizeScene,
   defaultBehavior,
   type Behavior,
   type BehaviorType,
@@ -16,8 +19,11 @@ import {
   type TextLayer,
 } from "../../../packages/core/src";
 import { useEditor, updateLayer } from "./store";
-const invalidate = () =>
+import { MOTION_RECIPES, recipeBehaviors } from "./motion-recipes";
+const invalidate = () => {
+  useEditor.getState().enterEditMode();
   useEditor.setState((s) => ({ mutationEpoch: s.mutationEpoch + 1 }));
+};
 export function NumberField({
   label,
   value,
@@ -30,7 +36,7 @@ export function NumberField({
 }: {
   label: string;
   value: number;
-  onChange: (n: number) => void;
+  onChange: (n: number) => boolean | void;
   min?: number;
   max?: number;
   step?: number;
@@ -38,11 +44,29 @@ export function NumberField({
   readOnly?: boolean;
 }) {
   const [draft, setDraft] = useState(String(Math.round(value * 1000) / 1000));
+  const cancelled = useRef(false);
   useEffect(() => setDraft(String(Math.round(value * 1000) / 1000)), [value]);
   const submit = () => {
+    if (cancelled.current) {
+      cancelled.current = false;
+      setDraft(String(value));
+      return;
+    }
     const n = Number(draft);
-    if (Number.isFinite(n) && draft.trim() && n !== value) onChange(n);
-    else setDraft(String(value));
+    if (
+      !Number.isFinite(n) ||
+      !draft.trim() ||
+      (min !== undefined && n < min) ||
+      (max !== undefined && n > max)
+    ) {
+      setDraft(String(value));
+      useEditor.setState({
+        notice: `${label} must be ${min ?? "a number"}${max === undefined ? "" : ` to ${max}`}. The previous value is restored.`,
+      });
+      return;
+    }
+    if (n !== value && onChange(n) === false) setDraft(String(value));
+    else if (n === value) setDraft(String(value));
   };
   return (
     <label className="field number-field">
@@ -62,6 +86,11 @@ export function NumberField({
           onBlur={submit}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") {
+              cancelled.current = true;
+              setDraft(String(value));
+              e.currentTarget.blur();
+            }
           }}
         />
         <small>{unit}</small>
@@ -77,7 +106,7 @@ function TextField({
 }: {
   label: string;
   value: string;
-  onChange: (v: string) => void;
+  onChange: (v: string) => boolean | void;
   multiline?: boolean;
 }) {
   const [draft, setDraft] = useState(value);
@@ -88,7 +117,7 @@ function TextField({
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setDraft(e.target.value),
     onBlur: () => {
-      if (draft !== value) onChange(draft);
+      if (draft !== value && onChange(draft) === false) setDraft(value);
     },
   };
   return (
@@ -133,6 +162,10 @@ const motionNames: Record<BehaviorType, string> = {
   orbit: "Orbit",
   attract: "Attract",
   repel: "Pointer repel",
+  pulse: "Pulse",
+  pendulum: "Pendulum",
+  bounce: "Bounce",
+  reveal: "Reveal",
 };
 const paramNames: Record<string, string> = {
   amplitudeX: "Horizontal",
@@ -148,6 +181,11 @@ const paramNames: Record<string, string> = {
   returnStart: "Return starts",
   strength: "Strength",
   maxDistance: "Max. distance",
+  amount: "Scale amount",
+  angleDeg: "Swing angle",
+  height: "Bounce height",
+  stagger: "Letter stagger",
+  minOpacity: "Minimum opacity",
 };
 const ranges: Record<string, [number, number, number]> = {
   amplitudeX: [0, 80, 1],
@@ -163,10 +201,16 @@ const ranges: Record<string, [number, number, number]> = {
   returnStart: [0.35, 0.65, 0.01],
   strength: [0, 1, 0.05],
   maxDistance: [0, 180, 1],
+  amount: [0, 0.35, 0.01],
+  angleDeg: [0, 25, 1],
+  height: [0, 120, 1],
+  stagger: [0, 1, 0.05],
+  minOpacity: [0, 1, 0.05],
 };
 function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
   const duration = useEditor((s) => s.scene.timeline.durationMs),
-    layers = useEditor((s) => s.scene.layers);
+    layers = useEditor((s) => s.scene.layers),
+    artboard = useEditor((s) => s.scene.artboard);
   const update = (fn: (b: Behavior) => void) =>
     updateLayer(
       layer.id,
@@ -177,8 +221,11 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
       `Updated ${motionNames[behavior.type].toLowerCase()}`,
     );
   const anchor = "anchor" in behavior.params ? behavior.params.anchor : null;
+  const controls =
+    BEHAVIOR_OPTIONS.find((option) => option.type === behavior.type)
+      ?.controls ?? [];
   return (
-    <details className="motion-card" open>
+    <details className="motion-card">
       <summary>
         <span className="motion-dot" />
         {motionNames[behavior.type]}
@@ -239,23 +286,28 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
             }
           />
         </div>
-        {behavior.type === "scatter" && layer.kind === "text" && (
-          <label className="field">
-            <span>Apply to</span>
-            <select
-              value={behavior.scope}
-              onChange={(e) =>
-                update((b) => {
-                  if (b.type === "scatter")
-                    b.scope = e.target.value as "layer" | "glyph";
-                })
-              }
-            >
-              <option value="glyph">Each letter</option>
-              <option value="layer">Whole layer</option>
-            </select>
-          </label>
-        )}
+        {["scatter", "bounce", "reveal"].includes(behavior.type) &&
+          layer.kind === "text" && (
+            <label className="field">
+              <span>Apply to</span>
+              <select
+                value={behavior.scope}
+                onChange={(e) =>
+                  update((b) => {
+                    if (
+                      b.type === "scatter" ||
+                      b.type === "bounce" ||
+                      b.type === "reveal"
+                    )
+                      b.scope = e.target.value as "layer" | "glyph";
+                  })
+                }
+              >
+                <option value="glyph">Each letter</option>
+                <option value="layer">Whole layer</option>
+              </select>
+            </label>
+          )}
         <div className="field-grid">
           {Object.entries(behavior.params)
             .filter(([, value]) => typeof value === "number")
@@ -281,9 +333,18 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
                   key={key}
                   label={paramNames[key] ?? key}
                   value={value as number}
-                  min={ranges[key]?.[0]}
-                  max={ranges[key]?.[1]}
-                  step={ranges[key]?.[2]}
+                  min={
+                    controls.find((control) => control.key === key)?.min ??
+                    ranges[key]?.[0]
+                  }
+                  max={
+                    controls.find((control) => control.key === key)?.max ??
+                    ranges[key]?.[1]
+                  }
+                  step={
+                    controls.find((control) => control.key === key)?.step ??
+                    ranges[key]?.[2]
+                  }
                   onChange={(v) =>
                     update((b) => {
                       (b.params as unknown as Record<string, unknown>)[key] = v;
@@ -329,7 +390,7 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
                   label="Anchor X"
                   value={anchor.x}
                   min={0}
-                  max={1080}
+                  max={artboard.width}
                   onChange={(v) =>
                     update((b) => {
                       if (
@@ -344,7 +405,7 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
                   label="Anchor Y"
                   value={anchor.y}
                   min={0}
-                  max={1350}
+                  max={artboard.height}
                   onChange={(v) =>
                     update((b) => {
                       if (
@@ -369,7 +430,7 @@ export function Inspector() {
     layer = scene.layers.find((l) => l.id === selected[0]);
   const [addMotion, setAddMotion] = useState(false);
   const change = (fn: (l: Layer) => void) => {
-    if (layer) updateLayer(layer.id, fn);
+    return layer ? updateLayer(layer.id, fn) : false;
   };
   const textChange = (fn: (l: TextLayer) => void) =>
     change((l) => {
@@ -385,6 +446,38 @@ export function Inspector() {
         </div>
         <section className="inspector-section">
           <div className="section-caption">THE FOUNDATION</div>
+          <label className="field">
+            <span>Canvas format</span>
+            <select
+              aria-label="Canvas format"
+              value={
+                CANVAS_PRESETS.find(
+                  (p) =>
+                    p.width === scene.artboard.width &&
+                    p.height === scene.artboard.height,
+                )?.id ?? "portrait"
+              }
+              onChange={(event) => {
+                const preset = CANVAS_PRESETS.find(
+                  (p) => p.id === event.target.value,
+                )!;
+                useEditor.getState().commit((draft) => {
+                  const revision = draft.revision;
+                  Object.assign(
+                    draft,
+                    resizeScene(draft, preset.width, preset.height),
+                  );
+                  draft.revision = revision;
+                }, `Fitted composition to ${preset.label.toLowerCase()} canvas`);
+              }}
+            >
+              {CANVAS_PRESETS.map((preset) => (
+                <option value={preset.id} key={preset.id}>
+                  {preset.label} · {preset.width} × {preset.height}
+                </option>
+              ))}
+            </select>
+          </label>
           <ColourField
             label="Paper colour"
             value={scene.artboard.background}
@@ -397,21 +490,21 @@ export function Inspector() {
           <div className="field-grid">
             <NumberField
               label="Width"
-              value={1080}
+              value={scene.artboard.width}
               readOnly
               unit="px"
               onChange={() => {}}
             />
             <NumberField
               label="Height"
-              value={1350}
+              value={scene.artboard.height}
               readOnly
               unit="px"
               onChange={() => {}}
             />
           </div>
           <div className="info-note">
-            One canvas. Endless character.
+            Four formats. Endless character.
             <br />
             Select a layer to shape its type, colour and movement.
           </div>
@@ -432,7 +525,13 @@ export function Inspector() {
             </div>
             <div>
               <dt>Format</dt>
-              <dd>Portrait · 4:5</dd>
+              <dd>
+                {CANVAS_PRESETS.find(
+                  (p) =>
+                    p.width === scene.artboard.width &&
+                    p.height === scene.artboard.height,
+                )?.label ?? "Custom"}
+              </dd>
             </div>
           </dl>
         </section>
@@ -463,6 +562,18 @@ export function Inspector() {
           Showing {layer.name}. Drag and nudge move all selected layers.
         </div>
       )}
+      <div className="inspector-shortcuts">
+        <span>SHAPE YOUR LAYER</span>
+        <button
+          onClick={() =>
+            document
+              .getElementById("motion-recipes")
+              ?.scrollIntoView({ block: "start", behavior: "smooth" })
+          }
+        >
+          Try 12 motion recipes ↓
+        </button>
+      </div>
       <section className="inspector-section">
         <TextField
           label="Layer name"
@@ -659,7 +770,7 @@ export function Inspector() {
             value={layer.layout.x}
             unit="px"
             min={0}
-            max={1080}
+            max={scene.artboard.width}
             onChange={(v) =>
               change((l) => {
                 l.layout.x = v;
@@ -671,7 +782,7 @@ export function Inspector() {
             value={layer.layout.y}
             unit="px"
             min={0}
-            max={1350}
+            max={scene.artboard.height}
             onChange={(v) =>
               change((l) => {
                 l.layout.y = v;
@@ -692,15 +803,59 @@ export function Inspector() {
           />
         </div>
       </section>
+      <section className="inspector-section" id="motion-recipes">
+        <div className="section-caption">
+          TRY A MOVEMENT <span>12 RECIPES</span>
+        </div>
+        <div className="motion-recipes">
+          {MOTION_RECIPES.filter(
+            (recipe) => !recipe.textOnly || layer.kind === "text",
+          ).map((recipe) => (
+            <button
+              key={recipe.id}
+              title={recipe.description}
+              aria-label={`Apply ${recipe.label} animation`}
+              onClick={() => {
+                const applied = updateLayer(
+                  layer.id,
+                  (draft) => {
+                    draft.behaviors = recipeBehaviors(
+                      recipe.id,
+                      draft,
+                      scene.timeline.durationMs,
+                      scene.artboard,
+                    );
+                  },
+                  `${recipe.label} applied · click the canvas to edit, or Undo to restore the previous motion.`,
+                );
+                if (applied) {
+                  useEditor.setState({
+                    timeMs: 0,
+                    ...(recipe.id === "repel" ? { livePointer: true } : {}),
+                  });
+                  useEditor.getState().setPlayback(true);
+                }
+              }}
+            >
+              <span aria-hidden="true">{recipe.symbol}</span>
+              <span>{recipe.label}</span>
+            </button>
+          ))}
+        </div>
+        <p className="small-note">
+          Replaces this layer’s motion. Click the canvas to pause and edit.
+        </p>
+      </section>
       <section className="inspector-section">
         <div className="section-caption">
-          MOTION <span>{layer.behaviors.length}/6</span>
+          FINE-TUNE MOTION <span>{layer.behaviors.length}/10</span>
         </div>
         {layer.behaviors.map((b) => (
           <MotionCard key={b.id} behavior={b} layer={layer} />
         ))}
         <button
           className="button add-motion"
+          disabled={layer.behaviors.length >= 10}
           onClick={() => setAddMotion(!addMotion)}
         >
           <Plus size={14} />
@@ -720,7 +875,12 @@ export function Inspector() {
                   onClick={() => {
                     change((l) => {
                       l.behaviors.push(
-                        defaultBehavior(type, scene.timeline.durationMs, l),
+                        defaultBehavior(
+                          type,
+                          scene.timeline.durationMs,
+                          l,
+                          scene.artboard,
+                        ),
                       );
                     });
                     setAddMotion(false);

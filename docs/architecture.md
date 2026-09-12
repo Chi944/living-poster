@@ -2,6 +2,14 @@
 
 Living Poster is a local application with one shared scene engine. React provides the editor, Canvas 2D draws the poster, and a Node 24 service owns SQLite persistence, session authentication, and requests to a locally installed Ollama model. There are no paid APIs, cloud database dependencies, generated JavaScript, or remote model fallbacks.
 
+Version 1.1 also ships a static browser edition for Vercel. `VITE_HOSTED=true` is set only by `build:hosted`; `api.ts` then dispatches to `hosted-api.ts`. That adapter provides transactional IndexedDB project/revision storage, operation idempotency and compare-and-swap saves. Native builds retain the Node/SQLite API. No Node server bundle or paid service is deployed with the browser edition.
+
+Hosted sharing serializes a validated scene and title into a compressed URL fragment. Decoding bounds compressed input and decompressed output to prevent excessive allocation. Fragments never contain the private library, session information or prompt history. Link removal is explicitly local list removal, because distributed snapshot links cannot be revoked.
+
+The browser model adapter requires an explicit Connect action for each page session before any loopback request. It uses the same real Ollama provider and validated scene operations as the server. A Web Lock coordinates inference across tabs, and one IndexedDB transaction commits each state mutation. Recovery takes that same lock before marking abandoned requests indeterminate. Disconnect invalidates in-flight connection checks and pending admission. Queued inputs and outcomes persist; interrupted requests are never automatically retried.
+
+Editing transitions centrally stop recording and freeze time/pointer input. Selection, property focus, undo/redo, playback pause and Escape all leave the canvas editable. Pointer-mode changes invalidate frozen input. Direct drags preserve point anchors and use the selected ink bounds to constrain movement within the artboard.
+
 ```mermaid
 flowchart LR
   UI[React editor and direct manipulation] --> Store[Scene store and revision history]
@@ -27,7 +35,7 @@ flowchart LR
 
 | Area                | Source                                                         | Responsibility                                                                                                                               |
 | ------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scene engine        | `packages/core/src`                                            | Closed scene language, atomic operations, actual font coverage/hashes, typography, pointer replay, motion evaluation, painting, six examples |
+| Scene engine        | `packages/core/src`                                            | Closed scene language, atomic operations, actual font coverage/hashes, typography, pointer replay, motion evaluation, painting, ten examples |
 | Editor              | `apps/web/src/store.ts`, inspector, canvas, timeline, composer | Selection, gestures, playback, pending fields, undo/redo, stale-result gates                                                                 |
 | Browser durability  | `apps/web/src/drafts.ts` and store outbox                      | IndexedDB transactions, draft recovery, queued immutable save snapshots                                                                      |
 | HTTP service        | `apps/api/src/server.ts`                                       | Same-origin/auth boundaries, owner-scoped routes, idempotency, queue admission, public snapshot DTOs                                         |

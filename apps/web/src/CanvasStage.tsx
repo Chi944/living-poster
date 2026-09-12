@@ -11,7 +11,7 @@ import {
   type Frame,
   type RecordedSample,
 } from "../../../packages/core/src";
-import { useEditor } from "./store";
+import { useEditor, previewPointerRef } from "./store";
 export const pointerRef: { current: PointerSample | null } = { current: null };
 export function PosterPreview({
   scene,
@@ -33,7 +33,7 @@ export function PosterPreview({
             timeMs,
             pointer: samplePointer(scene, timeMs),
           }),
-          0.2,
+          216 / scene.artboard.width,
         );
     } catch {}
   }, [scene, timeMs]);
@@ -41,7 +41,7 @@ export function PosterPreview({
     <canvas
       ref={canvas}
       width={216}
-      height={270}
+      height={Math.round((216 * scene.artboard.height) / scene.artboard.width)}
       className={className}
       aria-hidden="true"
     />
@@ -78,11 +78,16 @@ export function CanvasStage({ ready }: { ready: boolean }) {
   useEffect(() => {
     const resize = new ResizeObserver((entries) => {
       const box = entries[0].contentRect;
-      setFit(Math.min((box.width - 80) / 1080, (box.height - 76) / 1350));
+      setFit(
+        Math.min(
+          (box.width - 64) / scene.artboard.width,
+          (box.height - 86) / scene.artboard.height,
+        ),
+      );
     });
     if (holder.current) resize.observe(holder.current);
     return () => resize.disconnect();
-  }, []);
+  }, [scene.artboard.width, scene.artboard.height]);
   useEffect(() => {
     if (recording) {
       record.current = [];
@@ -106,8 +111,8 @@ export function CanvasStage({ ready }: { ready: boolean }) {
           );
           const start = samples[0] ?? {
             timeMs: 0,
-            x: 540,
-            y: 675,
+            x: state.scene.artboard.width / 2,
+            y: state.scene.artboard.height / 2,
             presence: 0,
           };
           if (!samples.length) samples.push(start);
@@ -120,6 +125,7 @@ export function CanvasStage({ ready }: { ready: boolean }) {
             playing: false,
             timeMs: 0,
             livePointer: false,
+            pausedPointer: undefined,
           });
           try {
             const path = closePointerLoop(
@@ -154,22 +160,29 @@ export function CanvasStage({ ready }: { ready: boolean }) {
           timeMs: record.current.length
             ? Math.min(state.scene.timeline.durationMs - 1, Math.floor(t))
             : 0,
-          ...(pointerRef.current ?? { x: 540, y: 675, presence: 0 }),
+          ...(pointerRef.current ?? {
+            x: state.scene.artboard.width / 2,
+            y: state.scene.artboard.height / 2,
+            presence: 0,
+          }),
         });
         lastRecord.current = Math.floor(t / 17);
       }
       if (compiled?.result && canvas.current) {
         try {
-          const next = evaluateScene(compiled.result, {
-            timeMs: t,
-            pointer: state.livePointer
-              ? pointerRef.current
-              : samplePointer(state.scene, t),
-          });
+          const current = useEditor.getState();
+          const pointer =
+            !current.playing && current.pausedPointer !== undefined
+              ? current.pausedPointer
+              : current.livePointer
+                ? pointerRef.current
+                : samplePointer(current.scene, t);
+          previewPointerRef.current = pointer;
+          const next = evaluateScene(compiled.result, { timeMs: t, pointer });
           frame.current = next;
           const ctx = canvas.current.getContext("2d");
           if (ctx) {
-            const scale = canvas.current.width / 1080;
+            const scale = canvas.current.width / state.scene.artboard.width;
             paintFrame(ctx, next, scale);
             ctx.save();
             ctx.scale(scale, scale);
@@ -207,11 +220,17 @@ export function CanvasStage({ ready }: { ready: boolean }) {
     return {
       x: Math.max(
         0,
-        Math.min(1080, ((event.clientX - rect.left) * 1080) / rect.width),
+        Math.min(
+          scene.artboard.width,
+          ((event.clientX - rect.left) * scene.artboard.width) / rect.width,
+        ),
       ),
       y: Math.max(
         0,
-        Math.min(1350, ((event.clientY - rect.top) * 1350) / rect.height),
+        Math.min(
+          scene.artboard.height,
+          ((event.clientY - rect.top) * scene.artboard.height) / rect.height,
+        ),
       ),
       presence: 1,
     };
@@ -220,44 +239,81 @@ export function CanvasStage({ ready }: { ready: boolean }) {
     <div className="stage" ref={holder}>
       <div className="stage-meta">
         <span>ARTBOARD 01</span>
-        <span>1080 × 1350</span>
+        <span>
+          {scene.artboard.width} × {scene.artboard.height}
+        </span>
       </div>
       <div
         className="artboard-wrap"
         style={{
-          width: Math.max(120, 1080 * fit),
-          height: Math.max(150, 1350 * fit),
+          width: Math.max(100, scene.artboard.width * fit),
+          height: Math.max(
+            (100 * scene.artboard.height) / scene.artboard.width,
+            scene.artboard.height * fit,
+          ),
         }}
       >
         <canvas
           ref={canvas}
           className="artboard"
           width={Math.round(
-            Math.max(120, 1080 * fit) * Math.min(devicePixelRatio, 2),
+            Math.max(100, scene.artboard.width * fit) *
+              Math.min(devicePixelRatio, 2),
           )}
           height={Math.round(
-            Math.max(150, 1350 * fit) * Math.min(devicePixelRatio, 2),
+            Math.max(
+              (100 * scene.artboard.height) / scene.artboard.width,
+              scene.artboard.height * fit,
+            ) * Math.min(devicePixelRatio, 2),
           )}
-          aria-label="Poster artboard. Select and drag a layer; use the Layers panel for keyboard editing."
+          aria-label="Poster artboard. Click to pause and select, drag to move, double-click text to edit."
           tabIndex={0}
           onPointerDown={(event) => {
             const p = point(event);
             pointerRef.current = p;
-            if (useEditor.getState().recording) return;
+            // Recording uses movement only. A deliberate click always returns to editing.
+            useEditor.getState().enterEditMode();
             const id = frame.current ? hitTest(frame.current, p.x, p.y) : null;
             const state = useEditor.getState();
             if (event.shiftKey) state.select(id, true);
             else if (!id || !state.selected.includes(id)) state.select(id);
+            if (id && state.scene.layers.find((l) => l.id === id)?.locked)
+              useEditor.setState({
+                notice:
+                  "This layer is locked. Use the lock beside its name to unlock it.",
+              });
             if (id && !state.scene.layers.find((l) => l.id === id)?.locked) {
-              state.beginGesture();
+              state.beginGesture(frame.current?.baseBounds);
               drag.current = { x: p.x, y: p.y, id: event.pointerId };
               event.currentTarget.setPointerCapture(event.pointerId);
             }
           }}
+          onDoubleClick={(event) => {
+            const rect = event.currentTarget.getBoundingClientRect();
+            const x =
+              ((event.clientX - rect.left) * scene.artboard.width) / rect.width;
+            const y =
+              ((event.clientY - rect.top) * scene.artboard.height) /
+              rect.height;
+            const id = frame.current ? hitTest(frame.current, x, y) : null;
+            const layer = useEditor
+              .getState()
+              .scene.layers.find((l) => l.id === id);
+            if (layer?.kind !== "text") return;
+            useEditor.getState().select(layer.id);
+            requestAnimationFrame(() => {
+              const input = document.querySelector<HTMLTextAreaElement>(
+                'textarea[aria-label="Text"]',
+              );
+              input?.focus();
+              input?.select();
+              input?.scrollIntoView({ block: "nearest" });
+            });
+          }}
           onPointerMove={(event) => {
             const p = point(event);
             pointerRef.current = p;
-            if (drag.current)
+            if (drag.current && useEditor.getState().gesture)
               useEditor
                 .getState()
                 .moveGesture(p.x - drag.current.x, p.y - drag.current.y);
@@ -266,7 +322,8 @@ export function CanvasStage({ ready }: { ready: boolean }) {
             if (drag.current) {
               useEditor.getState().endGesture();
               drag.current = null;
-              event.currentTarget.releasePointerCapture(event.pointerId);
+              if (event.currentTarget.hasPointerCapture(event.pointerId))
+                event.currentTarget.releasePointerCapture(event.pointerId);
             }
           }}
           onPointerCancel={() => {
@@ -292,11 +349,17 @@ export function CanvasStage({ ready }: { ready: boolean }) {
           {recording ? (
             <>
               <i className="record-dot" /> RECORDING ONE LOOP
+              <button
+                className="stage-cancel"
+                onClick={() => useEditor.getState().cancelRecording()}
+              >
+                Cancel
+              </button>
             </>
           ) : selected.length ? (
             `${selected.length} LAYER${selected.length > 1 ? "S" : ""} SELECTED`
           ) : (
-            "A LITTLE MOTION. A LOT OF CHARACTER."
+            "CLICK TO SELECT · DOUBLE-CLICK TEXT TO EDIT"
           )}
         </span>
         <span>{Math.round(fit * 100)}% · FIT</span>

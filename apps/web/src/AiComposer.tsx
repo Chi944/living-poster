@@ -243,8 +243,14 @@ export function AiComposer({
               ? capabilities.ai.model
               : "Local model unavailable"}
         </span>
-        {!capabilities?.authenticated && (
-          <button onClick={onAuthenticate}>Connect</button>
+        {(!capabilities?.authenticated ||
+          (capabilities.runtime === "browser" &&
+            !capabilities.ai.available)) && (
+          <button onClick={onAuthenticate}>
+            {capabilities?.runtime === "browser"
+              ? "Connect local AI"
+              : "Connect"}
+          </button>
         )}
       </div>
       {capabilities && !capabilities.ai.available && (

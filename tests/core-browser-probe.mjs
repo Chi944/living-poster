@@ -36,7 +36,7 @@ try {
     deviceScaleFactor: 1,
   });
   await page.setContent(
-    "<style>body{margin:0;padding:24px;background:#e5e2db;display:grid;grid-template-columns:repeat(3,350px);gap:20px;font:12px monospace}canvas{display:block;width:350px;height:437.5px}p{margin:8px 0 0}</style>",
+    "<style>body{margin:0;padding:24px;background:#e5e2db;display:grid;grid-template-columns:repeat(3,350px);gap:20px;font:12px monospace;align-items:start}canvas{display:block;width:350px;height:auto}p{margin:8px 0 0}</style>",
   );
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   const result = await page.evaluate(async (sources) => {
@@ -60,8 +60,8 @@ try {
           );
         const container = document.createElement("div"),
           canvas = document.createElement("canvas");
-        canvas.width = 1080;
-        canvas.height = 1350;
+        canvas.width = example.scene.artboard.width;
+        canvas.height = example.scene.artboard.height;
         core.paintFrame(canvas.getContext("2d"), frames[0]);
         container.append(canvas);
         const label = document.createElement("p");
@@ -76,6 +76,41 @@ try {
           endpointEqual:
             JSON.stringify(frames[0]) === JSON.stringify(frames.at(-1)),
           corrections: frames.map((f) => f.boundsCorrections),
+          formats: core.CANVAS_PRESETS.map((preset) => {
+            const resized = core.resizeScene(
+              example.scene,
+              preset.width,
+              preset.height,
+            );
+            const resizedCompiled = core.compileScene(resized);
+            const resizedFrames = [0, 1139, 2999, 4749, 6000].map((timeMs) =>
+              core.evaluateScene(resizedCompiled, {
+                timeMs,
+                pointer: core.samplePointer(resized, timeMs),
+              }),
+            );
+            for (const frame of resizedFrames) {
+              for (const unit of frame.units) {
+                if (
+                  unit.bounds.x < 16 - 1e-6 ||
+                  unit.bounds.y < 16 - 1e-6 ||
+                  unit.bounds.x + unit.bounds.width >
+                    preset.width - 16 + 1e-6 ||
+                  unit.bounds.y + unit.bounds.height > preset.height - 16 + 1e-6
+                )
+                  throw Error(`Out of bounds in ${preset.id}`);
+              }
+            }
+            return {
+              id: preset.id,
+              endpointEqual:
+                JSON.stringify(resizedFrames[0]) ===
+                JSON.stringify(resizedFrames.at(-1)),
+              corrections: resizedFrames.map(
+                (frame) => frame.boundsCorrections,
+              ),
+            };
+          }),
         });
       } catch (error) {
         output.push({ id: example.id, ok: false, error: String(error) });
@@ -89,7 +124,15 @@ try {
     fullPage: true,
   });
   console.log(JSON.stringify(result, null, 2));
-  if (result.some((r) => !r.ok || !r.endpointEqual)) process.exitCode = 1;
+  if (
+    result.some(
+      (r) =>
+        !r.ok ||
+        !r.endpointEqual ||
+        r.formats.some((format) => !format.endpointEqual),
+    )
+  )
+    process.exitCode = 1;
 } finally {
   await browser.close();
 }

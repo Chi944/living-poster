@@ -137,7 +137,8 @@ export function applyOperations(
       }
     }
   }
-  validateScene(next);
+  const revised = reviseScene(next);
+  validateScene(revised);
   const affectedLayerIds = next.layers
     .filter(
       (l, i) =>
@@ -150,7 +151,7 @@ export function applyOperations(
     (id) => next.layers.find((l) => l.id === id)!.name,
   );
   return {
-    scene: reviseScene(next),
+    scene: revised,
     affectedLayerIds,
     summary: names.length
       ? `Updated ${names.join(", ")}.`

@@ -2,6 +2,7 @@ import { test, expect, type Page, type Browser } from "@playwright/test";
 import { build } from "esbuild";
 import { writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { EXAMPLES } from "../../packages/core/src/index";
 
 let harness = "";
 test.beforeAll(async () => {
@@ -113,8 +114,8 @@ async function createFixture(page: Page, fixture: string) {
     core.validateScene(scene);
     const compiled = core.compileScene(scene),
       canvas = document.createElement("canvas");
-    canvas.width = 1080;
-    canvas.height = 1350;
+    canvas.width = scene.artboard.width;
+    canvas.height = scene.artboard.height;
     const ctx = canvas.getContext("2d")!;
     const times = [0, 200, 2300, 5999, 6000];
     const hashes: string[] = [];
@@ -128,7 +129,7 @@ async function createFixture(page: Page, fixture: string) {
       );
       const digest = await crypto.subtle.digest(
         "SHA-256",
-        ctx.getImageData(0, 0, 1080, 1350).data,
+        ctx.getImageData(0, 0, canvas.width, canvas.height).data,
       );
       hashes.push(
         Array.from(new Uint8Array(digest), (b) =>
@@ -140,6 +141,8 @@ async function createFixture(page: Page, fixture: string) {
       html: await core.createHtml(scene),
       hashes,
       times,
+      width: canvas.width,
+      height: canvas.height,
       fontCount: new Set(
         scene.layers
           .filter((layer: any) => layer.kind === "text")
@@ -178,7 +181,7 @@ async function checkOffline(
       (window as any).livingPosterPlayer.seek(time);
       const digest = await crypto.subtle.digest(
         "SHA-256",
-        ctx.getImageData(0, 0, 1080, 1350).data,
+        ctx.getImageData(0, 0, canvas.width, canvas.height).data,
       );
       hashes.push(
         Array.from(new Uint8Array(digest), (b) =>
@@ -194,6 +197,8 @@ async function checkOffline(
     );
     return {
       hashes,
+      width: canvas.width,
+      height: canvas.height,
       fontCount: Object.keys(payload.fonts).length,
       embedded: Object.values(payload.fonts).every((source: any) =>
         source.startsWith("data:font/woff2;base64,"),
@@ -201,20 +206,14 @@ async function checkOffline(
     };
   }, data.times);
   expect(result.hashes).toEqual(data.hashes);
+  expect([result.width, result.height]).toEqual([data.width, data.height]);
   expect(result.fontCount).toBe(data.fontCount);
   expect(result.embedded).toBe(true);
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
   await context.close();
 }
-for (const [index, name] of [
-  "Gravity",
-  "Panic / Return",
-  "After Hours",
-  "Frequency",
-  "Small Worlds",
-  "Personal Space",
-].entries()) {
+for (const [index, { title: name }] of EXAMPLES.entries()) {
   test(`${name} offline export matches five exact evaluated frames`, async ({
     page,
     browser,

@@ -125,12 +125,12 @@ test("manual typography, direct drag, keyboard nudge, undo/redo and reload", asy
   expect(errors).toEqual([]);
 });
 
-test("six examples, shape creation, behavior controls and recorded pointer", async ({
+test("ten examples, shape creation, behavior controls and recorded pointer", async ({
   page,
 }) => {
   await open(page);
   await page.getByRole("button", { name: "Browse all examples" }).click();
-  expect(await page.locator(".example-grid button").count()).toBe(6);
+  expect(await page.locator(".example-grid button").count()).toBe(10);
   await page
     .locator(".example-grid button")
     .filter({ hasText: "Personal Space" })
@@ -140,11 +140,17 @@ test("six examples, shape creation, behavior controls and recorded pointer", asy
   await expect(page.getByLabel("Layer name")).toHaveValue("New shape");
   await page.getByRole("button", { name: "Add behaviour" }).click();
   await page.getByRole("button", { name: "Float", exact: true }).click();
+  await page
+    .locator(".motion-card summary")
+    .filter({ hasText: "Float" })
+    .click();
   await expect(page.getByLabel("Horizontal", { exact: true })).toBeVisible();
   await page.getByLabel("Horizontal", { exact: true }).fill("15");
   await page.getByLabel("Horizontal", { exact: true }).press("Tab");
   await page.getByLabel("Loop duration").selectOption("2000");
-  await page.getByRole("button", { name: "Record", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Record pointer loop", exact: true })
+    .click();
   const box = await page.locator(".artboard").boundingBox();
   if (!box) throw Error("No artboard");
   for (let i = 0; i < 8; i++) {
