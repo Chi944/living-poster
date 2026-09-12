@@ -1,0 +1,818 @@
+{
+  "startedAt": "2026-09-12T20:47:53.329Z",
+  "finishedAt": "2026-09-12T20:49:17.755Z",
+  "model": "qwen3:4b",
+  "runtime": "Ollama local",
+  "cost": 0,
+  "caseSetSha256": "adc7ae37d609448ba3c0476edc92d532f7282eb8cb11ab0c0e5ae7d8126c8f10",
+  "providerSha256": "5a21f32ac399868470a4e1a706385e4ca521a3be9c86fe302162ba92fb1ff200",
+  "total": 40,
+  "passed": 10,
+  "valid": 20,
+  "correctTargets": 11,
+  "determinateCases": 28,
+  "preserved": 11,
+  "p50LatencyMs": 1880,
+  "p95LatencyMs": 3100,
+  "humanReview": "Pending independent human creative review; not replaced by automated checks.",
+  "results": [
+    {
+      "id": "target-01",
+      "category": "target",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 6928,
+      "cost": 0,
+      "error": "This motion does not accept radius."
+    },
+    {
+      "id": "target-02",
+      "category": "target",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1880,
+      "cost": 0,
+      "error": "This motion does not accept radius."
+    },
+    {
+      "id": "target-03",
+      "category": "target",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1433,
+      "cost": 0,
+      "error": "Wording changes are disabled"
+    },
+    {
+      "id": "target-04",
+      "category": "target",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 2145,
+      "cost": 0,
+      "error": "This motion does not accept amplitude."
+    },
+    {
+      "id": "target-05",
+      "category": "target",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 2072,
+      "cost": 0,
+      "error": "This motion does not accept strength."
+    },
+    {
+      "id": "target-06",
+      "category": "target",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1971,
+      "cost": 0,
+      "error": "This motion does not accept cycles."
+    },
+    {
+      "id": "target-07",
+      "category": "target",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 1467,
+      "inputTokens": 790,
+      "outputTokens": 54,
+      "cost": 0,
+      "failures": [
+        "Required effect missing or wrong"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "x": 540,
+              "y": 860
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "target-08",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1392,
+      "inputTokens": 793,
+      "outputTokens": 49,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setFill",
+            "layerId": "layer-circle",
+            "colour": "#FF6600"
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "target-09",
+      "category": "target",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1642,
+      "cost": 0,
+      "error": "Wording changes are disabled"
+    },
+    {
+      "id": "target-10",
+      "category": "target",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 1722,
+      "inputTokens": 787,
+      "outputTokens": 61,
+      "cost": 0,
+      "failures": [
+        "Required effect missing or wrong"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "x": 540,
+              "y": 900,
+              "rotationDeg": 0
+            }
+          }
+        ],
+        "summary": "No visible properties changed."
+      }
+    },
+    {
+      "id": "target-11",
+      "category": "target",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": true,
+      "preservationCorrect": false,
+      "effectsCorrect": false,
+      "latencyMs": 1770,
+      "inputTokens": 790,
+      "outputTokens": 61,
+      "cost": 0,
+      "failures": [
+        "Unrelated properties changed",
+        "Required effect missing or wrong"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-circle",
+            "behavior": {
+              "id": "fd40bc38-f7c2-47c0-a8ce-4dafc7b6f0f2",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "orbit",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "point",
+                  "x": 440,
+                  "y": 720
+                },
+                "direction": 1,
+                "cycles": 1
+              }
+            }
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "target-12",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1490,
+      "inputTokens": 790,
+      "outputTokens": 47,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setOpacity",
+            "layerId": "layer-label",
+            "value": 0.5
+          }
+        ],
+        "summary": "Updated Label."
+      }
+    },
+    {
+      "id": "multi-01",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 3100,
+      "inputTokens": 791,
+      "outputTokens": 140,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-headline",
+            "changes": {
+              "x": 540,
+              "y": 550
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "28fef24c-b31c-4663-ba86-fa57bc2c93c3",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 10,
+                "amplitudeY": 10,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-subtitle",
+            "behavior": {
+              "id": "791ab23d-4fb8-4399-9db8-9993f5de617c",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "wave",
+              "scope": "glyph",
+              "params": {
+                "amplitude": 5,
+                "cycles": 1,
+                "wavelength": 8,
+                "phase": 0
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline, Subtitle."
+      }
+    },
+    {
+      "id": "multi-02",
+      "category": "multi",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1905,
+      "cost": 0,
+      "error": "This motion does not accept radius."
+    },
+    {
+      "id": "multi-03",
+      "category": "multi",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 3078,
+      "cost": 0,
+      "error": "This motion does not accept amplitude."
+    },
+    {
+      "id": "multi-04",
+      "category": "multi",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1415,
+      "cost": 0,
+      "error": "Wording changes are disabled"
+    },
+    {
+      "id": "multi-05",
+      "category": "multi",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 2423,
+      "cost": 0,
+      "error": "[\n  {\n    \"code\": \"custom\",\n    \"message\": \"Orbit radius exceeds 120 units; move the anchor closer\",\n    \"path\": [\n      \"layers\",\n      3,\n      \"behaviors\",\n      0\n    ]\n  }\n]"
+    },
+    {
+      "id": "multi-06",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1598,
+      "inputTokens": 796,
+      "outputTokens": 54,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-circle",
+            "changes": {
+              "x": 560,
+              "y": 690
+            }
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "multi-07",
+      "category": "multi",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 2884,
+      "cost": 0,
+      "error": "This motion does not accept strength."
+    },
+    {
+      "id": "multi-08",
+      "category": "multi",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 2974,
+      "cost": 0,
+      "error": "This motion does not accept cycles."
+    },
+    {
+      "id": "preserve-01",
+      "category": "preserve",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 2457,
+      "inputTokens": 796,
+      "outputTokens": 103,
+      "cost": 0,
+      "failures": [
+        "Incorrect targets",
+        "Required effect missing or wrong"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-headline",
+            "changes": {
+              "x": 540,
+              "y": 550,
+              "rotationDeg": 0
+            }
+          },
+          {
+            "type": "setLayout",
+            "layerId": "layer-caption",
+            "changes": {
+              "x": 100,
+              "y": 1210,
+              "rotationDeg": 0
+            }
+          }
+        ],
+        "summary": "No visible properties changed."
+      }
+    },
+    {
+      "id": "preserve-02",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1425,
+      "inputTokens": 802,
+      "outputTokens": 50,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setFill",
+            "layerId": "layer-circle",
+            "colour": "#008800"
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "preserve-03",
+      "category": "preserve",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 1475,
+      "inputTokens": 858,
+      "outputTokens": 54,
+      "cost": 0,
+      "failures": [
+        "Required effect missing or wrong"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-headline",
+            "changes": {
+              "x": 540,
+              "y": 540
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "preserve-04",
+      "category": "preserve",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1606,
+      "cost": 0,
+      "error": "Wording changes are disabled"
+    },
+    {
+      "id": "preserve-05",
+      "category": "preserve",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 1557,
+      "inputTokens": 787,
+      "outputTokens": 54,
+      "cost": 0,
+      "failures": [
+        "Required effect missing or wrong"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-headline",
+            "changes": {
+              "x": 540,
+              "y": 550
+            }
+          }
+        ],
+        "summary": "No visible properties changed."
+      }
+    },
+    {
+      "id": "preserve-06",
+      "category": "preserve",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1879,
+      "cost": 0,
+      "error": "This motion does not accept radius."
+    },
+    {
+      "id": "preserve-07",
+      "category": "preserve",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1642,
+      "cost": 0,
+      "error": "Wording changes are disabled"
+    },
+    {
+      "id": "preserve-08",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1528,
+      "inputTokens": 798,
+      "outputTokens": 53,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-caption",
+            "changes": {
+              "x": 100,
+              "y": 1195
+            }
+          }
+        ],
+        "summary": "Updated Caption."
+      }
+    },
+    {
+      "id": "ambiguous-01",
+      "category": "ambiguous",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1975,
+      "cost": 0,
+      "error": "This motion does not accept cycles."
+    },
+    {
+      "id": "ambiguous-02",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": false,
+      "preservationCorrect": false,
+      "effectsCorrect": true,
+      "latencyMs": 1489,
+      "inputTokens": 787,
+      "outputTokens": 51,
+      "cost": 0,
+      "failures": [
+        "Expected clarify, received edit",
+        "Incorrect targets",
+        "Unrelated properties changed"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setFill",
+            "layerId": "layer-headline",
+            "colour": "#ff0000"
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "ambiguous-03",
+      "category": "ambiguous",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1492,
+      "cost": 0,
+      "error": "Wording changes are disabled"
+    },
+    {
+      "id": "ambiguous-04",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": false,
+      "preservationCorrect": false,
+      "effectsCorrect": true,
+      "latencyMs": 1526,
+      "inputTokens": 785,
+      "outputTokens": 54,
+      "cost": 0,
+      "failures": [
+        "Expected clarify, received edit",
+        "Incorrect targets",
+        "Unrelated properties changed"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-caption",
+            "changes": {
+              "x": 100,
+              "y": 1010
+            }
+          }
+        ],
+        "summary": "Updated Caption."
+      }
+    },
+    {
+      "id": "ambiguous-05",
+      "category": "ambiguous",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 1716,
+      "cost": 0,
+      "error": "Wording changes are disabled"
+    },
+    {
+      "id": "ambiguous-06",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2123,
+      "inputTokens": 798,
+      "outputTokens": 93,
+      "cost": 0,
+      "failures": [
+        "Expected clarify, received unsupported"
+      ],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "The user says 'Give the heading a different motion, but I'm not sure which heading or motion.' This is materially ambiguous. The term 'heading' could refer to the headline or the subtitle, and 'motion' is not specified. The user has not selected any layers, so there's no clear target for the motion change. The instruction is ambiguous and requires clarification to proceed."
+      }
+    },
+    {
+      "id": "unsupported-01",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2251,
+      "inputTokens": 790,
+      "outputTokens": 105,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "The instruction 'Generate a realistic smoke video behind the headline.' requires effects like smoke, fluid, video, sound, assets, or code which are not supported by the provided JSON schema. The schema only supports typography, fill, opacity, layout, order, float (layer drift), orbit, wave (letters), scatter (out and return), attract (toward an anchor), repel (pointer response). Smoke effects are not listed as supported."
+      }
+    },
+    {
+      "id": "unsupported-02",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2128,
+      "inputTokens": 789,
+      "outputTokens": 98,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "The instruction 'Turn the letters into physically simulated liquid' requires effects like fluid simulation, which are not supported by the provided JSON schema. The schema only supports typography, fill, opacity, layout, order, float (layer drift), orbit, wave (letters), scatter (out and return), attract (toward an anchor), repel (pointer response). Fluid simulation is not listed as a supported effect."
+      }
+    },
+    {
+      "id": "unsupported-03",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2546,
+      "inputTokens": 793,
+      "outputTokens": 122,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "The instruction 'Import a photo of a mountain and make it the background.' requires importing a photo and setting it as the background, which is not supported by the provided JSON schema. The schema only supports typography, fill, opacity, layout, order, float (layer drift), orbit, wave (letters), scatter (out and return), attract (toward an anchor), repel (pointer response) effects. Importing a photo and setting it as the background is outside the scope of the supported effects and cannot be em"
+      }
+    },
+    {
+      "id": "unsupported-04",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2181,
+      "inputTokens": 788,
+      "outputTokens": 101,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "The instruction 'Add a soundtrack to the poster' requires adding audio, but the JSON schema only supports visual effects like typography, fill, opacity, layout, order, float, orbit, wave, scatter, attract, repel. Audio effects (soundtrack) are not supported by the schema. The schema explicitly states: 'Return unsupported for unavailable effects such as smoke, fluid, video, sound, assets or code.'"
+      }
+    },
+    {
+      "id": "unsupported-05",
+      "category": "unsupported",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 3680,
+      "inputTokens": 793,
+      "outputTokens": 191,
+      "cost": 0,
+      "failures": [
+        "Expected unsupported, received edit",
+        "Incorrect targets"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-headline",
+            "changes": {
+              "x": 540,
+              "y": 550
+            }
+          },
+          {
+            "type": "setLayout",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "x": 540,
+              "y": 900
+            }
+          },
+          {
+            "type": "setLayout",
+            "layerId": "layer-caption",
+            "changes": {
+              "x": 100,
+              "y": 1210
+            }
+          },
+          {
+            "type": "setLayout",
+            "layerId": "layer-circle",
+            "changes": {
+              "x": 540,
+              "y": 720
+            }
+          },
+          {
+            "type": "setLayout",
+            "layerId": "layer-label",
+            "changes": {
+              "x": 900,
+              "y": 120
+            }
+          }
+        ],
+        "summary": "No visible properties changed."
+      }
+    },
+    {
+      "id": "unsupported-06",
+      "category": "unsupported",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 2436,
+      "cost": 0,
+      "error": "Wording changes are disabled"
+    }
+  ]
+}

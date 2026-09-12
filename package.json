@@ -13,7 +13,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "eval:local": "tsx scripts/evaluate.ts"
+    "eval:local": "tsx scripts/evaluate.ts",
+    "bench": "node tests/performance.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
@@ -39,6 +42,7 @@
     "concurrently": "^9.2.1",
     "esbuild": "^0.28.2",
     "fast-check": "^4.5.3",
+    "prettier": "^3.6.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",

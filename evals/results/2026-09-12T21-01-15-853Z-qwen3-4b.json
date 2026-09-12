@@ -1,0 +1,1294 @@
+{
+  "startedAt": "2026-09-12T21:01:15.853Z",
+  "finishedAt": "2026-09-12T21:02:52.542Z",
+  "model": "qwen3:4b",
+  "runtime": "Ollama local",
+  "cost": 0,
+  "caseSet": "evals/held-out.json",
+  "caseSetSha256": "adc7ae37d609448ba3c0476edc92d532f7282eb8cb11ab0c0e5ae7d8126c8f10",
+  "providerSha256": "4264d0bd2a3b1786a0038b5306bcaf36fe94e1249d6a7e60275d75a7e19151bd",
+  "total": 40,
+  "passed": 33,
+  "valid": 38,
+  "correctTargets": 26,
+  "determinateCases": 28,
+  "preserved": 25,
+  "p50LatencyMs": 2098,
+  "p95LatencyMs": 3781,
+  "humanReview": "Pending independent human creative review; not replaced by automated checks.",
+  "results": [
+    {
+      "id": "target-01",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1948,
+      "inputTokens": 1400,
+      "outputTokens": 75,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "01eac495-b15d-437a-84aa-2100d9974cd0",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 16,
+                "amplitudeY": 28,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "target-02",
+      "category": "target",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 2457,
+      "cost": 0,
+      "error": "[\n  {\n    \"code\": \"custom\",\n    \"message\": \"Orbit radius exceeds 120 units; move the anchor closer\",\n    \"path\": [\n      \"layers\",\n      3,\n      \"behaviors\",\n      0\n    ]\n  }\n]"
+    },
+    {
+      "id": "target-03",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1672,
+      "inputTokens": 1403,
+      "outputTokens": 74,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "c440a783-203e-4b27-aa37-f149f3f76ded",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "wave",
+              "scope": "glyph",
+              "params": {
+                "amplitude": 24,
+                "cycles": 2,
+                "wavelength": 8,
+                "phase": 0
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "target-04",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2138,
+      "inputTokens": 1405,
+      "outputTokens": 99,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-subtitle",
+            "behavior": {
+              "id": "e80f5e97-50d8-4874-9150-f338a3d96dbe",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "scatter",
+              "scope": "glyph",
+              "params": {
+                "radius": 90,
+                "rotationMaxDeg": 15,
+                "outEnd": 0.18,
+                "returnStart": 0.38
+              }
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "target-05",
+      "category": "target",
+      "valid": false,
+      "passed": false,
+      "latencyMs": 2745,
+      "cost": 0,
+      "error": "[\n  {\n    \"code\": \"invalid_union\",\n    \"errors\": [\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"move\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"move\\\"\"\n        },\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"x\",\n            \"y\"\n          ],\n          \"path\": [\n            \"axis\"\n          ],\n          \"message\": \"Invalid option: expected one of \\\"x\\\"|\\\"y\\\"\"\n        },\n        {\n          \"expected\": \"number\",\n          \"code\": \"invalid_type\",\n          \"path\": [\n            \"delta\"\n          ],\n          \"message\": \"Invalid input: expected number, received undefined\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"position\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"position\\\"\"\n        },\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"x\",\n            \"y\"\n          ],\n          \"path\": [\n            \"axis\"\n          ],\n          \"message\": \"Invalid option: expected one of \\\"x\\\"|\\\"y\\\"\"\n        },\n        {\n          \"expected\": \"number\",\n          \"code\": \"invalid_type\",\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid input: expected number, received undefined\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"rotate\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"rotate\\\"\"\n        },\n        {\n          \"expected\": \"number\",\n          \"code\": \"invalid_type\",\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid input: expected number, received undefined\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"fontSize\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"fontSize\\\"\"\n        },\n        {\n          \"expected\": \"number\",\n          \"code\": \"invalid_type\",\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid input: expected number, received undefined\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"lineHeight\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"lineHeight\\\"\"\n        },\n        {\n          \"expected\": \"number\",\n          \"code\": \"invalid_type\",\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid input: expected number, received undefined\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"trackingEm\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"trackingEm\\\"\"\n        },\n        {\n          \"expected\": \"number\",\n          \"code\": \"invalid_type\",\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid input: expected number, received undefined\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"opacity\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"opacity\\\"\"\n        },\n        {\n          \"expected\": \"number\",\n          \"code\": \"invalid_type\",\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid input: expected number, received undefined\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"align\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"align\\\"\"\n        },\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"left\",\n            \"center\",\n            \"right\"\n          ],\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid option: expected one of \\\"left\\\"|\\\"center\\\"|\\\"right\\\"\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"font\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"font\\\"\"\n        },\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"space-regular\",\n            \"space-bold\",\n            \"fraunces-regular\",\n            \"fraunces-bold\",\n            \"mono-regular\",\n            \"mono-bold\"\n          ],\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid option: expected one of \\\"space-regular\\\"|\\\"space-bold\\\"|\\\"fraunces-regular\\\"|\\\"fraunces-bold\\\"|\\\"mono-regular\\\"|\\\"mono-bold\\\"\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"colour\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"colour\\\"\"\n        },\n        {\n          \"expected\": \"string\",\n          \"code\": \"invalid_type\",\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid input: expected string, received undefined\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"animate\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"animate\\\"\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized key: \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"attract\",\n            \"orbit\"\n          ],\n          \"path\": [\n            \"motion\"\n          ],\n          \"message\": \"Invalid option: expected one of \\\"attract\\\"|\\\"orbit\\\"\"\n        },\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"layer-headline\",\n            \"layer-subtitle\",\n            \"layer-caption\",\n            \"layer-circle\",\n            \"layer-label\"\n          ],\n          \"path\": [\n            \"anchorLayerId\"\n          ],\n          \"message\": \"Invalid option: expected one of \\\"layer-headline\\\"|\\\"layer-subtitle\\\"|\\\"layer-caption\\\"|\\\"layer-circle\\\"|\\\"layer-label\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"motionParameter\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"motionParameter\\\"\"\n        },\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"amplitudeX\",\n            \"amplitudeY\",\n            \"amplitude\",\n            \"cycles\",\n            \"phase\",\n            \"rotationAmplitudeDeg\",\n            \"wavelength\",\n            \"radius\",\n            \"rotationMaxDeg\",\n            \"outEnd\",\n            \"returnStart\",\n            \"strength\",\n            \"maxDistance\",\n            \"direction\"\n          ],\n          \"path\": [\n            \"parameter\"\n          ],\n          \"message\": \"Invalid option: expected one of \\\"amplitudeX\\\"|\\\"amplitudeY\\\"|\\\"amplitude\\\"|\\\"cycles\\\"|\\\"phase\\\"|\\\"rotationAmplitudeDeg\\\"|\\\"wavelength\\\"|\\\"radius\\\"|\\\"rotationMaxDeg\\\"|\\\"outEnd\\\"|\\\"returnStart\\\"|\\\"strength\\\"|\\\"maxDistance\\\"|\\\"direction\\\"\"\n        },\n        {\n          \"expected\": \"number\",\n          \"code\": \"invalid_type\",\n          \"path\": [\n            \"value\"\n          ],\n          \"message\": \"Invalid input: expected number, received undefined\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized key: \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"stop\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"stop\\\"\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized key: \\\"anchorLayerId\\\"\"\n        }\n      ],\n      [\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"reorder\"\n          ],\n          \"path\": [\n            \"action\"\n          ],\n          \"message\": \"Invalid input: expected \\\"reorder\\\"\"\n        },\n        {\n          \"code\": \"invalid_value\",\n          \"values\": [\n            \"layer-headline\",\n            \"layer-subtitle\",\n            \"layer-caption\",\n            \"layer-circle\",\n            \"layer-label\"\n          ],\n          \"path\": [\n            \"beforeLayerId\"\n          ],\n          \"message\": \"Invalid option: expected one of \\\"layer-headline\\\"|\\\"layer-subtitle\\\"|\\\"layer-caption\\\"|\\\"layer-circle\\\"|\\\"layer-label\\\"\"\n        },\n        {\n          \"code\": \"unrecognized_keys\",\n          \"keys\": [\n            \"motion\",\n            \"anchorLayerId\"\n          ],\n          \"path\": [],\n          \"message\": \"Unrecognized keys: \\\"motion\\\", \\\"anchorLayerId\\\"\"\n        }\n      ]\n    ],\n    \"path\": [\n      \"actions\",\n      1\n    ],\n    \"message\": \"Invalid input\"\n  }\n]"
+    },
+    {
+      "id": "target-06",
+      "category": "target",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": true,
+      "preservationCorrect": false,
+      "effectsCorrect": false,
+      "latencyMs": 4470,
+      "inputTokens": 1401,
+      "outputTokens": 246,
+      "cost": 0,
+      "failures": [
+        "Unrelated properties changed",
+        "Required effect missing or wrong"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "y": 550
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "target-07",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1929,
+      "inputTokens": 1403,
+      "outputTokens": 85,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "y": 940
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "target-08",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1888,
+      "inputTokens": 1406,
+      "outputTokens": 87,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setFill",
+            "layerId": "layer-circle",
+            "colour": "#FF6600"
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "target-09",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1948,
+      "inputTokens": 1405,
+      "outputTokens": 88,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-headline",
+            "changes": {
+              "fontSize": 120
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "target-10",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1795,
+      "inputTokens": 1400,
+      "outputTokens": 82,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "align": "left"
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "target-11",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1667,
+      "inputTokens": 1403,
+      "outputTokens": 75,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-circle",
+            "changes": {
+              "rotationDeg": 15
+            }
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "target-12",
+      "category": "target",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1801,
+      "inputTokens": 1403,
+      "outputTokens": 80,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setOpacity",
+            "layerId": "layer-label",
+            "value": 0.5
+          }
+        ],
+        "summary": "Updated Label."
+      }
+    },
+    {
+      "id": "multi-01",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2118,
+      "inputTokens": 1404,
+      "outputTokens": 97,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "4c0fb7c3-4c99-40c1-8795-ad931bbb30b0",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 16,
+                "amplitudeY": 28,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-subtitle",
+            "behavior": {
+              "id": "95157d60-9742-4789-99d9-4ab9e7b6ab2d",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "wave",
+              "scope": "glyph",
+              "params": {
+                "amplitude": 24,
+                "cycles": 2,
+                "wavelength": 8,
+                "phase": 0
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline, Subtitle."
+      }
+    },
+    {
+      "id": "multi-02",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2820,
+      "inputTokens": 1413,
+      "outputTokens": 143,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setFill",
+            "layerId": "layer-circle",
+            "colour": "#0000FF"
+          },
+          {
+            "type": "setLayout",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "y": 940
+            }
+          }
+        ],
+        "summary": "Updated Subtitle, Circle."
+      }
+    },
+    {
+      "id": "multi-03",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2014,
+      "inputTokens": 1408,
+      "outputTokens": 94,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "57a06dc2-3bc9-49c7-9b15-06ff8cb04c33",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "scatter",
+              "scope": "glyph",
+              "params": {
+                "radius": 90,
+                "rotationMaxDeg": 15,
+                "outEnd": 0.18,
+                "returnStart": 0.38
+              }
+            }
+          },
+          {
+            "type": "setFill",
+            "layerId": "layer-headline",
+            "colour": "#FFFF00"
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "multi-04",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2098,
+      "inputTokens": 1407,
+      "outputTokens": 98,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-caption",
+            "changes": {
+              "fontSize": 22
+            }
+          },
+          {
+            "type": "setTypography",
+            "layerId": "layer-caption",
+            "changes": {
+              "align": "center"
+            }
+          }
+        ],
+        "summary": "Updated Caption."
+      }
+    },
+    {
+      "id": "multi-05",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2502,
+      "inputTokens": 1403,
+      "outputTokens": 109,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-circle",
+            "behavior": {
+              "id": "4c11c56a-bc84-4393-99c3-795496c239c9",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "orbit",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "point",
+                  "x": 460,
+                  "y": 720
+                },
+                "direction": 1,
+                "cycles": 1
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-label",
+            "behavior": {
+              "id": "e4fb491e-1fac-4b9a-87c6-5955937dad19",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 16,
+                "amplitudeY": 28,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          }
+        ],
+        "summary": "Updated Circle, Label."
+      }
+    },
+    {
+      "id": "multi-06",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2461,
+      "inputTokens": 1409,
+      "outputTokens": 118,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-circle",
+            "changes": {
+              "x": 560
+            }
+          },
+          {
+            "type": "setLayout",
+            "layerId": "layer-circle",
+            "changes": {
+              "y": 690
+            }
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "multi-07",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2555,
+      "inputTokens": 1405,
+      "outputTokens": 121,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-subtitle",
+            "behavior": {
+              "id": "b64171e6-72be-468f-90b0-c1b1490ff8ce",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "repel",
+              "scope": "layer",
+              "params": {
+                "radius": 280,
+                "maxDistance": 90
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-caption",
+            "behavior": {
+              "id": "c6f3a04b-9bb9-41be-9684-d9588a0c9b57",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "repel",
+              "scope": "layer",
+              "params": {
+                "radius": 280,
+                "maxDistance": 90
+              }
+            }
+          }
+        ],
+        "summary": "Updated Subtitle, Caption."
+      }
+    },
+    {
+      "id": "multi-08",
+      "category": "multi",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 3781,
+      "inputTokens": 1404,
+      "outputTokens": 194,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-subtitle",
+            "behavior": {
+              "id": "41d761ec-dc08-41c5-a513-f4fe6080ac9e",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "attract",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "point",
+                  "x": 540,
+                  "y": 675
+                },
+                "strength": 0.6,
+                "maxDistance": 140
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-subtitle",
+            "behavior": {
+              "id": "41d761ec-dc08-41c5-a513-f4fe6080ac9e",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "attract",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "layer",
+                  "layerId": "layer-headline"
+                },
+                "strength": 0.6,
+                "maxDistance": 140
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-label",
+            "behavior": {
+              "id": "8f50e8ad-c2f5-435d-90de-5602489e4ecc",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "attract",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "point",
+                  "x": 540,
+                  "y": 675
+                },
+                "strength": 0.6,
+                "maxDistance": 140
+              }
+            }
+          },
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-label",
+            "behavior": {
+              "id": "8f50e8ad-c2f5-435d-90de-5602489e4ecc",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "attract",
+              "scope": "layer",
+              "params": {
+                "anchor": {
+                  "type": "layer",
+                  "layerId": "layer-headline"
+                },
+                "strength": 0.6,
+                "maxDistance": 140
+              }
+            }
+          }
+        ],
+        "summary": "Updated Subtitle, Label."
+      }
+    },
+    {
+      "id": "preserve-01",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1694,
+      "inputTokens": 1409,
+      "outputTokens": 71,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "3a4d2274-ea8a-476d-9061-58fdf72c5a65",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 16,
+                "amplitudeY": 28,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "preserve-02",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2020,
+      "inputTokens": 1415,
+      "outputTokens": 90,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setFill",
+            "layerId": "layer-circle",
+            "colour": "#008800"
+          }
+        ],
+        "summary": "Updated Circle."
+      }
+    },
+    {
+      "id": "preserve-03",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1743,
+      "inputTokens": 1471,
+      "outputTokens": 74,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-headline",
+            "changes": {
+              "y": 560
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "preserve-04",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1778,
+      "inputTokens": 1412,
+      "outputTokens": 79,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-subtitle",
+            "changes": {
+              "fontSize": 36
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "preserve-05",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2852,
+      "inputTokens": 1400,
+      "outputTokens": 142,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "c18332df-7c72-4618-a29a-70e6694a6fd3",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 16,
+                "amplitudeY": 28,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "preserve-06",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 1939,
+      "inputTokens": 1405,
+      "outputTokens": 82,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-subtitle",
+            "behavior": {
+              "id": "68898da1-fdc3-4a4d-b4dd-e8a9de855e9c",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "float",
+              "scope": "layer",
+              "params": {
+                "amplitudeX": 16,
+                "amplitudeY": 28,
+                "cycles": 1,
+                "phase": 0,
+                "rotationAmplitudeDeg": 2
+              }
+            }
+          }
+        ],
+        "summary": "Updated Subtitle."
+      }
+    },
+    {
+      "id": "preserve-07",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 3206,
+      "inputTokens": 1469,
+      "outputTokens": 82,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "2ed58041-2378-41e2-a00d-cf2e3ca9b6d7",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "wave",
+              "scope": "glyph",
+              "params": {
+                "amplitude": 24,
+                "cycles": 2,
+                "wavelength": 8,
+                "phase": 0
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "preserve-08",
+      "category": "preserve",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": true,
+      "preservationCorrect": true,
+      "effectsCorrect": true,
+      "latencyMs": 2016,
+      "inputTokens": 1411,
+      "outputTokens": 83,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-caption",
+            "changes": {
+              "y": 1195
+            }
+          }
+        ],
+        "summary": "Updated Caption."
+      }
+    },
+    {
+      "id": "ambiguous-01",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 3488,
+      "inputTokens": 1399,
+      "outputTokens": 143,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "clarify",
+        "question": "Which layer should be moved more? Please specify the layer name or ID."
+      }
+    },
+    {
+      "id": "ambiguous-02",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": false,
+      "preservationCorrect": false,
+      "effectsCorrect": true,
+      "latencyMs": 2059,
+      "inputTokens": 1400,
+      "outputTokens": 64,
+      "cost": 0,
+      "failures": [
+        "Expected clarify, received edit",
+        "Incorrect targets",
+        "Unrelated properties changed"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setFill",
+            "layerId": "layer-headline",
+            "colour": "#ff0000"
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "ambiguous-03",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": false,
+      "preservationCorrect": false,
+      "effectsCorrect": true,
+      "latencyMs": 3412,
+      "inputTokens": 1402,
+      "outputTokens": 160,
+      "cost": 0,
+      "failures": [
+        "Expected clarify, received edit",
+        "Incorrect targets",
+        "Unrelated properties changed"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setTypography",
+            "layerId": "layer-headline",
+            "changes": {
+              "fontSize": 160
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "ambiguous-04",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": false,
+      "preservationCorrect": false,
+      "effectsCorrect": true,
+      "latencyMs": 2097,
+      "inputTokens": 1398,
+      "outputTokens": 92,
+      "cost": 0,
+      "failures": [
+        "Expected clarify, received edit",
+        "Incorrect targets",
+        "Unrelated properties changed"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "setLayout",
+            "layerId": "layer-caption",
+            "changes": {
+              "y": 1310
+            }
+          }
+        ],
+        "summary": "Updated Caption."
+      }
+    },
+    {
+      "id": "ambiguous-05",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": false,
+      "targetCorrect": false,
+      "preservationCorrect": false,
+      "effectsCorrect": true,
+      "latencyMs": 2054,
+      "inputTokens": 1497,
+      "outputTokens": 90,
+      "cost": 0,
+      "failures": [
+        "Expected clarify, received edit",
+        "Incorrect targets",
+        "Unrelated properties changed"
+      ],
+      "response": {
+        "kind": "edit",
+        "operations": [
+          {
+            "type": "upsertBehavior",
+            "layerId": "layer-headline",
+            "behavior": {
+              "id": "a5381fc0-dcd8-4c4a-a3b8-9ba7ce8078f0",
+              "enabled": true,
+              "startMs": 0,
+              "endMs": 6000,
+              "type": "wave",
+              "scope": "glyph",
+              "params": {
+                "amplitude": 24,
+                "cycles": 2,
+                "wavelength": 8,
+                "phase": 0
+              }
+            }
+          }
+        ],
+        "summary": "Updated Headline."
+      }
+    },
+    {
+      "id": "ambiguous-06",
+      "category": "ambiguous",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 2466,
+      "inputTokens": 1411,
+      "outputTokens": 123,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "clarify",
+        "question": "Which heading (Headline or Subtitle) and which motion (float, orbit, wave, scatter, attract, repel) do you want to apply?"
+      }
+    },
+    {
+      "id": "unsupported-01",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 1935,
+      "inputTokens": 1403,
+      "outputTokens": 91,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "Smoke effects require unsupported media effects such as fluid simulation or particle systems, which are not available in this poster editing system."
+      }
+    },
+    {
+      "id": "unsupported-02",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 3442,
+      "inputTokens": 1402,
+      "outputTokens": 180,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "Physically simulated liquid requires fluid simulation, which is not supported for text layers in the current system."
+      }
+    },
+    {
+      "id": "unsupported-03",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 2716,
+      "inputTokens": 1406,
+      "outputTokens": 134,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "The request to import a photo of a mountain as background requires an image layer, but the current system only supports text and shapes, not image uploads or media."
+      }
+    },
+    {
+      "id": "unsupported-04",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 1877,
+      "inputTokens": 1401,
+      "outputTokens": 80,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "Soundtrack requires audio files, which are not supported in this poster editing system."
+      }
+    },
+    {
+      "id": "unsupported-05",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 4737,
+      "inputTokens": 1406,
+      "outputTokens": 249,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "The request for a three-dimensional scene with a moving camera requires camera layers and 3D effects, which are not supported by the current system."
+      }
+    },
+    {
+      "id": "unsupported-06",
+      "category": "unsupported",
+      "valid": true,
+      "passed": true,
+      "targetCorrect": false,
+      "preservationCorrect": true,
+      "effectsCorrect": false,
+      "latencyMs": 2333,
+      "inputTokens": 1402,
+      "outputTokens": 113,
+      "cost": 0,
+      "failures": [],
+      "response": {
+        "kind": "unsupported",
+        "explanation": "Arbitrary JavaScript execution is not supported by the poster editing system; supported animations are limited to predefined motion types."
+      }
+    }
+  ]
+}

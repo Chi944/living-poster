@@ -10,7 +10,7 @@
 
 **Spec:** [Original product brief](../../product-brief.md).
 
-**Status:** Planning only, prepared 13 September 2026. Only this document and a copy of the supplied brief exist. No application code, dependency installation, repository initialization, account provisioning, deployment, or model generation has been performed.
+**Status:** Historical planning document, prepared 13 September 2026. The user subsequently authorized implementation in `active/living-poster` with entirely free features. The [free local implementation contract](../../build-contract.md) supersedes hosted Supabase/OpenAI choices and planning-only restrictions below: the application uses local SQLite, local password authentication, and local Ollama. Consult the README and current architecture/evaluation documents for the implemented release.
 
 ## Global constraints
 
@@ -82,14 +82,14 @@ Interactions:
 
 Six distinct compositions, designed as actual posters rather than feature test screens:
 
-| Composition | Art direction | Demonstrated behavior |
-|---|---|---|
-| GRAVITY | Massive black anchor word, cream ground, red satellite words | Attraction toward a designated word |
-| PANIC / RETURN | Acid yellow field, tense condensed-looking arrangement, quiet footer | Fast scatter and slow reassembly |
-| AFTER HOURS | Midnight blue, airy white headline, fixed event details | Headline float; supporting text still |
-| FREQUENCY | Cobalt and white, repeated editorial type, thin rules | A travelling letter wave |
-| SMALL WORLDS | Warm orange, geometric circles and off-center labels | Orbit around a point |
-| PERSONAL SPACE | Soft pink, dark oversized words, spare metadata | Pointer repulsion and recorded replay |
+| Composition    | Art direction                                                        | Demonstrated behavior                 |
+| -------------- | -------------------------------------------------------------------- | ------------------------------------- |
+| GRAVITY        | Massive black anchor word, cream ground, red satellite words         | Attraction toward a designated word   |
+| PANIC / RETURN | Acid yellow field, tense condensed-looking arrangement, quiet footer | Fast scatter and slow reassembly      |
+| AFTER HOURS    | Midnight blue, airy white headline, fixed event details              | Headline float; supporting text still |
+| FREQUENCY      | Cobalt and white, repeated editorial type, thin rules                | A travelling letter wave              |
+| SMALL WORLDS   | Warm orange, geometric circles and off-center labels                 | Orbit around a point                  |
+| PERSONAL SPACE | Soft pink, dark oversized words, spare metadata                      | Pointer repulsion and recorded replay |
 
 Examples have stable IDs, seeds, a deliberately saved thumbnail frame, and a short suggested instruction. Clicking an example creates a fresh draft; it never changes the bundled original.
 
@@ -117,19 +117,19 @@ flowchart LR
 
 Use one npm workspace repository. The paths below are proposed future files, not existing implementation:
 
-| Area | Files and responsibility |
-|---|---|
-| Scene language | `packages/scene/src/schema.ts`, `validate.ts`, `commands.ts`, `migrate.ts`: runtime types, semantic invariants, atomic edits, explicit version handling |
-| Renderer | `packages/renderer/src/fonts.ts`, `layout.ts`, `evaluate.ts`, `behaviors.ts`, `pointer.ts`, `paint.ts`: named font loading, cached glyph layout, pure evaluation, canvas drawing |
-| Examples | `packages/examples/src/index.ts` and `scenes/*.json`: six independent validated scene assets |
-| Editor | `apps/web/src/editor/store.ts`, `commands.ts`, `CanvasStage.tsx`, `LayersPanel.tsx`, `Inspector.tsx`, `Timeline.tsx`, `AiComposer.tsx`, `HistoryPanel.tsx` |
-| Local durability | `apps/web/src/persistence/drafts.ts`, `outbox.ts`: IndexedDB transactions, recovery and serialized cloud acknowledgements |
-| AI transport | `apps/web/src/ai/controller.ts`; `apps/api/src/ai/schema.ts`, `prompt.ts`, `provider.ts`, `jobs.ts`, `budget.ts` |
-| Backend | `apps/api/src/server.ts`, `auth.ts`, `projects.ts`, `revisions.ts`, `shares.ts`: route boundaries and authorization |
-| Database | `supabase/migrations/001_authoring.sql`, `002_ai_requests.sql`, `003_shares.sql`; matching `supabase/tests/*.sql` |
-| Export player | `packages/player/src/index.ts`, `packages/export/src/png.ts`, `html.ts`: small trusted player, shared renderer, embedded asset packaging |
-| Verification | `tests/scene/*.test.ts`, `tests/renderer/*.test.ts`, `tests/editor/*.test.ts`, `tests/api/*.test.ts`, `tests/e2e/*.spec.ts`, `evals/held-out.jsonl` |
-| Delivery | `README.md`, `.env.example`, `Dockerfile`, `docs/scene-format.md`, `docs/architecture.md`, `docs/evaluation.md`, `docs/case-study.md`, `docs/demo-script.md` |
+| Area             | Files and responsibility                                                                                                                                                         |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scene language   | `packages/scene/src/schema.ts`, `validate.ts`, `commands.ts`, `migrate.ts`: runtime types, semantic invariants, atomic edits, explicit version handling                          |
+| Renderer         | `packages/renderer/src/fonts.ts`, `layout.ts`, `evaluate.ts`, `behaviors.ts`, `pointer.ts`, `paint.ts`: named font loading, cached glyph layout, pure evaluation, canvas drawing |
+| Examples         | `packages/examples/src/index.ts` and `scenes/*.json`: six independent validated scene assets                                                                                     |
+| Editor           | `apps/web/src/editor/store.ts`, `commands.ts`, `CanvasStage.tsx`, `LayersPanel.tsx`, `Inspector.tsx`, `Timeline.tsx`, `AiComposer.tsx`, `HistoryPanel.tsx`                       |
+| Local durability | `apps/web/src/persistence/drafts.ts`, `outbox.ts`: IndexedDB transactions, recovery and serialized cloud acknowledgements                                                        |
+| AI transport     | `apps/web/src/ai/controller.ts`; `apps/api/src/ai/schema.ts`, `prompt.ts`, `provider.ts`, `jobs.ts`, `budget.ts`                                                                 |
+| Backend          | `apps/api/src/server.ts`, `auth.ts`, `projects.ts`, `revisions.ts`, `shares.ts`: route boundaries and authorization                                                              |
+| Database         | `supabase/migrations/001_authoring.sql`, `002_ai_requests.sql`, `003_shares.sql`; matching `supabase/tests/*.sql`                                                                |
+| Export player    | `packages/player/src/index.ts`, `packages/export/src/png.ts`, `html.ts`: small trusted player, shared renderer, embedded asset packaging                                         |
+| Verification     | `tests/scene/*.test.ts`, `tests/renderer/*.test.ts`, `tests/editor/*.test.ts`, `tests/api/*.test.ts`, `tests/e2e/*.spec.ts`, `evals/held-out.jsonl`                              |
+| Delivery         | `README.md`, `.env.example`, `Dockerfile`, `docs/scene-format.md`, `docs/architecture.md`, `docs/evaluation.md`, `docs/case-study.md`, `docs/demo-script.md`                     |
 
 The scene/evaluator modules have no React, network, model SDK, or database dependency. The offline player imports only scene validation, font assets, renderer, and its own playback controls. React subscribes to editor changes; an imperative requestAnimationFrame controller updates the canvas separately. Time labels may refresh at 10 Hz; the entire application must not render at frame rate.
 
@@ -139,23 +139,23 @@ Fastify receives application-authored route schemas with explicit body limits; u
 
 Use strict discriminated unions and reject unknown fields. Scene files are JSON and do not contain conversation messages, owner tokens, API keys, URLs for arbitrary assets, or executable strings.
 
-| Field | Contract |
-|---|---|
-| `schemaVersion` | Literal `1`; unknown newer versions fail with a version message |
-| `rendererVersion` | Exact compatible renderer release, initially `1.0.0` |
-| `id` | Stable scene UUID |
-| `revision` | `{ id: UUID, parentId: UUID or null }`; lineage metadata does not require shipping historical scene files |
-| `seed` | Unsigned 32-bit integer |
-| `artboard` | `{ width: 1080, height: 1350, background: '#RRGGBB' }` |
-| `timeline` | `{ durationMs: 2000..10000, fps: 30, loop: true }`; duration is a multiple of 100 ms |
-| `fonts` | Allowlisted `{ id, assetHash }` entries resolving to bundled font files and coverage manifests |
-| `layers` | Ordered array, back to front, of unique stable layer UUIDs; no separate conflicting z-index field |
-| Shared layer data | `id`, nonempty `name`, `kind`, `visible`, `locked`, `opacity` 0..1, `layout`, `behaviors` |
-| `layout` | `{ x, y, rotationDeg }`; position is the layer pivot in artboard units, x 0..1080 and y 0..1350; rotation −180..180; never contains evaluated animation values |
-| Text layer | Exact `text`, `fontId`, `fontSize` 12..300, `lineHeight` 0.9..1.8, `trackingEm` −0.03..0.20, `align: left/center/right`, `fill: '#RRGGBB'` |
-| Shape layer | `shape: rect/ellipse`, `width` and `height` 4..640, `fill`, optional rectangular `cornerRadius` 0..80 and no greater than half the shorter side |
-| Behavior | Stable `id`, discriminated `type`, `enabled`, supported `scope`, `startMs`, `endMs`, `params`; see section 5 |
-| `pointer` | `mode: disabled/fixed/recorded`; fixed artboard coordinates and presence value, or bounded recorded samples with seam policy |
+| Field             | Contract                                                                                                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schemaVersion`   | Literal `1`; unknown newer versions fail with a version message                                                                                                |
+| `rendererVersion` | Exact compatible renderer release, initially `1.0.0`                                                                                                           |
+| `id`              | Stable scene UUID                                                                                                                                              |
+| `revision`        | `{ id: UUID, parentId: UUID or null }`; lineage metadata does not require shipping historical scene files                                                      |
+| `seed`            | Unsigned 32-bit integer                                                                                                                                        |
+| `artboard`        | `{ width: 1080, height: 1350, background: '#RRGGBB' }`                                                                                                         |
+| `timeline`        | `{ durationMs: 2000..10000, fps: 30, loop: true }`; duration is a multiple of 100 ms                                                                           |
+| `fonts`           | Allowlisted `{ id, assetHash }` entries resolving to bundled font files and coverage manifests                                                                 |
+| `layers`          | Ordered array, back to front, of unique stable layer UUIDs; no separate conflicting z-index field                                                              |
+| Shared layer data | `id`, nonempty `name`, `kind`, `visible`, `locked`, `opacity` 0..1, `layout`, `behaviors`                                                                      |
+| `layout`          | `{ x, y, rotationDeg }`; position is the layer pivot in artboard units, x 0..1080 and y 0..1350; rotation −180..180; never contains evaluated animation values |
+| Text layer        | Exact `text`, `fontId`, `fontSize` 12..300, `lineHeight` 0.9..1.8, `trackingEm` −0.03..0.20, `align: left/center/right`, `fill: '#RRGGBB'`                     |
+| Shape layer       | `shape: rect/ellipse`, `width` and `height` 4..640, `fill`, optional rectangular `cornerRadius` 0..80 and no greater than half the shorter side                |
+| Behavior          | Stable `id`, discriminated `type`, `enabled`, supported `scope`, `startMs`, `endMs`, `params`; see section 5                                                   |
+| `pointer`         | `mode: disabled/fixed/recorded`; fixed artboard coordinates and presence value, or bounded recorded samples with seam policy                                   |
 
 Limits: 64 layers, 512 graphemes per text layer, 1,024 graphemes in the scene, six behaviors per layer with at most one of each type, 256 behaviors total, and 256 KiB serialized scene size. Pointer data has at most 601 samples. Prompts and scene payloads have separate API limits. Reject NaN, infinity, unknown fonts/shapes/behaviors, duplicate IDs, invalid ranges, missing anchors, missing target layers, and unknown asset hashes.
 
@@ -173,14 +173,14 @@ Common timing notation: `D` is the loop duration; `t = ((timeMs % D) + D) % D`. 
 
 Values are in logical artboard units. `c` is an integer cycle count, `φ` is a phase in radians, `i` is a grapheme's stable index in the current text revision, and `R(θ)` rotates a vector.
 
-| Behavior | Exact effect | Parameters and limits |
-|---|---|---|
-| Float | Layer offset `E(u) · (Ax sin(2πcu+φ), Ay cos(2πcu+φ))` and optional angular sway `E(u) · a sin(2πcu+φ)` | `amplitudeX/Y: 0..80`, `cycles: 1..4`, `phase: 0..2π`, `rotationAmplitudeDeg: 0..10`; layer scope |
-| Orbit | Let `a` be a fixed point or base anchor and `p` the layer base pivot. Offset `R(2π·direction·c·S(u))(p−a) − (p−a)`. Orientation remains upright relative to base rotation. | `anchor` required; `direction: −1 or 1`, `cycles: 1..3`; base radius `|p−a| <= 120`; layer scope. A more distant orbit is rejected with an explanation. |
-| Wave | Grapheme local Y offset `E(u) · amplitude · sin(2πcu − 2πi/wavelength + φ)`; no glyph rotation | `amplitude: 0..60`, `cycles: 1..4`, `wavelength: 2..24` graphemes, `phase: 0..2π`; glyph scope, text only |
+| Behavior               | Exact effect                                                                                                                                                                                                                 | Parameters and limits                                                                                                                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Float                  | Layer offset `E(u) · (Ax sin(2πcu+φ), Ay cos(2πcu+φ))` and optional angular sway `E(u) · a sin(2πcu+φ)`                                                                                                                      | `amplitudeX/Y: 0..80`, `cycles: 1..4`, `phase: 0..2π`, `rotationAmplitudeDeg: 0..10`; layer scope                                                                                                     |
+| Orbit                  | Let `a` be a fixed point or base anchor and `p` the layer base pivot. Offset `R(2π·direction·c·S(u))(p−a) − (p−a)`. Orientation remains upright relative to base rotation.                                                   | `anchor` required; `direction: −1 or 1`, `cycles: 1..3`; base radius `                                                                                                                                | p−a                                                                                                                                                                                                         | <= 120`; layer scope. A more distant orbit is rejected with an explanation.                                       |
+| Wave                   | Grapheme local Y offset `E(u) · amplitude · sin(2πcu − 2πi/wavelength + φ)`; no glyph rotation                                                                                                                               | `amplitude: 0..60`, `cycles: 1..4`, `wavelength: 2..24` graphemes, `phase: 0..2π`; glyph scope, text only                                                                                             |
 | Scatter and reassemble | Generate one stable direction, radius and angle per layer/glyph. `H(u)=S(u/outEnd)` until `outEnd`, then 1 until `returnStart`, then `1−S((u−returnStart)/(1−returnStart))`. Multiply its stable offset and angle by `H(u)`. | `radius: 0..180`, `rotationMaxDeg: 0..25`, `outEnd: 0.10..0.35`, `returnStart: 0.35..0.65` and greater than `outEnd`; defaults 0.18/0.38 give a fast departure and slow return. Layer or glyph scope. |
-| Attract | From the layer's base pivot `p`, pull toward fixed/base-anchor point `a`: `E(u) · strength · limitLength(a−p, maxDistance)` | `strength: 0..1`, `maxDistance: 0..180`; fixed point or valid layer anchor; layer scope |
-| Repel from pointer | Let `d` be the vector from the pointer to the layer's base pivot and `r=|d|`. Offset `E(u) · presence · maxDistance · max(0,1−r/radius)² · d/sqrt(r²+16²)`; disabled pointer gives zero. The fixed 16-unit softening makes the response continuous when the pointer crosses the pivot. | `radius: 40..400`, `maxDistance: 0..140`; layer scope. Pointer presence 0..1 comes from the defined input sample. |
+| Attract                | From the layer's base pivot `p`, pull toward fixed/base-anchor point `a`: `E(u) · strength · limitLength(a−p, maxDistance)`                                                                                                  | `strength: 0..1`, `maxDistance: 0..180`; fixed point or valid layer anchor; layer scope                                                                                                               |
+| Repel from pointer     | Let `d` be the vector from the pointer to the layer's base pivot and `r=                                                                                                                                                     | d                                                                                                                                                                                                     | `. Offset `E(u) · presence · maxDistance · max(0,1−r/radius)² · d/sqrt(r²+16²)`; disabled pointer gives zero. The fixed 16-unit softening makes the response continuous when the pointer crosses the pivot. | `radius: 40..400`, `maxDistance: 0..140`; layer scope. Pointer presence 0..1 comes from the defined input sample. |
 
 Orbit follows a circular path with eased angular speed, returning to its base position at the end of the window. UI copy exposes “turns,” “direction” and “anchor,” and previews the actual path. Combining orbit with other behaviors produces their defined summed motion. All six timeline contributions return to base every loop.
 
@@ -276,14 +276,14 @@ An acknowledgement updates only sync metadata for its captured snapshot. It neve
 
 Database entities:
 
-| Entity | Essential data |
-|---|---|
-| `projects` | UUID, owner UUID, name, current head revision, timestamps |
-| `scene_revisions` | revision UUID, project UUID, parent UUID, full validated scene JSON, operation ID, content hash, source, optional name, timestamp |
-| `ai_requests` | owner/project/request IDs, immutable input scene/selection/envelope and hash, status, prompt, validated result, timestamps, model, token usage, reserved/actual cost, provider request ID; unique owner/request ID |
-| `instruction_history` | owner/project/request IDs, input and applied revision IDs, explanation and disposition; separate from scene payload |
-| `share_snapshots` | share ID, owner, token hash, captured scene, renderer version, creation and revocation timestamps; independent from private revisions |
-| `budget_reservations` | account/global daily counters and per-request worst-case reservation with reconciliation state |
+| Entity                | Essential data                                                                                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `projects`            | UUID, owner UUID, name, current head revision, timestamps                                                                                                                                                          |
+| `scene_revisions`     | revision UUID, project UUID, parent UUID, full validated scene JSON, operation ID, content hash, source, optional name, timestamp                                                                                  |
+| `ai_requests`         | owner/project/request IDs, immutable input scene/selection/envelope and hash, status, prompt, validated result, timestamps, model, token usage, reserved/actual cost, provider request ID; unique owner/request ID |
+| `instruction_history` | owner/project/request IDs, input and applied revision IDs, explanation and disposition; separate from scene payload                                                                                                |
+| `share_snapshots`     | share ID, owner, token hash, captured scene, renderer version, creation and revocation timestamps; independent from private revisions                                                                              |
+| `budget_reservations` | account/global daily counters and per-request worst-case reservation with reconciliation state                                                                                                                     |
 
 ## 9. Backend access, spending, retries and sharing
 
@@ -410,18 +410,21 @@ These are intended assertions for the future test files, not implemented tests. 
 const compiled = compileScene(validScene, loadedFonts);
 const before = evaluateScene(compiled, { timeMs: 2750, pointer: null });
 evaluateScene(compiled, { timeMs: 5900, pointer: null });
-expect(evaluateScene(compiled, { timeMs: 2750, pointer: null })).toEqual(before);
-expect(evaluateScene(compiled, { timeMs: 0, pointer: null }))
-  .toEqual(evaluateScene(compiled, { timeMs: 6000, pointer: null }));
+expect(evaluateScene(compiled, { timeMs: 2750, pointer: null })).toEqual(
+  before,
+);
+expect(evaluateScene(compiled, { timeMs: 0, pointer: null })).toEqual(
+  evaluateScene(compiled, { timeMs: 6000, pointer: null }),
+);
 
 // AI: returning to old content is not returning to old revision identity.
 const oldId = editor.scene.revision.id;
-const request = editor.beginAiRequest('Float the headline');
+const request = editor.beginAiRequest("Float the headline");
 editor.nudgeSelected(10, 0);
 editor.undo();
 expect(editor.scene.revision.id).not.toBe(oldId);
 const unchanged = editor.scene;
-expect(editor.receiveAi(request, pendingReply).status).toBe('superseded');
+expect(editor.receiveAi(request, pendingReply).status).toBe("superseded");
 expect(editor.scene).toBe(unchanged);
 
 // Persistence: a repeated operation is acknowledged, not applied twice.
@@ -439,40 +442,40 @@ Freeze 40 held-out language cases before prompt tuning: 12 exact-target instruct
 
 Examples of independent expectations:
 
-| Instruction/scenario | Expected effect |
-|---|---|
-| “Float the headline; keep the caption still.” | Headline float added; caption deep-equal; all text unchanged |
-| “Make the small ‘gravity’ word attract the others.” | Disambiguate duplicate wording by size; other specified layers reference that exact anchor |
-| “Keep the motion, but align the supporting text left.” | Only supporting alignment/base layout changes; behavior arrays identical |
-| “Make the circle orange and move the subtitle down 40 pixels.” | Two targeted effects, one undo command, no extra property changes |
-| “Make that move more,” with no selection | Clarification, zero scene mutation |
-| “Add realistic smoke and melting letters.” | Unsupported explanation and procedural alternative, no invented effect |
-| A returns after B, drag, text entry, undo, or project switch | Stale result rejected; no extra undo item |
-| Missing font, broken anchor, unknown schema version | Precise error; no crash or replacement of last valid draft |
+| Instruction/scenario                                           | Expected effect                                                                            |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| “Float the headline; keep the caption still.”                  | Headline float added; caption deep-equal; all text unchanged                               |
+| “Make the small ‘gravity’ word attract the others.”            | Disambiguate duplicate wording by size; other specified layers reference that exact anchor |
+| “Keep the motion, but align the supporting text left.”         | Only supporting alignment/base layout changes; behavior arrays identical                   |
+| “Make the circle orange and move the subtitle down 40 pixels.” | Two targeted effects, one undo command, no extra property changes                          |
+| “Make that move more,” with no selection                       | Clarification, zero scene mutation                                                         |
+| “Add realistic smoke and melting letters.”                     | Unsupported explanation and procedural alternative, no invented effect                     |
+| A returns after B, drag, text entry, undo, or project switch   | Stale result rejected; no extra undo item                                                  |
+| Missing font, broken anchor, unknown schema version            | Precise error; no crash or replacement of last valid draft                                 |
 
 Release gates:
 
-| Area | Acceptance criterion and evidence |
-|---|---|
-| Structured output | ≥95% valid response envelopes across completed held-out responses; separately report transport failures, refusal and incomplete rates over all attempts. ≥95% semantically valid edit proposals on applicable edit cases. |
-| Targeting | ≥95% correct targets on the 28 determinate edit cases; multi-change cases pass only when all required targets are correct. Publish numerators and denominators. |
-| Preservation | 100% exact wording preservation in motion/style cases; 100% untouched-property preservation in applicable accepted edits. Mutating an unrelated value fails the case. |
-| Interpretation | All six material ambiguities ask before changing the scene. All unsupported effects remain outside the scene language. Human reviewer rates at least 80% of creative cases acceptable against a prewritten rubric. |
-| Human review | A reviewer examines target choice, visual fit, readability and restraint on a 1–5 rubric; ≥4 counts as acceptable. Include before/after images and disagreements. The generating model is not its own sole judge. |
-| Stale state | 100% pass across reordered replies, new requests, active gestures, undo-to-identical-content, project switch and reload. |
-| Idempotency/spend | Duplicate request/save IDs have no duplicate effect; changed payload under reused ID fails; concurrent reservations obey configured caps; unknown provider outcomes do not auto-regenerate. |
-| Undo and recovery | Mixed manual/AI edits undo/redo to exact content in the correct order with new revision identities; gesture cancellation creates no committed command; offline edits and outbox survive reload without silent loss. |
-| Persistence | Save/reload preserves scene content/fonts/seed/pointer path; named restore makes a new revision; two-tab conflict keeps both recoverable versions. |
-| Authorization | Anonymous and second-account access cannot read/mutate private scenes, revisions or instructions through any exposed route; direct writes cannot bypass validation/CAS. |
-| Shares | Share is pinned, snapshot-only, revocable, read-only and free of private history/credentials. Updating a project does not update an existing share. |
-| Determinism | Exact repeated evaluated transforms in the pinned environment, random seeking, fixed/recorded pointer replay, matching loop endpoints, and no state accumulation after 100 loops. |
-| Export fidelity | Six scenes × at least five selected times compare between preview export canvas, PNG and offline HTML in pinned Chromium; identical draw geometry and no >1 px displacement. Raster comparison permits only documented antialiasing tolerance. |
-| Export safety | HTML opens without network; no credentials/model client/prompts; text containing `</script>` or markup-looking strings remains inert; referenced fonts load from embedded bytes. |
-| Fonts/data | Missing font, unsupported glyph, invalid ID/range/version, oversized scene and broken pointer path fail visibly while the last valid scene remains recoverable. |
-| Performance | Typical scene: 24 layers/400 glyphs/60 behaviors; target p95 evaluation+paint ≤12 ms and p95 displayed frame interval ≤20 ms at 1080×1350 logical size, 540×675 CSS size, DPR 2 on the inspected i5/Chrome machine. Limit scene: 64 layers/1,024 glyphs/256 behaviors; p95 frame interval ≤34 ms. Measure 30 seconds after warm-up; publish conditions/results. |
-| Diagnostics | Development overlay records evaluation time, paint time, frame intervals, draw count, glyph/behavior count, bounds corrections, font status and layout-cache misses. React profiler shows no whole-editor per-frame commit. |
-| AI service | Record p50/p95 request-to-result latency and per-request tokens/cost, including failures and reservations. Target p95 ≤15 seconds and average cost ≤US$0.05; these are measured targets, not provider guarantees. |
-| Accessibility | All core controls usable by keyboard, visible focus, labelled inputs, readable UI contrast, poster DOM description, reduced-motion startup, and no critical automated accessibility failures. |
+| Area              | Acceptance criterion and evidence                                                                                                                                                                                                                                                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Structured output | ≥95% valid response envelopes across completed held-out responses; separately report transport failures, refusal and incomplete rates over all attempts. ≥95% semantically valid edit proposals on applicable edit cases.                                                                                                                                       |
+| Targeting         | ≥95% correct targets on the 28 determinate edit cases; multi-change cases pass only when all required targets are correct. Publish numerators and denominators.                                                                                                                                                                                                 |
+| Preservation      | 100% exact wording preservation in motion/style cases; 100% untouched-property preservation in applicable accepted edits. Mutating an unrelated value fails the case.                                                                                                                                                                                           |
+| Interpretation    | All six material ambiguities ask before changing the scene. All unsupported effects remain outside the scene language. Human reviewer rates at least 80% of creative cases acceptable against a prewritten rubric.                                                                                                                                              |
+| Human review      | A reviewer examines target choice, visual fit, readability and restraint on a 1–5 rubric; ≥4 counts as acceptable. Include before/after images and disagreements. The generating model is not its own sole judge.                                                                                                                                               |
+| Stale state       | 100% pass across reordered replies, new requests, active gestures, undo-to-identical-content, project switch and reload.                                                                                                                                                                                                                                        |
+| Idempotency/spend | Duplicate request/save IDs have no duplicate effect; changed payload under reused ID fails; concurrent reservations obey configured caps; unknown provider outcomes do not auto-regenerate.                                                                                                                                                                     |
+| Undo and recovery | Mixed manual/AI edits undo/redo to exact content in the correct order with new revision identities; gesture cancellation creates no committed command; offline edits and outbox survive reload without silent loss.                                                                                                                                             |
+| Persistence       | Save/reload preserves scene content/fonts/seed/pointer path; named restore makes a new revision; two-tab conflict keeps both recoverable versions.                                                                                                                                                                                                              |
+| Authorization     | Anonymous and second-account access cannot read/mutate private scenes, revisions or instructions through any exposed route; direct writes cannot bypass validation/CAS.                                                                                                                                                                                         |
+| Shares            | Share is pinned, snapshot-only, revocable, read-only and free of private history/credentials. Updating a project does not update an existing share.                                                                                                                                                                                                             |
+| Determinism       | Exact repeated evaluated transforms in the pinned environment, random seeking, fixed/recorded pointer replay, matching loop endpoints, and no state accumulation after 100 loops.                                                                                                                                                                               |
+| Export fidelity   | Six scenes × at least five selected times compare between preview export canvas, PNG and offline HTML in pinned Chromium; identical draw geometry and no >1 px displacement. Raster comparison permits only documented antialiasing tolerance.                                                                                                                  |
+| Export safety     | HTML opens without network; no credentials/model client/prompts; text containing `</script>` or markup-looking strings remains inert; referenced fonts load from embedded bytes.                                                                                                                                                                                |
+| Fonts/data        | Missing font, unsupported glyph, invalid ID/range/version, oversized scene and broken pointer path fail visibly while the last valid scene remains recoverable.                                                                                                                                                                                                 |
+| Performance       | Typical scene: 24 layers/400 glyphs/60 behaviors; target p95 evaluation+paint ≤12 ms and p95 displayed frame interval ≤20 ms at 1080×1350 logical size, 540×675 CSS size, DPR 2 on the inspected i5/Chrome machine. Limit scene: 64 layers/1,024 glyphs/256 behaviors; p95 frame interval ≤34 ms. Measure 30 seconds after warm-up; publish conditions/results. |
+| Diagnostics       | Development overlay records evaluation time, paint time, frame intervals, draw count, glyph/behavior count, bounds corrections, font status and layout-cache misses. React profiler shows no whole-editor per-frame commit.                                                                                                                                     |
+| AI service        | Record p50/p95 request-to-result latency and per-request tokens/cost, including failures and reservations. Target p95 ≤15 seconds and average cost ≤US$0.05; these are measured targets, not provider guarantees.                                                                                                                                               |
+| Accessibility     | All core controls usable by keyboard, visible focus, labelled inputs, readable UI contrast, poster DOM description, reduced-motion startup, and no critical automated accessibility failures.                                                                                                                                                                   |
 
 If a quality gate fails, use development fixtures to improve the prompt/implementation and assess with a fresh held-out set; do not silently tune on the held-out answers or omit failures from the report. Engineering invariants remain hard release requirements. Performance/model targets can be revised only with explicit evidence and a documented scope decision.
 
@@ -482,14 +485,14 @@ Deliver the fresh repository with working app, six example posters, licensed fon
 
 Demo storyboard:
 
-| Time | Action |
-|---|---|
-| 0–7 s | Show six posters, open GRAVITY and play the starting loop |
-| 7–22 s | Submit “Make gravity pull the other words toward it”; show live request state, affected layers and concise result |
-| 22–34 s | Pause, drag one supporting word and refine its type size; resume playback |
-| 34–42 s | Undo the manual refinement, then redo; keep the AI behavior visible |
-| 42–54 s | Export a selected PNG frame and the animated HTML presentation |
-| 54–60 s | Open the downloaded HTML with network disabled and show the loop |
+| Time    | Action                                                                                                            |
+| ------- | ----------------------------------------------------------------------------------------------------------------- |
+| 0–7 s   | Show six posters, open GRAVITY and play the starting loop                                                         |
+| 7–22 s  | Submit “Make gravity pull the other words toward it”; show live request state, affected layers and concise result |
+| 22–34 s | Pause, drag one supporting word and refine its type size; resume playback                                         |
+| 34–42 s | Undo the manual refinement, then redo; keep the AI behavior visible                                               |
+| 42–54 s | Export a selected PNG frame and the animated HTML presentation                                                    |
+| 54–60 s | Open the downloaded HTML with network disabled and show the loop                                                  |
 
 Record a real model edit. If its response takes longer than the allotted segment, visibly disclose any cut/time compression; never substitute a preset and call it live AI. The demo recording is a product walkthrough; adding video export to the application remains a stretch feature.
 

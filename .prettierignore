@@ -1,0 +1,12 @@
+node_modules
+dist
+data
+test-results
+playwright-report
+apps/web/public/player.js
+apps/web/public/fonts
+docs/assets
+evals/results
+evals/*.json
+tests/core-artifacts
+packages/core/src/font-manifest.ts

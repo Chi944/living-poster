@@ -1,0 +1,9 @@
+{
+  "recordedAt": "2026-09-12T21:15:52.214Z",
+  "model": "qwen3:4b",
+  "modelTransport": "Real local Ollama through the application API",
+  "instruction": "Let the Gravity headline float gently.",
+  "apiCost": 0,
+  "durationSeconds": 60,
+  "source": "Playwright screen recording; descriptive captions overlaid in browser; no scene state injected."
+}

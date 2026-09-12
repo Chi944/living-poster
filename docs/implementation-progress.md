@@ -1,16 +1,16 @@
 # Implementation progress
 
-Plan: docs/superpowers/plans/2026-09-13-living-poster.md
+The implementation is complete in `active/living-poster`. The user's free-only requirement supersedes the hosted-service proposal in the original plan. The application uses local Ollama, SQLite and session authentication in its own Git repository.
 
-User override: implement now; directory belongs inside active; all product features must use free local software. The initial hosted/API proposal is superseded by docs/build-contract.md.
+| Workstream  | Delivered                                                                      | Verification                                                                            |
+| ----------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| Core        | Versioned scenes, commands, six motions, checked fonts and six compositions    | 44 tests; actual-font Chromium probes; eight benchmarks                                 |
+| Backend     | Private access, immutable revisions, revocable shares and durable model jobs   | 20 API tests using real SQLite                                                          |
+| Frontend    | Canvas editor, inspector, timeline/pointer capture, undo, recovery and library | 13 frontend tests; browser and accessibility checks                                     |
+| Exports     | PNG and self-contained HTML using the shared evaluator                         | Exact offline frame parity across all examples and font/shape/pointer fixtures          |
+| Integration | Native setup, documentation, case study and real 60-second UI recording        | Build/typecheck pass; 18 browser tests pass; zero audit findings                        |
+| Local AI    | Real qwen3:4b inference with validated actions and stale-response guards       | Original set 37/40; fresh release set 19/20; all clear-target edits passed; $0 API cost |
 
-Decisions: local Ollama replaces paid model API, local SQLite/session auth replaces hosted DB/auth; no cloud model fallback. New independent repository in requested folder, branch feat/living-poster; no need for another worktree.
+Independent reviews led to fixes for acknowledgement races, conflict isolation, invalid-restore identity changes, geometry preflight, pending prompt corrections, pointer endpoints, share revocation, immediate title recovery, plain-HTTP UUIDs and missing export assets. Regression tests cover these issues.
 
-| Workstream | Produces/consumes | Status |
-|---|---|---|
-| Core | Shared scene/evaluator/commands/examples, consumed by UI/API/export | assigned next |
-| Backend | Shared validated scene -> SQLite revisions, local AI, auth/shares | assigned next |
-| Frontend | Core + REST API + export functions -> editor | assigned next |
-| Integration | Build/fonts/player/exports/E2E/docs/eval | root in progress |
-
-Review plan: independently inspect core/backend/UI after implementation; verify focused tests, integrated UI and exports, real local model, then document actual results. Original plan has no application baseline tests because repository was newly created.
+Implementation and automated verification are complete. Independent human creative review remains explicitly pending; see [evaluation.md](evaluation.md) for measured model limitations and the rubric. No cloud deployment or paid feature is configured.

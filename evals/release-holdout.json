@@ -1,0 +1,22 @@
+[
+  {"id":"release-01","category":"target","instruction":"Give the layer named Label a gentle floating motion.","targets":["Label"],"required":[{"layer":"Label","behavior":"float"}],"allowed":{"Label":["behaviors"]}},
+  {"id":"release-02","category":"target","instruction":"Apply a wave to the letters of the Caption layer.","targets":["Caption"],"required":[{"layer":"Caption","behavior":"wave"}],"allowed":{"Caption":["behaviors"]}},
+  {"id":"release-03","category":"target","instruction":"Set the Circle layer's opacity to 0.65.","targets":["Circle"],"required":[{"layer":"Circle","path":"opacity","value":0.65}],"allowed":{"Circle":["opacity"]}},
+  {"id":"release-04","category":"target","instruction":"The Subtitle should be 32 pixels in size.","targets":["Subtitle"],"required":[{"layer":"Subtitle","path":"fontSize","value":32}],"allowed":{"Subtitle":["fontSize"]}},
+  {"id":"release-05","category":"target","instruction":"Give Circle an orbit around its default nearby point.","targets":["Circle"],"required":[{"layer":"Circle","behavior":"orbit"}],"allowed":{"Circle":["behaviors"]}},
+  {"id":"release-06","category":"target","instruction":"Add pointer repel to the Label layer.","targets":["Label"],"required":[{"layer":"Label","behavior":"repel"}],"allowed":{"Label":["behaviors"]}},
+  {"id":"release-07","category":"multi","instruction":"Use #803020 for Headline and #204080 for Subtitle.","targets":["Headline","Subtitle"],"required":[{"layer":"Headline","path":"fill","value":"#803020"},{"layer":"Subtitle","path":"fill","value":"#204080"}],"allowed":{"Headline":["fill"],"Subtitle":["fill"]}},
+  {"id":"release-08","category":"multi","instruction":"Move Circle 25 pixels left, then 12 pixels down.","targets":["Circle"],"required":[{"layer":"Circle","path":"layout.x","value":515},{"layer":"Circle","path":"layout.y","value":732}],"allowed":{"Circle":["layout.x","layout.y"]}},
+  {"id":"release-09","category":"multi","instruction":"Float Label and scatter the Headline letters before they return.","targets":["Label","Headline"],"required":[{"layer":"Label","behavior":"float"},{"layer":"Headline","behavior":"scatter"}],"allowed":{"Label":["behaviors"],"Headline":["behaviors"]}},
+  {"id":"release-10","category":"multi","instruction":"Make Caption attract toward Circle; make Label attract toward Headline.","targets":["Caption","Label"],"required":[{"layer":"Caption","behavior":"attract","anchor":"Circle"},{"layer":"Label","behavior":"attract","anchor":"Headline"}],"allowed":{"Caption":["behaviors"],"Label":["behaviors"]}},
+  {"id":"release-11","category":"preserve","instruction":"Keep all current motion. Set Headline's fill to #442244 and nothing else.","preset":"headline-float","targets":["Headline"],"required":[{"layer":"Headline","path":"fill","value":"#442244"},{"layer":"Headline","behavior":"float"}],"allowed":{"Headline":["fill"]}},
+  {"id":"release-12","category":"preserve","instruction":"On the selected layer only, add a letter wave. Do not rewrite any text.","selected":["Label"],"targets":["Label"],"required":[{"layer":"Label","behavior":"wave"}],"allowed":{"Label":["behaviors"]}},
+  {"id":"release-13","category":"preserve","instruction":"Ignore the current selection: move Caption right by 18 pixels only.","selected":["Circle"],"targets":["Caption"],"required":[{"layer":"Caption","path":"layout.x","value":118}],"allowed":{"Caption":["layout.x"]}},
+  {"id":"release-14","category":"preserve","instruction":"Set Subtitle tracking to 0.02 em, retaining its content, font, size and colour.","targets":["Subtitle"],"required":[{"layer":"Subtitle","path":"trackingEm","value":0.02}],"allowed":{"Subtitle":["trackingEm"]}},
+  {"id":"release-15","category":"ambiguous","instruction":"Make it more transparent.","expectedKind":"clarify"},
+  {"id":"release-16","category":"ambiguous","instruction":"Change Circle's colour, but I have not chosen a new colour yet.","expectedKind":"clarify"},
+  {"id":"release-17","category":"ambiguous","instruction":"Add a float motion to the text reading GRAVITY.","preset":"duplicate-headline","expectedKind":"clarify"},
+  {"id":"release-18","category":"unsupported","instruction":"Use a webcam feed inside the letters.","expectedKind":"unsupported"},
+  {"id":"release-19","category":"unsupported","instruction":"Create an animated 3D mesh with depth lighting and camera zoom.","expectedKind":"unsupported"},
+  {"id":"release-20","category":"unsupported","instruction":"Synchronize the typography to an uploaded MP3 soundtrack.","expectedKind":"unsupported"}
+]

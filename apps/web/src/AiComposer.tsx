@@ -1,35 +1,336 @@
-import {useRef,useState} from 'react';
-import {ArrowUp,History,LoaderCircle,Sparkles,X} from 'lucide-react';
-import {newId,cloneScene} from '../../../packages/core/src';
-import {api,post,type Capabilities} from './api';
-import {useEditor} from './store';
-export function AiComposer({capabilities,onAuthenticate}:{capabilities:Capabilities|null;onAuthenticate:()=>void}){
- const selected=useEditor(s=>s.selected),layers=useEditor(s=>s.scene.layers),affected=useEditor(s=>s.affected);
- const [instruction,setInstruction]=useState(''),[allowText,setAllowText]=useState(false),[status,setStatus]=useState('idle'),[message,setMessage]=useState(''),[history,setHistory]=useState<any[]|null>(null);const active=useRef(''),requestBusy=useRef(false);const [appliedRevision,setAppliedRevision]=useState('');const currentRevision=useEditor(s=>s.scene.revision.id);
- const busy=status==='queued'||status==='running';
- const submit=async()=>{if(requestBusy.current)return;if(!capabilities?.authenticated){onAuthenticate();return;}if(!instruction.trim())return;
-  const editor=useEditor.getState(),capture=editor.beginAi(),requestId=newId(),text=instruction.trim();active.current=requestId;requestBusy.current=true;setStatus('queued');setMessage('Waiting for the local model…');
-  try{await post('/ai/edits',{requestId,scene:cloneScene(editor.scene),selectedLayerIds:editor.selected,instruction:text,allowTextChanges:allowText,baseRevisionId:capture.revisionId,requestGeneration:capture.generation,mutationEpoch:capture.epoch});
-   for(let attempt=0;attempt<300;attempt++){await new Promise(resolve=>setTimeout(resolve,1000));const result=await api(`/ai/edits/${requestId}`);if(active.current===requestId){setStatus(result.status);if(result.status==='running')setMessage(`${result.model??capabilities.ai.model} is composing your change…`);}
-    if(['queued','running'].includes(result.status))continue;
-    if(result.status!=='completed'){if(active.current===requestId){setStatus('failed');setMessage(result.error??'The model did not complete this request. Your poster is unchanged.');}return;}
-    if(result.result?.kind==='edit'){let applied=false;try{applied=useEditor.getState().applyAi(capture,result.result.operations,allowText);}catch(error){if(active.current===requestId){setStatus('failed');setMessage(error instanceof Error?error.message:'The edit did not validate.');}await post(`/ai/edits/${requestId}/disposition`,{status:'superseded'});return;}
-     await post(`/ai/edits/${requestId}/disposition`,{status:applied?'applied':'superseded',...(applied?{appliedRevisionId:useEditor.getState().scene.revision.id}:{})}).catch(()=>{});
-     if(active.current===requestId){setStatus(applied?'applied':'superseded');setMessage(applied?useEditor.getState().notice:'Your poster changed while the model was working. This response was kept in history and was not applied.');if(applied){setInstruction('');setAppliedRevision(useEditor.getState().scene.revision.id);}}
-    }else if(active.current===requestId){setStatus(result.result?.kind??'failed');setMessage(result.result?.question??result.result?.explanation??'The model returned no usable change.');}return;
-   }if(active.current===requestId){setStatus('indeterminate');setMessage('This request is taking longer than expected. Check history for its outcome; it will not be applied automatically.');}
-  }catch(error){if(active.current===requestId){setStatus('failed');setMessage(error instanceof Error?error.message:'Request failed.');}}finally{if(active.current===requestId)requestBusy.current=false;}
- };
- return <section className="composer"><div className="composer-heading"><h2><Sparkles size={15}/>Give it a direction</h2><button className="icon-button" aria-label="AI request history" title="Request history" onClick={async()=>{if(!capabilities?.authenticated){onAuthenticate();return;}try{const result=await api('/ai/history');setHistory(history?null:result.requests);}catch(e){setMessage(e instanceof Error?e.message:'History unavailable');}}}><History size={15}/></button></div>
-  <p className="composer-description">A few words can move things.</p>
-  {selected.length>0&&<div className="selection-chips">{selected.map(id=><span key={id}>{layers.find(l=>l.id===id)?.name}<button aria-label="Deselect layer" onClick={()=>useEditor.getState().select(id,true)}><X size={10}/></button></span>)}</div>}
-  <div className="prompt-box"><textarea aria-label="Describe a change" placeholder={'“Let the headline float gently.”'} value={instruction} onChange={e=>{if(requestBusy.current)useEditor.setState(s=>({requestGeneration:s.requestGeneration+1}));setInstruction(e.target.value);}} onKeyDown={e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();void submit();}}}/><div className="prompt-bottom"><span>{selected.length?'Selected layers':'Whole poster'}<span className="kbd">Ctrl ↵</span></span><button className="send-button" aria-label="Apply AI instruction" disabled={busy||!instruction.trim()||(!!capabilities?.authenticated&&!capabilities.ai.available)} onClick={()=>void submit()}>{busy?<LoaderCircle size={16} className="spin"/>:<ArrowUp size={17}/>}</button></div></div>
-  <label className="check wording-check"><input type="checkbox" checked={allowText} onChange={e=>{if(requestBusy.current)useEditor.setState(s=>({requestGeneration:s.requestGeneration+1}));setAllowText(e.target.checked);}}/>Allow wording changes</label>
-  <div className="model-status"><i className={capabilities?.ai.available?'online':''}/><span>{!capabilities?'Checking local model…':capabilities.ai.available?capabilities.ai.model:'Local model unavailable'}</span>{!capabilities?.authenticated&&<button onClick={onAuthenticate}>Connect</button>}</div>
-  {capabilities&&!capabilities.ai.available&&<p className="small-note">{capabilities.ai.reason??'Start Ollama to use language editing. All manual tools remain available.'}</p>}
-  {message&&<div className={`ai-message ${status}`} role="status"><strong>{({queued:'Queued',running:'Composing',applied:`Updated ${affected.length} layer${affected.length!==1?'s':''}`,clarify:'A little more direction',unsupported:'Outside this canvas',superseded:'Response superseded',failed:'Could not apply',indeterminate:'Outcome unknown'} as Record<string,string>)[status]??'Request update'}</strong><p>{message}</p>{busy&&<button onClick={()=>{useEditor.setState(s=>({requestGeneration:s.requestGeneration+1}));active.current='';requestBusy.current=false;setStatus('superseded');setMessage('The model may finish, but its response will not change your poster.');}}>Dismiss request</button>}{status==='applied'&&currentRevision===appliedRevision&&<button onClick={()=>{useEditor.getState().undo();setStatus('idle');setMessage('AI change undone.');}}>Undo this change</button>}</div>}
-  {history&&<div className="ai-history"><div className="section-caption">REQUEST HISTORY<button className="icon-button" aria-label="Close history" onClick={()=>setHistory(null)}><X size={13}/></button></div>{!history.length&&<p className="small-note">Your language edits will appear here.</p>}{history.map(item=><article key={item.requestId??item.id}><p>{item.input?.instruction??item.instruction??'Language edit'}</p><span>{item.disposition??item.status} · {item.latencyMs?`${(item.latencyMs/1000).toFixed(1)} s`:'—'}</span>{item.result?.summary&&<small>{item.result.summary}</small>}</article>)}</div>}
- </section>;
+import { useRef, useState } from "react";
+import { ArrowUp, History, LoaderCircle, Sparkles, X } from "lucide-react";
+import { newId, cloneScene } from "../../../packages/core/src";
+import { api, post, type Capabilities } from "./api";
+import { useEditor } from "./store";
+export function AiComposer({
+  capabilities,
+  onAuthenticate,
+}: {
+  capabilities: Capabilities | null;
+  onAuthenticate: () => void;
+}) {
+  const selected = useEditor((s) => s.selected),
+    layers = useEditor((s) => s.scene.layers),
+    affected = useEditor((s) => s.affected);
+  const [instruction, setInstruction] = useState(""),
+    [allowText, setAllowText] = useState(false),
+    [status, setStatus] = useState("idle"),
+    [message, setMessage] = useState(""),
+    [history, setHistory] = useState<any[] | null>(null);
+  const active = useRef(""),
+    requestBusy = useRef(false);
+  const [appliedRevision, setAppliedRevision] = useState("");
+  const currentRevision = useEditor((s) => s.scene.revision.id);
+  const busy = status === "queued" || status === "running";
+  const submit = async () => {
+    if (requestBusy.current) return;
+    if (!capabilities?.authenticated) {
+      onAuthenticate();
+      return;
+    }
+    if (!instruction.trim()) return;
+    const editor = useEditor.getState(),
+      capture = editor.beginAi(),
+      requestId = newId(),
+      text = instruction.trim();
+    active.current = requestId;
+    requestBusy.current = true;
+    setStatus("queued");
+    setMessage("Waiting for the local model…");
+    try {
+      await post("/ai/edits", {
+        requestId,
+        scene: cloneScene(editor.scene),
+        selectedLayerIds: editor.selected,
+        instruction: text,
+        allowTextChanges: allowText,
+        baseRevisionId: capture.revisionId,
+        requestGeneration: capture.generation,
+        mutationEpoch: capture.epoch,
+      });
+      for (let attempt = 0; attempt < 300; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const result = await api(`/ai/edits/${requestId}`);
+        if (active.current === requestId) {
+          setStatus(result.status);
+          if (result.status === "running")
+            setMessage(
+              `${result.model ?? capabilities.ai.model} is composing your change…`,
+            );
+        }
+        if (["queued", "running"].includes(result.status)) continue;
+        if (result.status !== "completed") {
+          if (active.current === requestId) {
+            setStatus("failed");
+            setMessage(
+              result.error ??
+                "The model did not complete this request. Your poster is unchanged.",
+            );
+          }
+          return;
+        }
+        if (result.result?.kind === "edit") {
+          let applied = false;
+          try {
+            applied = useEditor
+              .getState()
+              .applyAi(capture, result.result.operations, allowText);
+          } catch (error) {
+            if (active.current === requestId) {
+              setStatus("failed");
+              setMessage(
+                error instanceof Error
+                  ? error.message
+                  : "The edit did not validate.",
+              );
+            }
+            await post(`/ai/edits/${requestId}/disposition`, {
+              status: "superseded",
+            });
+            return;
+          }
+          await post(`/ai/edits/${requestId}/disposition`, {
+            status: applied ? "applied" : "superseded",
+            ...(applied
+              ? { appliedRevisionId: useEditor.getState().scene.revision.id }
+              : {}),
+          }).catch(() => {});
+          if (active.current === requestId) {
+            setStatus(applied ? "applied" : "superseded");
+            setMessage(
+              applied
+                ? useEditor.getState().notice
+                : "Your poster changed while the model was working. This response was kept in history and was not applied.",
+            );
+            if (applied) {
+              setInstruction("");
+              setAppliedRevision(useEditor.getState().scene.revision.id);
+            }
+          }
+        } else if (active.current === requestId) {
+          setStatus(result.result?.kind ?? "failed");
+          setMessage(
+            result.result?.question ??
+              result.result?.explanation ??
+              "The model returned no usable change.",
+          );
+        }
+        return;
+      }
+      if (active.current === requestId) {
+        setStatus("indeterminate");
+        setMessage(
+          "This request is taking longer than expected. Check history for its outcome; it will not be applied automatically.",
+        );
+      }
+    } catch (error) {
+      if (active.current === requestId) {
+        setStatus("failed");
+        setMessage(error instanceof Error ? error.message : "Request failed.");
+      }
+    } finally {
+      if (active.current === requestId) requestBusy.current = false;
+    }
+  };
+  return (
+    <section className="composer">
+      <div className="composer-heading">
+        <h2>
+          <Sparkles size={15} />
+          Give it a direction
+        </h2>
+        <button
+          className="icon-button"
+          aria-label="AI request history"
+          title="Request history"
+          onClick={async () => {
+            if (!capabilities?.authenticated) {
+              onAuthenticate();
+              return;
+            }
+            try {
+              const result = await api("/ai/history");
+              setHistory(history ? null : result.requests);
+            } catch (e) {
+              setMessage(
+                e instanceof Error ? e.message : "History unavailable",
+              );
+            }
+          }}
+        >
+          <History size={15} />
+        </button>
+      </div>
+      <p className="composer-description">A few words can move things.</p>
+      {selected.length > 0 && (
+        <div className="selection-chips">
+          {selected.map((id) => (
+            <span key={id}>
+              {layers.find((l) => l.id === id)?.name}
+              <button
+                aria-label="Deselect layer"
+                onClick={() => useEditor.getState().select(id, true)}
+              >
+                <X size={10} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="prompt-box">
+        <textarea
+          aria-label="Describe a change"
+          placeholder={"“Let the headline float gently.”"}
+          value={instruction}
+          onChange={(e) => {
+            if (requestBusy.current)
+              useEditor.setState((s) => ({
+                requestGeneration: s.requestGeneration + 1,
+              }));
+            setInstruction(e.target.value);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              void submit();
+            }
+          }}
+        />
+        <div className="prompt-bottom">
+          <span>
+            {selected.length ? "Selected layers" : "Whole poster"}
+            <span className="kbd">Ctrl ↵</span>
+          </span>
+          <button
+            className="send-button"
+            aria-label="Apply AI instruction"
+            disabled={
+              busy ||
+              !instruction.trim() ||
+              (!!capabilities?.authenticated && !capabilities.ai.available)
+            }
+            onClick={() => void submit()}
+          >
+            {busy ? (
+              <LoaderCircle size={16} className="spin" />
+            ) : (
+              <ArrowUp size={17} />
+            )}
+          </button>
+        </div>
+      </div>
+      <label className="check wording-check">
+        <input
+          type="checkbox"
+          checked={allowText}
+          onChange={(e) => {
+            if (requestBusy.current)
+              useEditor.setState((s) => ({
+                requestGeneration: s.requestGeneration + 1,
+              }));
+            setAllowText(e.target.checked);
+          }}
+        />
+        Allow wording changes
+      </label>
+      <div className="model-status">
+        <i className={capabilities?.ai.available ? "online" : ""} />
+        <span>
+          {!capabilities
+            ? "Checking local model…"
+            : capabilities.ai.available
+              ? capabilities.ai.model
+              : "Local model unavailable"}
+        </span>
+        {!capabilities?.authenticated && (
+          <button onClick={onAuthenticate}>Connect</button>
+        )}
+      </div>
+      {capabilities && !capabilities.ai.available && (
+        <p className="small-note">
+          {capabilities.ai.reason ??
+            "Start Ollama to use language editing. All manual tools remain available."}
+        </p>
+      )}
+      {message && (
+        <div className={`ai-message ${status}`} role="status">
+          <strong>
+            {(
+              {
+                queued: "Queued",
+                running: "Composing",
+                applied: `Updated ${affected.length} layer${affected.length !== 1 ? "s" : ""}`,
+                clarify: "A little more direction",
+                unsupported: "Outside this canvas",
+                superseded: "Response superseded",
+                failed: "Could not apply",
+                indeterminate: "Outcome unknown",
+              } as Record<string, string>
+            )[status] ?? "Request update"}
+          </strong>
+          <p>{message}</p>
+          {busy && (
+            <button
+              onClick={() => {
+                useEditor.setState((s) => ({
+                  requestGeneration: s.requestGeneration + 1,
+                }));
+                active.current = "";
+                requestBusy.current = false;
+                setStatus("superseded");
+                setMessage(
+                  "The model may finish, but its response will not change your poster.",
+                );
+              }}
+            >
+              Dismiss request
+            </button>
+          )}
+          {status === "applied" && currentRevision === appliedRevision && (
+            <button
+              onClick={() => {
+                useEditor.getState().undo();
+                setStatus("idle");
+                setMessage("AI change undone.");
+              }}
+            >
+              Undo this change
+            </button>
+          )}
+        </div>
+      )}
+      {history && (
+        <div className="ai-history">
+          <div className="section-caption">
+            REQUEST HISTORY
+            <button
+              className="icon-button"
+              aria-label="Close history"
+              onClick={() => setHistory(null)}
+            >
+              <X size={13} />
+            </button>
+          </div>
+          {!history.length && (
+            <p className="small-note">Your language edits will appear here.</p>
+          )}
+          {history.map((item) => (
+            <article key={item.requestId ?? item.id}>
+              <p>
+                {item.input?.instruction ?? item.instruction ?? "Language edit"}
+              </p>
+              <span>
+                {item.disposition ?? item.status} ·{" "}
+                {item.latencyMs
+                  ? `${(item.latencyMs / 1000).toFixed(1)} s`
+                  : "—"}
+              </span>
+              {item.result?.summary && <small>{item.result.summary}</small>}
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }
-
-

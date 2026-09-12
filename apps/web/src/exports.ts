@@ -1,46 +1,95 @@
-import { compileScene, evaluateScene, loadFonts, paintFrame, samplePointer, validateScene, type PointerSample, type Scene } from '../../../packages/core/src/index';
+import {
+  compileScene,
+  evaluateScene,
+  loadFonts,
+  paintFrame,
+  samplePointer,
+  validateScene,
+  FONT_MANIFEST,
+  type PointerSample,
+  type Scene,
+} from "../../../packages/core/src/index";
+import { sha256 } from "../../../packages/core/src/hash";
 
 function filename(scene: Scene) {
-  const title = scene.layers.find(layer => layer.kind === 'text');
-  return (title?.kind === 'text' ? title.text : 'living-poster').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50).replace(/^-|-$/g, '') || 'living-poster';
+  const title = scene.layers.find((layer) => layer.kind === "text");
+  return (
+    (title?.kind === "text" ? title.text : "living-poster")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .slice(0, 50)
+      .replace(/^-|-$/g, "") || "living-poster"
+  );
 }
 
 export function downloadBlob(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url; anchor.download = name; document.body.append(anchor); anchor.click(); anchor.remove();
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = name;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
-export async function createPng(scene: Scene, timeMs: number, pointer: PointerSample | null, scale = 1): Promise<Blob> {
-  if (![1, 2].includes(scale)) throw new Error('PNG scale must be 1 or 2.');
+export async function createPng(
+  scene: Scene,
+  timeMs: number,
+  pointer: PointerSample | null,
+  scale = 1,
+): Promise<Blob> {
+  if (![1, 2].includes(scale)) throw new Error("PNG scale must be 1 or 2.");
   const snapshot = validateScene(structuredClone(scene));
   const capturedPointer = pointer ? { ...pointer } : null;
   await loadFonts();
   const compiled = compileScene(snapshot);
   const frame = evaluateScene(compiled, { timeMs, pointer: capturedPointer });
-  const canvas = document.createElement('canvas');
-  canvas.width = snapshot.artboard.width * scale; canvas.height = snapshot.artboard.height * scale;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('This browser could not create an export canvas.');
+  const canvas = document.createElement("canvas");
+  canvas.width = snapshot.artboard.width * scale;
+  canvas.height = snapshot.artboard.height * scale;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("This browser could not create an export canvas.");
   paintFrame(ctx, frame, scale);
-  return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('PNG could not be encoded. Please retry.')), 'image/png'));
+  return new Promise((resolve, reject) =>
+    canvas.toBlob(
+      (blob) =>
+        blob
+          ? resolve(blob)
+          : reject(new Error("PNG could not be encoded. Please retry.")),
+      "image/png",
+    ),
+  );
 }
 
-export async function exportPng(scene: Scene, timeMs: number, pointer: PointerSample | null = samplePointer(scene, timeMs)) {
+export async function exportPng(
+  scene: Scene,
+  timeMs: number,
+  pointer: PointerSample | null = samplePointer(scene, timeMs),
+) {
   const snapshot = structuredClone(scene);
-  downloadBlob(await createPng(snapshot, timeMs, pointer), `${filename(snapshot)}.png`);
+  downloadBlob(
+    await createPng(snapshot, timeMs, pointer),
+    `${filename(snapshot)}.png`,
+  );
 }
 
 function base64(bytes: Uint8Array): string {
-  let binary = '';
-  for (let offset = 0; offset < bytes.length; offset += 8192) binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+  let binary = "";
+  for (let offset = 0; offset < bytes.length; offset += 8192)
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
   return btoa(binary);
 }
 
-async function getAsset(url: string): Promise<Response> {
-  const response = await fetch(url, { credentials: 'omit' });
-  if (!response.ok) throw new Error(`Could not load presentation asset (${url}). Run npm run build and retry.`);
+async function getAsset(url: string, expected: RegExp): Promise<Response> {
+  const response = await fetch(url, { credentials: "omit" });
+  if (
+    !response.ok ||
+    !expected.test(response.headers.get("content-type") || "")
+  )
+    throw new Error(
+      `Could not load presentation asset (${url}). Run npm run build and retry.`,
+    );
   return response;
 }
 
@@ -48,16 +97,40 @@ export async function createHtml(scene: Scene): Promise<string> {
   const snapshot = validateScene(structuredClone(scene));
   await loadFonts();
   compileScene(snapshot);
-  const fontIds = [...new Set(snapshot.layers.flatMap(layer => layer.kind === 'text' ? [layer.fontId] : []))];
+  const fontIds = [
+    ...new Set(
+      snapshot.layers.flatMap((layer) =>
+        layer.kind === "text" ? [layer.fontId] : [],
+      ),
+    ),
+  ];
   const fonts: Record<string, string> = {};
   const [player, licenses] = await Promise.all([
-    getAsset('/player.js').then(r => r.text()),
-    getAsset('/fonts/LICENSES.txt').then(r => r.text()),
-    ...fontIds.map(async id => { fonts[id] = `data:font/woff2;base64,${base64(new Uint8Array(await (await getAsset(`/fonts/${id}.woff2`)).arrayBuffer()))}`; }),
+    getAsset("/player.js", /^(?:text|application)\/javascript\b/i).then((r) =>
+      r.text(),
+    ),
+    getAsset("/fonts/LICENSES.txt", /^text\/plain\b/i).then((r) => r.text()),
+    ...fontIds.map(async (id) => {
+      const bytes = await (
+        await getAsset(
+          `/fonts/${id}.woff2`,
+          /^(?:font\/woff2|application\/font-woff2)\b/i,
+        )
+      ).arrayBuffer();
+      if (sha256(bytes) !== FONT_MANIFEST[id].sha256)
+        throw new Error(
+          `Bundled font ${id} failed integrity verification. Restore the font asset and retry.`,
+        );
+      fonts[id] = `data:font/woff2;base64,${base64(new Uint8Array(bytes))}`;
+    }),
   ]);
   // Only application-authored player code is executable. User data is UTF-8/base64 JSON.
-  const payload = base64(new TextEncoder().encode(JSON.stringify({ scene: snapshot, fonts, licenses })));
-  const safePlayer = player.replace(/<\/script/gi, '<\\/script');
+  const payload = base64(
+    new TextEncoder().encode(
+      JSON.stringify({ scene: snapshot, fonts, licenses }),
+    ),
+  );
+  const safePlayer = player.replace(/<\/script/gi, "<\\/script");
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
@@ -71,9 +144,17 @@ export async function createHtml(scene: Scene): Promise<string> {
 
 export async function exportHtml(scene: Scene) {
   const snapshot = structuredClone(scene);
-  downloadBlob(new Blob([await createHtml(snapshot)], { type: 'text/html;charset=utf-8' }), `${filename(snapshot)}.html`);
+  downloadBlob(
+    new Blob([await createHtml(snapshot)], { type: "text/html;charset=utf-8" }),
+    `${filename(snapshot)}.html`,
+  );
 }
 
 export function downloadScene(scene: Scene) {
-  downloadBlob(new Blob([JSON.stringify(validateScene(scene), null, 2)], { type: 'application/json' }), `${filename(scene)}.living-poster.json`);
+  downloadBlob(
+    new Blob([JSON.stringify(validateScene(scene), null, 2)], {
+      type: "application/json",
+    }),
+    `${filename(scene)}.living-poster.json`,
+  );
 }

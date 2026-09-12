@@ -25,16 +25,16 @@ flowchart LR
 
 ## Source boundaries
 
-| Area | Source | Responsibility |
-|---|---|---|
-| Scene engine | `packages/core/src` | Closed scene language, atomic operations, actual font coverage/hashes, typography, pointer replay, motion evaluation, painting, six examples |
-| Editor | `apps/web/src/store.ts`, inspector, canvas, timeline, composer | Selection, gestures, playback, pending fields, undo/redo, stale-result gates |
-| Browser durability | `apps/web/src/drafts.ts` and store outbox | IndexedDB transactions, draft recovery, queued immutable save snapshots |
-| HTTP service | `apps/api/src/server.ts` | Same-origin/auth boundaries, owner-scoped routes, idempotency, queue admission, public snapshot DTOs |
-| Database | `apps/api/src/db.ts` | SQLite schema, transactions, startup job-state reconciliation |
-| Local model adapter | `apps/api/src/provider.ts` | Installed-model checks, bounded structured requests, intent validation and translation |
-| Export | `apps/web/src/exports.ts`, `player.ts` | Frozen scene exports, embedded trusted player, font bytes and licenses |
-| Build | `scripts/build.mjs`, `scripts/assets.mjs` | Vite editor, standalone IIFE player, Node server bundle, bundled font preparation |
+| Area                | Source                                                         | Responsibility                                                                                                                               |
+| ------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scene engine        | `packages/core/src`                                            | Closed scene language, atomic operations, actual font coverage/hashes, typography, pointer replay, motion evaluation, painting, six examples |
+| Editor              | `apps/web/src/store.ts`, inspector, canvas, timeline, composer | Selection, gestures, playback, pending fields, undo/redo, stale-result gates                                                                 |
+| Browser durability  | `apps/web/src/drafts.ts` and store outbox                      | IndexedDB transactions, draft recovery, queued immutable save snapshots                                                                      |
+| HTTP service        | `apps/api/src/server.ts`                                       | Same-origin/auth boundaries, owner-scoped routes, idempotency, queue admission, public snapshot DTOs                                         |
+| Database            | `apps/api/src/db.ts`                                           | SQLite schema, transactions, startup job-state reconciliation                                                                                |
+| Local model adapter | `apps/api/src/provider.ts`                                     | Installed-model checks, bounded structured requests, intent validation and translation                                                       |
+| Export              | `apps/web/src/exports.ts`, `player.ts`                         | Frozen scene exports, embedded trusted player, font bytes and licenses                                                                       |
+| Build               | `scripts/build.mjs`, `scripts/assets.mjs`                      | Vite editor, standalone IIFE player, Node server bundle, bundled font preparation                                                            |
 
 The core imports no React, database, network model client, or server authentication code. Font loading is the core's explicit browser I/O boundary; `evaluateScene` itself reads no DOM, clock, mutable random seed, or network state. The API uses structural/semantic validation without introducing a different font rasterizer.
 
@@ -106,10 +106,10 @@ The benchmark uses headless Chromium and an isolated fulfilled localhost page wi
 
 Recorded run: Chromium 153.0.8010.12, Windows 11, Intel i5-12400, 32 GiB RAM, SwiftShader renderer. Each case has approximately 1,800 measured frames after warm-up. Synthetic typography uses 14-unit text in the typical fixture and 12-unit text in the limit fixture; the six example cases retain their actual varied typography.
 
-| Case | Evaluation + paint p95 | rAF callback interval p95 |
-|---|---:|---:|
-| Six shipped compositions | 0.6–0.8 ms | 16.7–16.8 ms |
-| 24 layers / 400 graphemes / 60 behaviors | 1.9 ms | 16.7 ms |
-| 64 layers / 1,024 graphemes / 256 behaviors | 4.5 ms | 16.7 ms |
+| Case                                        | Evaluation + paint p95 | rAF callback interval p95 |
+| ------------------------------------------- | ---------------------: | ------------------------: |
+| Six shipped compositions                    |             0.6–0.8 ms |              16.7–16.8 ms |
+| 24 layers / 400 graphemes / 60 behaviors    |                 1.9 ms |                   16.7 ms |
+| 64 layers / 1,024 graphemes / 256 behaviors |                 4.5 ms |                   16.7 ms |
 
 All cases met their measured engine timing targets in this run. Full percentiles, sample counts, maximum intervals, draw counts, and bounds-correction totals are in [the machine-readable results](../tests/core-artifacts/performance.json). This is evidence for this browser/fixture configuration, not a guarantee for every computer or poster.

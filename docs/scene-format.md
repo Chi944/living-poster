@@ -8,16 +8,16 @@ The accepted format is `schemaVersion: 1`, `rendererVersion: "1.0.0"`. Newer ver
 
 `validateScene(value)` performs structural and semantic validation in both Node and the browser. `compileScene(scene)` additionally checks font-dependent geometry in the browser. Compile only after `await loadFonts()`. The server does not substitute a second font rasterizer.
 
-| Field | Accepted value |
-|---|---|
-| `id` | Stable, nonempty string of at most 100 characters; user-created IDs are UUIDs |
-| `revision` | `{ id, parentId: string \| null }` |
-| `seed` | Integer from 0 through 4,294,967,295 |
-| `artboard` | `{ width: 1080, height: 1350, background: "#RRGGBB" }` |
-| `timeline` | Duration 2,000–10,000 ms in 100 ms increments; `fps: 30`, `loop: true` |
-| `fonts` | One to six unique `{ id, assetHash: "bundled-v1" }` references |
-| `layers` | Ordered back-to-front array, at most 64 layers |
-| `pointer` | Disabled, fixed, or a saved recorded loop |
+| Field      | Accepted value                                                                |
+| ---------- | ----------------------------------------------------------------------------- |
+| `id`       | Stable, nonempty string of at most 100 characters; user-created IDs are UUIDs |
+| `revision` | `{ id, parentId: string \| null }`                                            |
+| `seed`     | Integer from 0 through 4,294,967,295                                          |
+| `artboard` | `{ width: 1080, height: 1350, background: "#RRGGBB" }`                        |
+| `timeline` | Duration 2,000–10,000 ms in 100 ms increments; `fps: 30`, `loop: true`        |
+| `fonts`    | One to six unique `{ id, assetHash: "bundled-v1" }` references                |
+| `layers`   | Ordered back-to-front array, at most 64 layers                                |
+| `pointer`  | Disabled, fixed, or a saved recorded loop                                     |
 
 The exact scene budget is **1,024 graphemes total**, at most 512 in one text layer. Spaces and line breaks count. Other limits are six behaviors per layer, one of each type, 256 behaviors total, 601 pointer samples, and 256 KiB of UTF-8 JSON. These are independent limits; meeting one does not bypass the others. Nonfinite numbers, duplicate layer/behavior IDs, missing anchors, unsupported fonts or characters, invalid ranges, and mismatched pointer endpoints fail validation.
 
@@ -31,14 +31,14 @@ Shared fields are `id`, `name`, `kind`, `visible`, `locked`, `opacity`, `layout`
 
 For a **text layer**, X is the alignment anchor and Y is the first line's alphabetic baseline. For a **shape layer**, X and Y are its center. Both are the layer pivot used by layer rotation, attraction, and orbit.
 
-| Text field | Range or vocabulary |
-|---|---|
-| `text` | Exact supported text, explicit `\n` line breaks; no automatic wrapping |
-| `fontId` | `space-regular`, `space-bold`, `fraunces-regular`, `fraunces-bold`, `mono-regular`, `mono-bold` |
-| `fontSize` | 12–300 logical units |
-| `lineHeight` | 0.9–1.8 times font size |
-| `trackingEm` | −0.03–0.20 times font size, between graphemes |
-| `align` | `left`, `center`, or `right` |
+| Text field   | Range or vocabulary                                                                             |
+| ------------ | ----------------------------------------------------------------------------------------------- |
+| `text`       | Exact supported text, explicit `\n` line breaks; no automatic wrapping                          |
+| `fontId`     | `space-regular`, `space-bold`, `fraunces-regular`, `fraunces-bold`, `mono-regular`, `mono-bold` |
+| `fontSize`   | 12–300 logical units                                                                            |
+| `lineHeight` | 0.9–1.8 times font size                                                                         |
+| `trackingEm` | −0.03–0.20 times font size, between graphemes                                                   |
+| `align`      | `left`, `center`, or `right`                                                                    |
 
 Shape layers use `shape: "rect" | "ellipse"`, with width and height each 4–640. Rectangles may have a `cornerRadius` from 0–80, no greater than half the shorter side. Ellipses cannot have a corner radius.
 
@@ -56,14 +56,14 @@ An anchor is either `{ type: "point", x, y }` or `{ type: "layer", layerId }`. A
 
 Let `D` be duration, `t = ((timeMs % D) + D) % D`, and `u = (t − startMs) / (endMs − startMs)`. A disabled behavior or a time outside the half-open interval `[startMs, endMs)` contributes exactly zero. Define `S(v) = 3v² − 2v³` with V clamped to 0–1, and `E(u) = sin²(πu)`.
 
-| Type | Parameters | Effect |
-|---|---|---|
-| `float` | `amplitudeX/Y` 0–80; integer `cycles` 1–4; `phase` 0–2π; `rotationAmplitudeDeg` 0–10 | Layer translation `E·(Ax·sin(2πcu+φ), Ay·cos(2πcu+φ))`; sway `E·a·sin(2πcu+φ)` |
-| `orbit` | `anchor`; `direction` −1 or 1; integer `cycles` 1–3; base radius at most 120 | Rotate base pivot around anchor by `2π·direction·cycles·S(u)`; text orientation remains upright relative to its base rotation |
-| `wave` | `amplitude` 0–60; integer `cycles` 1–4; `wavelength` 2–24; `phase` 0–2π | Text-only local Y translation `E·amplitude·sin(2πcu − 2πi/wavelength + φ)` |
-| `scatter` | `radius` 0–180; `rotationMaxDeg` 0–25; `outEnd` 0.10–0.35; `returnStart` 0.35–0.65 and after `outEnd` | Stable seeded offset/angle multiplied by fast-departure, held, slow-return envelope; layer or glyph scope |
-| `attract` | `anchor`; `strength` 0–1; `maxDistance` 0–180 | `E·strength·limitLength(anchor − basePivot, maxDistance)` |
-| `repel` | `radius` 40–400; `maxDistance` 0–140 | Bounded softened displacement away from the pointer; layer scope |
+| Type      | Parameters                                                                                            | Effect                                                                                                                        |
+| --------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `float`   | `amplitudeX/Y` 0–80; integer `cycles` 1–4; `phase` 0–2π; `rotationAmplitudeDeg` 0–10                  | Layer translation `E·(Ax·sin(2πcu+φ), Ay·cos(2πcu+φ))`; sway `E·a·sin(2πcu+φ)`                                                |
+| `orbit`   | `anchor`; `direction` −1 or 1; integer `cycles` 1–3; base radius at most 120                          | Rotate base pivot around anchor by `2π·direction·cycles·S(u)`; text orientation remains upright relative to its base rotation |
+| `wave`    | `amplitude` 0–60; integer `cycles` 1–4; `wavelength` 2–24; `phase` 0–2π                               | Text-only local Y translation `E·amplitude·sin(2πcu − 2πi/wavelength + φ)`                                                    |
+| `scatter` | `radius` 0–180; `rotationMaxDeg` 0–25; `outEnd` 0.10–0.35; `returnStart` 0.35–0.65 and after `outEnd` | Stable seeded offset/angle multiplied by fast-departure, held, slow-return envelope; layer or glyph scope                     |
+| `attract` | `anchor`; `strength` 0–1; `maxDistance` 0–180                                                         | `E·strength·limitLength(anchor − basePivot, maxDistance)`                                                                     |
+| `repel`   | `radius` 40–400; `maxDistance` 0–140                                                                  | Bounded softened displacement away from the pointer; layer scope                                                              |
 
 Scatter's envelope is `S(u/outEnd)` before departure ends, 1 through `returnStart`, then `1 − S((u−returnStart)/(1−returnStart))`. FNV-1a followed by Mulberry32 is keyed by `(scene.seed, layer.id, behavior.id, graphemeIndex)`. Radius uses `sqrt(uniformSample)` for uniform disk sampling. Evaluation does not call `Math.random()`.
 

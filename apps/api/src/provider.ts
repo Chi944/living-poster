@@ -1,34 +1,217 @@
-import { z } from 'zod';
-import { applyOperations, defaultBehavior, type Scene, type EditOperation } from '../../../packages/core/src/index';
+import { z } from "zod";
+import {
+  applyOperations,
+  defaultBehavior,
+  type Scene,
+  type EditOperation,
+} from "../../../packages/core/src/index";
 
 /** One scalar change per action avoids optional properties being hallucinated
  * into unrelated edits by small models. Targets are enumerated per request. */
-export function modelReplySchema(input:AiInput) {
-  const target=z.enum(input.scene.layers.length?input.scene.layers.map(l=>l.id) as [string,...string[]]:['no-layers']);
-  const numeric=(action:string,min:number,max:number)=>z.object({action:z.literal(action),layerId:target,value:z.number().min(min).max(max)}).strict();
-  const actions=[
-    z.object({action:z.literal('move'),layerId:target,axis:z.enum(['x','y']),delta:z.number().min(-1350).max(1350)}).strict(),
-    z.object({action:z.literal('position'),layerId:target,axis:z.enum(['x','y']),value:z.number().min(0).max(1350)}).strict(),
-    numeric('rotate',-180,180),numeric('fontSize',12,300),numeric('lineHeight',.9,1.8),numeric('trackingEm',-.03,.2),numeric('opacity',0,1),
-    z.object({action:z.literal('align'),layerId:target,value:z.enum(['left','center','right'])}).strict(),
-    z.object({action:z.literal('font'),layerId:target,value:z.enum(['space-regular','space-bold','fraunces-regular','fraunces-bold','mono-regular','mono-bold'])}).strict(),
-    z.object({action:z.literal('colour'),layerId:target,value:z.string().regex(/^#[0-9a-fA-F]{6}$/)}).strict(),
-    z.object({action:z.literal('animate'),layerId:target,motion:z.enum(['float','orbit','wave','scatter','attract','repel'])}).strict(),
-    z.object({action:z.literal('anchor'),layerId:target,motion:z.enum(['attract','orbit']),anchorLayerId:target}).strict(),
-    z.object({action:z.literal('motionParameter'),layerId:target,motion:z.enum(['float','orbit','wave','scatter','attract','repel']),parameter:z.enum(['amplitudeX','amplitudeY','amplitude','cycles','phase','rotationAmplitudeDeg','wavelength','radius','rotationMaxDeg','outEnd','returnStart','strength','maxDistance','direction']),value:z.number()}).strict(),
-    z.object({action:z.literal('stop'),layerId:target,motion:z.enum(['all','float','orbit','wave','scatter','attract','repel'])}).strict(),
-    z.object({action:z.literal('reorder'),layerId:target,beforeLayerId:target.nullable()}).strict(),
-    ...(input.allowTextChanges?[z.object({action:z.literal('rewrite'),layerId:target,text:z.string().max(1024)}).strict()]:[]),
+export function modelReplySchema(input: AiInput) {
+  const target = z.enum(
+    input.scene.layers.length
+      ? (input.scene.layers.map((l) => l.id) as [string, ...string[]])
+      : ["no-layers"],
+  );
+  const numeric = (action: string, min: number, max: number) =>
+    z
+      .object({
+        action: z.literal(action),
+        layerId: target,
+        value: z.number().min(min).max(max),
+      })
+      .strict();
+  const actions = [
+    z
+      .object({
+        action: z.literal("move"),
+        layerId: target,
+        axis: z.enum(["x", "y"]),
+        delta: z.number().min(-1350).max(1350),
+      })
+      .strict(),
+    z
+      .object({
+        action: z.literal("position"),
+        layerId: target,
+        axis: z.enum(["x", "y"]),
+        value: z.number().min(0).max(1350),
+      })
+      .strict(),
+    numeric("rotate", -180, 180),
+    numeric("fontSize", 12, 300),
+    numeric("lineHeight", 0.9, 1.8),
+    numeric("trackingEm", -0.03, 0.2),
+    numeric("opacity", 0, 1),
+    z
+      .object({
+        action: z.literal("align"),
+        layerId: target,
+        value: z.enum(["left", "center", "right"]),
+      })
+      .strict(),
+    z
+      .object({
+        action: z.literal("font"),
+        layerId: target,
+        value: z.enum([
+          "space-regular",
+          "space-bold",
+          "fraunces-regular",
+          "fraunces-bold",
+          "mono-regular",
+          "mono-bold",
+        ]),
+      })
+      .strict(),
+    z
+      .object({
+        action: z.literal("colour"),
+        layerId: target,
+        value: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      })
+      .strict(),
+    z
+      .object({
+        action: z.literal("animate"),
+        layerId: target,
+        motion: z.enum([
+          "float",
+          "orbit",
+          "wave",
+          "scatter",
+          "attract",
+          "repel",
+        ]),
+      })
+      .strict(),
+    z
+      .object({
+        action: z.literal("anchor"),
+        layerId: target,
+        motion: z.enum(["attract", "orbit"]),
+        anchorLayerId: target,
+      })
+      .strict(),
+    z
+      .object({
+        action: z.literal("motionParameter"),
+        layerId: target,
+        motion: z.enum([
+          "float",
+          "orbit",
+          "wave",
+          "scatter",
+          "attract",
+          "repel",
+        ]),
+        parameter: z.enum([
+          "amplitudeX",
+          "amplitudeY",
+          "amplitude",
+          "cycles",
+          "phase",
+          "rotationAmplitudeDeg",
+          "wavelength",
+          "radius",
+          "rotationMaxDeg",
+          "outEnd",
+          "returnStart",
+          "strength",
+          "maxDistance",
+          "direction",
+        ]),
+        value: z.number(),
+      })
+      .strict(),
+    z
+      .object({
+        action: z.literal("stop"),
+        layerId: target,
+        motion: z.enum([
+          "all",
+          "float",
+          "orbit",
+          "wave",
+          "scatter",
+          "attract",
+          "repel",
+        ]),
+      })
+      .strict(),
+    z
+      .object({
+        action: z.literal("reorder"),
+        layerId: target,
+        beforeLayerId: target.nullable(),
+      })
+      .strict(),
+    ...(input.allowTextChanges
+      ? [
+          z
+            .object({
+              action: z.literal("rewrite"),
+              layerId: target,
+              text: z.string().max(1024),
+            })
+            .strict(),
+        ]
+      : []),
   ];
-  return z.discriminatedUnion('kind',[
-    z.object({kind:z.literal('edit'),actions:z.array(z.union(actions as [typeof actions[number],typeof actions[number],...typeof actions[number][]])).min(1).max(20)}).strict(),
-    z.object({kind:z.literal('clarify'),question:z.string().min(1).max(500)}).strict(),
-    z.object({kind:z.literal('unsupported'),explanation:z.string().min(1).max(500)}).strict(),
+  return z.discriminatedUnion("kind", [
+    z
+      .object({
+        kind: z.literal("edit"),
+        actions: z
+          .array(
+            z.union(
+              actions as [
+                (typeof actions)[number],
+                (typeof actions)[number],
+                ...(typeof actions)[number][],
+              ],
+            ),
+          )
+          .min(1)
+          .max(20),
+      })
+      .strict(),
+    z
+      .object({
+        kind: z.literal("clarify"),
+        question: z.string().min(1).max(500),
+      })
+      .strict(),
+    z
+      .object({
+        kind: z.literal("unsupported"),
+        explanation: z.string().min(1).max(500),
+      })
+      .strict(),
   ]);
 }
-export type AiInput = {requestId:string;scene:Scene;selectedLayerIds:string[];instruction:string;allowTextChanges:boolean;baseRevisionId:string;requestGeneration:number;mutationEpoch:number};
-export type AiResult = {kind:'edit';operations:EditOperation[];summary:string}|{kind:'clarify';question:string}|{kind:'unsupported';explanation:string};
-export interface LocalProvider { available():Promise<{available:boolean;reason?:string}>; generate(input:AiInput,signal:AbortSignal):Promise<{result:AiResult;inputTokens?:number;outputTokens?:number}> }
+export type AiInput = {
+  requestId: string;
+  scene: Scene;
+  selectedLayerIds: string[];
+  instruction: string;
+  allowTextChanges: boolean;
+  baseRevisionId: string;
+  requestGeneration: number;
+  mutationEpoch: number;
+};
+export type AiResult =
+  | { kind: "edit"; operations: EditOperation[]; summary: string }
+  | { kind: "clarify"; question: string }
+  | { kind: "unsupported"; explanation: string };
+export interface LocalProvider {
+  available(): Promise<{ available: boolean; reason?: string }>;
+  generate(
+    input: AiInput,
+    signal: AbortSignal,
+  ): Promise<{ result: AiResult; inputTokens?: number; outputTokens?: number }>;
+}
 
 const SYSTEM_PROMPT = `You interpret a poster-editing instruction. First output a short "plan" string listing EVERY requested change, its target ID and the required action. For a compound request, count all requested changes before emitting actions. Then output kind and actions matching that plan. Do not substitute layout for animation or omit the second requested property.
 DECISION: Use kind=edit when targets and supported changes are clear. Use kind=clarify ONLY when missing information materially prevents a correct edit, such as an unidentified "it" with no selection, or several matching words without a distinguishing detail. Use kind=unsupported when the request needs unsupported media/effects: images, uploads, smoke, fluid simulation, melting, sound, video or code. Do not offer an edit as a substitute for an unsupported request.
@@ -63,106 +246,335 @@ Return JSON only.`;
  * Reserve 2,000 output tokens and ample chat-template space in 16K.
  * Unlike a characters/4 estimate this rejects oversized requests before Ollama
  * can silently truncate layer IDs or the user's instruction. */
-export function buildModelMessages(input:AiInput) {
-  const messages=[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:JSON.stringify({
-    instruction:input.instruction,selectedLayerIds:input.selectedLayerIds,allowTextChanges:input.allowTextChanges,
-    scene:{artboard:input.scene.artboard,timeline:input.scene.timeline,layers:input.scene.layers}
-  })}];
-  if(messages.reduce((bytes,message)=>bytes+Buffer.byteLength(message.content,'utf8'),0)>10000)throw new Error('The scene and instruction are too large for the local model context. Use a smaller poster or a shorter instruction; manual editing remains available.');
+export function buildModelMessages(input: AiInput) {
+  const messages = [
+    { role: "system", content: SYSTEM_PROMPT },
+    {
+      role: "user",
+      content: JSON.stringify({
+        instruction: input.instruction,
+        selectedLayerIds: input.selectedLayerIds,
+        allowTextChanges: input.allowTextChanges,
+        scene: {
+          artboard: input.scene.artboard,
+          timeline: input.scene.timeline,
+          layers: input.scene.layers,
+        },
+      }),
+    },
+  ];
+  if (
+    messages.reduce(
+      (bytes, message) => bytes + Buffer.byteLength(message.content, "utf8"),
+      0,
+    ) > 10000
+  )
+    throw new Error(
+      "The scene and instruction are too large for the local model context. Use a smaller poster or a shorter instruction; manual editing remains available.",
+    );
   return messages;
 }
 
-export function assertLocalConfiguration(url:string,model:string) {
+export function assertLocalConfiguration(url: string, model: string) {
   const parsed = new URL(url);
-  if (parsed.protocol!=='http:' || !['localhost','127.0.0.1','[::1]'].includes(parsed.hostname) || parsed.username || parsed.password || parsed.pathname!=='/' || parsed.search || parsed.hash) throw new Error('Ollama must use an HTTP loopback origin. Remote model endpoints are disabled.');
-  if (!/^[a-zA-Z0-9_.:/-]{1,100}$/.test(model) || /cloud/i.test(model)) throw new Error('Only locally installed Ollama models are supported. Cloud models are disabled.');
+  if (
+    parsed.protocol !== "http:" ||
+    !["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname) ||
+    parsed.username ||
+    parsed.password ||
+    parsed.pathname !== "/" ||
+    parsed.search ||
+    parsed.hash
+  )
+    throw new Error(
+      "Ollama must use an HTTP loopback origin. Remote model endpoints are disabled.",
+    );
+  if (!/^[a-zA-Z0-9_.:/-]{1,100}$/.test(model) || /cloud/i.test(model))
+    throw new Error(
+      "Only locally installed Ollama models are supported. Cloud models are disabled.",
+    );
   return parsed.origin;
 }
 
-export function interpretReply(raw:unknown,input:AiInput):AiResult {
-  if(raw && typeof raw==='object' && 'plan' in raw) {const {plan,...answer}=raw;z.string().max(2000).parse(plan);raw=answer;}
-  return interpretActions(raw,input);
+export function interpretReply(raw: unknown, input: AiInput): AiResult {
+  if (raw && typeof raw === "object" && "plan" in raw) {
+    const { plan, ...answer } = raw;
+    z.string().max(2000).parse(plan);
+    raw = answer;
+  }
+  return interpretActions(raw, input);
 }
-function interpretActions(raw:unknown,input:AiInput):AiResult {
-  const parsed=modelReplySchema(input).parse(raw);
+function interpretActions(raw: unknown, input: AiInput): AiResult {
+  const parsed = modelReplySchema(input).parse(raw);
   // The model chooses the response category; product capabilities are facts,
   // so render those with verified copy rather than model-invented claims.
-  if(parsed.kind==='unsupported')return {kind:'unsupported',explanation:'That request needs an effect outside this editor. Supported tools are text, rectangles, ellipses, typography, colour, layout, and float, orbit, wave, scatter, attract or pointer-repel motion.'};
-  if(parsed.kind!=='edit')return parsed;
-  const operations:EditOperation[]=[];
-  let working=input.scene;
-  for(const untyped of parsed.actions) {
-    const action=untyped as Record<string,any>;
-    const layer=working.layers.find(l=>l.id===action.layerId)!;
-    let operation:EditOperation|undefined;
-    switch(action.action) {
-      case 'move': operation={type:'setLayout',layerId:layer.id,changes:{[action.axis]:layer.layout[action.axis as 'x'|'y']+action.delta}};break;
-      case 'position': operation={type:'setLayout',layerId:layer.id,changes:{[action.axis]:action.value}};break;
-      case 'rotate': operation={type:'setLayout',layerId:layer.id,changes:{rotationDeg:action.value}};break;
-      case 'fontSize':case 'lineHeight':case 'trackingEm':case 'align':case 'font':operation={type:'setTypography',layerId:layer.id,changes:{[action.action==='font'?'fontId':action.action]:action.value}};break;
-      case 'colour':operation={type:'setFill',layerId:layer.id,colour:action.value};break;
-      case 'opacity':operation={type:'setOpacity',layerId:layer.id,value:action.value};break;
-      case 'reorder':operation={type:'reorderLayer',layerId:layer.id,beforeLayerId:action.beforeLayerId};break;
-      case 'rewrite':if(layer.kind!=='text')throw new Error('Rewriting requires a text layer.');operation={type:'setText',layerId:layer.id,expectedOldText:layer.text,newText:action.text};break;
-      case 'stop': {
-        for(const behavior of layer.behaviors)if(action.motion==='all'||behavior.type===action.motion)operations.push({type:'removeBehavior',layerId:layer.id,behaviorId:behavior.id});
-        working=operations.length?applyOperations(input.scene,operations,{allowTextChanges:input.allowTextChanges}).scene:input.scene;break;
+  if (parsed.kind === "unsupported")
+    return {
+      kind: "unsupported",
+      explanation:
+        "That request needs an effect outside this editor. Supported tools are text, rectangles, ellipses, typography, colour, layout, and float, orbit, wave, scatter, attract or pointer-repel motion.",
+    };
+  if (parsed.kind !== "edit") return parsed;
+  const operations: EditOperation[] = [];
+  let working = input.scene;
+  for (const untyped of parsed.actions) {
+    const action = untyped as Record<string, any>;
+    const layer = working.layers.find((l) => l.id === action.layerId)!;
+    let operation: EditOperation | undefined;
+    switch (action.action) {
+      case "move":
+        operation = {
+          type: "setLayout",
+          layerId: layer.id,
+          changes: {
+            [action.axis]:
+              layer.layout[action.axis as "x" | "y"] + action.delta,
+          },
+        };
+        break;
+      case "position":
+        operation = {
+          type: "setLayout",
+          layerId: layer.id,
+          changes: { [action.axis]: action.value },
+        };
+        break;
+      case "rotate":
+        operation = {
+          type: "setLayout",
+          layerId: layer.id,
+          changes: { rotationDeg: action.value },
+        };
+        break;
+      case "fontSize":
+      case "lineHeight":
+      case "trackingEm":
+      case "align":
+      case "font":
+        operation = {
+          type: "setTypography",
+          layerId: layer.id,
+          changes: {
+            [action.action === "font" ? "fontId" : action.action]: action.value,
+          },
+        };
+        break;
+      case "colour":
+        operation = {
+          type: "setFill",
+          layerId: layer.id,
+          colour: action.value,
+        };
+        break;
+      case "opacity":
+        operation = {
+          type: "setOpacity",
+          layerId: layer.id,
+          value: action.value,
+        };
+        break;
+      case "reorder":
+        operation = {
+          type: "reorderLayer",
+          layerId: layer.id,
+          beforeLayerId: action.beforeLayerId,
+        };
+        break;
+      case "rewrite":
+        if (layer.kind !== "text")
+          throw new Error("Rewriting requires a text layer.");
+        operation = {
+          type: "setText",
+          layerId: layer.id,
+          expectedOldText: layer.text,
+          newText: action.text,
+        };
+        break;
+      case "stop": {
+        for (const behavior of layer.behaviors)
+          if (action.motion === "all" || behavior.type === action.motion)
+            operations.push({
+              type: "removeBehavior",
+              layerId: layer.id,
+              behaviorId: behavior.id,
+            });
+        working = operations.length
+          ? applyOperations(input.scene, operations, {
+              allowTextChanges: input.allowTextChanges,
+            }).scene
+          : input.scene;
+        break;
       }
-      case 'animate':case 'anchor':case 'motionParameter': {
-        const behavior=structuredClone(layer.behaviors.find(b=>b.type===action.motion)??defaultBehavior(action.motion,working.timeline.durationMs,layer));behavior.enabled=true;
-        if(action.action==='anchor') {
-          if(behavior.type!=='attract'&&behavior.type!=='orbit')throw new Error('Only attract and orbit have anchors.');
-          behavior.params.anchor={type:'layer',layerId:action.anchorLayerId};
+      case "animate":
+      case "anchor":
+      case "motionParameter": {
+        const behavior = structuredClone(
+          layer.behaviors.find((b) => b.type === action.motion) ??
+            defaultBehavior(action.motion, working.timeline.durationMs, layer),
+        );
+        behavior.enabled = true;
+        if (action.action === "anchor") {
+          if (behavior.type !== "attract" && behavior.type !== "orbit")
+            throw new Error("Only attract and orbit have anchors.");
+          behavior.params.anchor = {
+            type: "layer",
+            layerId: action.anchorLayerId,
+          };
         }
-        if(action.action==='motionParameter') {
-          if(!(action.parameter in behavior.params))throw new Error('This parameter does not belong to the selected motion.');
-          (behavior.params as unknown as Record<string,unknown>)[action.parameter]=action.value;
+        if (action.action === "motionParameter") {
+          if (!(action.parameter in behavior.params))
+            throw new Error(
+              "This parameter does not belong to the selected motion.",
+            );
+          (behavior.params as unknown as Record<string, unknown>)[
+            action.parameter
+          ] = action.value;
         }
-        operation={type:'upsertBehavior',layerId:layer.id,behavior};break;
+        operation = { type: "upsertBehavior", layerId: layer.id, behavior };
+        break;
       }
     }
-    if(operation) {operations.push(operation);working=applyOperations(input.scene,operations,{allowTextChanges:input.allowTextChanges}).scene;}
+    if (operation) {
+      operations.push(operation);
+      working = applyOperations(input.scene, operations, {
+        allowTextChanges: input.allowTextChanges,
+      }).scene;
+    }
   }
-  if(!operations.length)return {kind:'clarify',question:'Those layers are already still. What should change?'};
-  const applied=applyOperations(input.scene,operations,{allowTextChanges:input.allowTextChanges});
-  return {kind:'edit',operations,summary:applied.summary};
+  if (!operations.length)
+    return {
+      kind: "clarify",
+      question: "Those layers are already still. What should change?",
+    };
+  const applied = applyOperations(input.scene, operations, {
+    allowTextChanges: input.allowTextChanges,
+  });
+  return { kind: "edit", operations, summary: applied.summary };
 }
 
-export function createOllamaProvider(url:string,model:string):LocalProvider {
-  const origin=assertLocalConfiguration(url,model);
-  const fetchLocal=(path:string,init:RequestInit)=>fetch(`${origin}${path}`,{...init,redirect:'error'});
+export function createOllamaProvider(
+  url: string,
+  model: string,
+): LocalProvider {
+  const origin = assertLocalConfiguration(url, model);
+  const fetchLocal = (path: string, init: RequestInit) =>
+    fetch(`${origin}${path}`, { ...init, redirect: "error" });
   return {
     async available() {
       try {
-        const response=await fetchLocal('/api/tags',{signal:AbortSignal.timeout(1500)});
-        if(!response.ok) return {available:false,reason:'Local Ollama is not responding.'};
-        const data=await response.json() as {models?:{name:string;remote_host?:string;remote_model?:string}[]};
-        const found=data.models?.find(m=>m.name===model || m.name===`${model}:latest`);
-        return found && !found.remote_host && !found.remote_model ? {available:true}:{available:false,reason:`Install the local ${model} model in Ollama to enable language edits.`};
-      } catch { return {available:false,reason:'Start Ollama on this computer to enable language edits.'}; }
+        const response = await fetchLocal("/api/tags", {
+          signal: AbortSignal.timeout(1500),
+        });
+        if (!response.ok)
+          return {
+            available: false,
+            reason: "Local Ollama is not responding.",
+          };
+        const data = (await response.json()) as {
+          models?: {
+            name: string;
+            remote_host?: string;
+            remote_model?: string;
+          }[];
+        };
+        const found = data.models?.find(
+          (m) => m.name === model || m.name === `${model}:latest`,
+        );
+        return found && !found.remote_host && !found.remote_model
+          ? { available: true }
+          : {
+              available: false,
+              reason: `Install the local ${model} model in Ollama to enable language edits.`,
+            };
+      } catch {
+        return {
+          available: false,
+          reason: "Start Ollama on this computer to enable language edits.",
+        };
+      }
     },
-    async generate(input,signal) {
-      const messages=buildModelMessages(input);
-      const show=await fetchLocal('/api/show',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({model}),signal});
-      if(!show.ok)throw new Error(show.status===404?'The selected local model is not installed.':`Ollama could not inspect the local model (HTTP ${show.status}). Try again after Ollama is ready.`);
-      const metadata=await show.json() as Record<string,unknown>;
-      if(metadata.remote_host || metadata.remote_model || JSON.stringify(metadata).includes('://ollama.com')) throw new Error('Cloud-backed models are disabled.');
-      const response=await fetchLocal('/api/chat',{method:'POST',headers:{'content-type':'application/json'},signal,body:JSON.stringify({
-        model,stream:false,think:false,format:{type:'object',properties:{plan:{type:'string'},kind:{type:'string',enum:['edit','clarify','unsupported']},actions:{type:'array',items:{type:'object'}},question:{type:'string'},explanation:{type:'string'}},required:['plan','kind']},options:{temperature:0,num_predict:2000,num_ctx:16384},keep_alive:'10m',messages
-      })});
-      if(!response.ok) throw new Error(`Local Ollama request failed (${response.status}).`);
-      const data=await response.json() as {message?:{content?:string};done?:boolean;done_reason?:string;prompt_eval_count?:number;eval_count?:number};
-      if(data.done!==true || data.done_reason==='length' || !data.message?.content) throw new Error('Local model output was incomplete. No edit was applied.');
+    async generate(input, signal) {
+      const messages = buildModelMessages(input);
+      const show = await fetchLocal("/api/show", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ model }),
+        signal,
+      });
+      if (!show.ok)
+        throw new Error(
+          show.status === 404
+            ? "The selected local model is not installed."
+            : `Ollama could not inspect the local model (HTTP ${show.status}). Try again after Ollama is ready.`,
+        );
+      const metadata = (await show.json()) as Record<string, unknown>;
+      if (
+        metadata.remote_host ||
+        metadata.remote_model ||
+        JSON.stringify(metadata).includes("://ollama.com")
+      )
+        throw new Error("Cloud-backed models are disabled.");
+      const response = await fetchLocal("/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        signal,
+        body: JSON.stringify({
+          model,
+          stream: false,
+          think: false,
+          format: {
+            type: "object",
+            properties: {
+              plan: { type: "string" },
+              kind: {
+                type: "string",
+                enum: ["edit", "clarify", "unsupported"],
+              },
+              actions: { type: "array", items: { type: "object" } },
+              question: { type: "string" },
+              explanation: { type: "string" },
+            },
+            required: ["plan", "kind"],
+          },
+          options: { temperature: 0, num_predict: 2000, num_ctx: 16384 },
+          keep_alive: "10m",
+          messages,
+        }),
+      });
+      if (!response.ok)
+        throw new Error(`Local Ollama request failed (${response.status}).`);
+      const data = (await response.json()) as {
+        message?: { content?: string };
+        done?: boolean;
+        done_reason?: string;
+        prompt_eval_count?: number;
+        eval_count?: number;
+      };
+      if (
+        data.done !== true ||
+        data.done_reason === "length" ||
+        !data.message?.content
+      )
+        throw new Error(
+          "Local model output was incomplete. No edit was applied.",
+        );
       try {
-        const raw=JSON.parse(data.message.content) as Record<string,unknown>;
-        const {plan,...answer}=raw;
+        const raw = JSON.parse(data.message.content) as Record<string, unknown>;
+        const { plan, ...answer } = raw;
         z.string().max(2000).parse(plan);
-        const proposal=modelReplySchema(input).parse(answer);
-        return {result:interpretReply(proposal,input),inputTokens:data.prompt_eval_count,outputTokens:data.eval_count};
-      } catch(error) {
-        if(error instanceof z.ZodError || error instanceof SyntaxError)throw new Error('The local model proposed an invalid action or layer reference. Try a narrower instruction; your poster is unchanged.');
+        const proposal = modelReplySchema(input).parse(answer);
+        return {
+          result: interpretReply(proposal, input),
+          inputTokens: data.prompt_eval_count,
+          outputTokens: data.eval_count,
+        };
+      } catch (error) {
+        if (error instanceof z.ZodError || error instanceof SyntaxError)
+          throw new Error(
+            "The local model proposed an invalid action or layer reference. Try a narrower instruction; your poster is unchanged.",
+          );
         throw error;
       }
-    }
+    },
   };
 }

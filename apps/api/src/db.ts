@@ -1,13 +1,17 @@
-import { DatabaseSync } from 'node:sqlite';
-import { mkdirSync, chmodSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { DatabaseSync } from "node:sqlite";
+import { mkdirSync, chmodSync } from "node:fs";
+import { resolve, join } from "node:path";
 
 export function openDatabase(dataDir: string) {
   const dir = resolve(dataDir);
   mkdirSync(dir, { recursive: true, mode: 0o700 });
-  const path = join(dir, 'living-poster.sqlite');
+  const path = join(dir, "living-poster.sqlite");
   const db = new DatabaseSync(path);
-  try { chmodSync(path, 0o600); } catch { /* Windows inherits the user's directory ACL. */ }
+  try {
+    chmodSync(path, 0o600);
+  } catch {
+    /* Windows inherits the user's directory ACL. */
+  }
   db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;
     CREATE TABLE IF NOT EXISTS owners(id TEXT PRIMARY KEY, password_hash TEXT NOT NULL, salt TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES owners(id), expires_at INTEGER NOT NULL);
@@ -21,7 +25,13 @@ export function openDatabase(dataDir: string) {
 }
 
 export function transaction<T>(db: DatabaseSync, fn: () => T): T {
-  db.exec('BEGIN IMMEDIATE');
-  try { const value = fn(); db.exec('COMMIT'); return value; }
-  catch (error) { db.exec('ROLLBACK'); throw error; }
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    const value = fn();
+    db.exec("COMMIT");
+    return value;
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
 }

@@ -17,6 +17,7 @@ PRODUCT EXPERIENCE
 Users create animated typographic posters through a combination of natural language and direct manipulation.
 
 Example requests:
+
 - Make “gravity” pull the other words toward it.
 - Make “panic” scatter, then slowly regroup.
 - Let the headline float while the supporting text stays still.
@@ -33,6 +34,7 @@ The application should feel like a considered creative instrument. Give the canv
 FIRST-RELEASE SCOPE
 
 Support:
+
 - One portrait artboard format.
 - Text layers and simple geometric shapes.
 - A small curated selection of properly licensed, bundled fonts.
@@ -48,6 +50,7 @@ Use procedural graphics. External image or video generation is not required for 
 ANIMATION VOCABULARY
 
 Implement a small, composable set of behaviours:
+
 1. Float.
 2. Orbit.
 3. Wave.
@@ -68,6 +71,7 @@ Use a real model integration to translate creative requests into structured edit
 The model must work within a validated scene language. Do not execute arbitrary generated JavaScript, CSS, shaders, or HTML.
 
 Every edit should:
+
 - Refer to stable layer identifiers.
 - Target a specific scene revision.
 - Preserve unrelated content and styling.
@@ -87,6 +91,7 @@ Prevent delayed model responses from overwriting newer manual or AI edits.
 SCENE FORMAT
 
 Design and document a versioned scene schema containing:
+
 - Artboard dimensions and background.
 - Stable layer IDs.
 - Text and shape properties.
@@ -112,6 +117,7 @@ Use one authoritative scene evaluator for preview and export.
 For ordinary timeline animations, the same scene, seed, and time should produce the same result.
 
 Treat pointer interaction explicitly:
+
 - Live pointer movement is an input.
 - For repeatable playback or export, use a recorded pointer path or a clearly explained fixed-input mode.
 - Do not claim deterministic replay without preserving the relevant inputs.
@@ -125,6 +131,7 @@ Provide useful performance diagnostics during development and measure performanc
 EDITOR EXPERIENCE
 
 Provide:
+
 - Direct selection and dragging.
 - Keyboard nudging and deletion.
 - A clear layer list.
@@ -144,6 +151,7 @@ Allow creators to continue editing manually when AI requests fail.
 SAVING AND EXPORT
 
 Core deliverables:
+
 - Browser draft recovery.
 - Persistent saved scene revisions.
 - Read-only share links.
@@ -163,6 +171,7 @@ BACKEND AND RELIABILITY
 Choose a lean TypeScript-friendly stack and verify current official documentation before implementing APIs.
 
 Implement:
+
 - Server-side model credentials.
 - Validated request and response schemas.
 - Bounded request sizes and model spending.
@@ -179,6 +188,7 @@ EVALUATION
 Create a held-out set of editing instructions with independently specified expected effects.
 
 Include:
+
 - Requests targeting one specific layer.
 - Ambiguous references.
 - Multiple requested changes.
@@ -188,6 +198,7 @@ Include:
 - Missing fonts and invalid scene data.
 
 Measure:
+
 - Valid structured-edit rate.
 - Correct target selection.
 - Preservation of unrelated properties.
