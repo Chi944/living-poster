@@ -151,6 +151,14 @@ describe('durable bounded local AI jobs',()=>{
 });
 
 describe('local-model-only provider and structured output',()=>{
+  it('builds all six generic motions at the target layer, including a bounded orbit far from artboard center',()=>{
+    for(const motion of ['float','orbit','wave','scatter','attract','repel']) {
+      const result=interpretReply({kind:'edit',actions:[{action:'animate',layerId:'headline',motion}]},input());
+      expect(result.kind).toBe('edit');if(result.kind!=='edit')throw new Error('Missing edit');
+      const operation=result.operations[0];expect(operation.type).toBe('upsertBehavior');
+      if(operation.type==='upsertBehavior'&&operation.behavior.type==='orbit')expect(operation.behavior.params.anchor).toEqual({type:'point',x:20,y:200});
+    }
+  });
   it('validates exact scalar actions, accumulates motion tuning, and excludes forbidden wording and target IDs',()=>{
     const result=interpretReply({plan:'Make only the requested changes.',kind:'edit',actions:[
       {action:'animate',layerId:'headline',motion:'float'},
