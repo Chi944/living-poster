@@ -10,7 +10,7 @@ type EditorState={
   playing:boolean;timeMs:number;livePointer:boolean;recording:boolean;
   outbox:OutboxItem[];saveState:string;recovered:boolean;
   commit:(change:(scene:Scene)=>void,label?:string)=>boolean;
-  replace:(scene:Scene,project?:Project)=>void;
+  replace:(scene:Scene,project?:Project)=>boolean;
   select:(id:string|null,multi?:boolean)=>void;
   undo:()=>void;redo:()=>void;
   beginGesture:()=>void;moveGesture:(dx:number,dy:number)=>void;endGesture:(cancel?:boolean)=>void;
@@ -31,7 +31,7 @@ export const useEditor=create<EditorState>((set,get)=>({
    set({scene:revised,past:[...state.past.slice(-79),state.scene],future:[],mutationEpoch:state.mutationEpoch+1,affected:[],notice:label,playing:false,gesture:null});return true;
   }catch(error){set({notice:trimError(error)});return false;}
  },
- replace(scene,project){const state=get();try{validateScene(scene);validateGeometry?.(scene);}catch(error){set({notice:trimError(error)});return;}void archiveDraft({scene:state.gesture??state.scene,documentId:state.documentId,projectId:state.projectId,serverHead:state.serverHead,name:state.name,outbox:state.outbox}).catch(()=>{});set({scene:project?validateScene(cloneScene(scene)):reviseScene(cloneScene(scene)),documentId:newId(),projectId:project?.id??null,serverHead:project?.headRevisionId??null,name:project?.name??'Untitled poster',past:[],future:[],gesture:null,selected:[],affected:[],mutationEpoch:state.mutationEpoch+1,requestGeneration:state.requestGeneration+1,timeMs:0,playing:false,livePointer:false,recording:false,saveState:project?'Saved to local library':'Saved on this device',notice:project?'Project opened':'A fresh canvas, ready to make your own.'});},
+ replace(scene,project){const state=get();try{validateScene(scene);validateGeometry?.(scene);}catch(error){set({notice:trimError(error)});return false;}void archiveDraft({scene:state.gesture??state.scene,documentId:state.documentId,projectId:state.projectId,serverHead:state.serverHead,name:state.name,outbox:state.outbox}).catch(()=>{});set({scene:project?validateScene(cloneScene(scene)):reviseScene(cloneScene(scene)),documentId:newId(),projectId:project?.id??null,serverHead:project?.headRevisionId??null,name:project?.name??'Untitled poster',past:[],future:[],gesture:null,selected:[],affected:[],mutationEpoch:state.mutationEpoch+1,requestGeneration:state.requestGeneration+1,timeMs:0,playing:false,livePointer:false,recording:false,saveState:project?'Saved to local library':'Saved on this device',notice:project?'Project opened':'A fresh canvas, ready to make your own.'});return true;},
  select(id,multi=false){set(state=>({selected:id?(multi?(state.selected.includes(id)?state.selected.filter(x=>x!==id):[...state.selected,id]):[id]):[]}));},
  undo(){const state=get();if(state.gesture){get().endGesture(true);return;}if(!state.past.length)return;const old=state.past.at(-1)!;const next=cloneScene(old);next.revision=state.scene.revision;set({scene:reviseScene(next),past:state.past.slice(0,-1),future:[state.scene,...state.future],mutationEpoch:state.mutationEpoch+1,playing:false,affected:[],notice:'Undid last change'});},
  redo(){const state=get();if(!state.future.length)return;const next=cloneScene(state.future[0]);next.revision=state.scene.revision;set({scene:reviseScene(next),past:[...state.past,state.scene],future:state.future.slice(1),mutationEpoch:state.mutationEpoch+1,playing:false,affected:[],notice:'Redid last change'});},
@@ -69,6 +69,7 @@ export async function initializeRecovery(){try{const saved=await recoverDraft();
  let timer:ReturnType<typeof setTimeout>;useEditor.subscribe((state,previous)=>{if(state.scene!==previous.scene||state.outbox!==previous.outbox||state.name!==previous.name||state.documentId!==previous.documentId){clearTimeout(timer);timer=setTimeout(()=>{void persistCurrent().catch(()=>useEditor.setState({saveState:'Device storage unavailable'}));},120);}});
  window.addEventListener('online',()=>void useEditor.getState().sync());
 }
+
 
 
 
