@@ -1,0 +1,10 @@
+import { build as bundle } from 'esbuild';
+import { build as vite } from 'vite';
+import { mkdir } from 'node:fs/promises';
+import { prepareAssets } from './assets.mjs';
+await prepareAssets();
+await mkdir('apps/web/public', { recursive: true });
+await bundle({ entryPoints: ['apps/web/src/player.ts'], outfile: 'apps/web/public/player.js', bundle: true, minify: true, format: 'iife', target: 'es2022', platform: 'browser' });
+await vite();
+await bundle({ entryPoints: ['apps/api/src/index.ts'], outfile: 'dist/server/index.js', bundle: true, packages: 'external', platform: 'node', format: 'esm', target: 'node24', sourcemap: true });
+console.log('Built editor, standalone player, and local server.');
