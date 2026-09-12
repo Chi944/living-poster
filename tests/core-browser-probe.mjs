@@ -14,6 +14,7 @@ try {
   await page.addScriptTag({content:bundle.outputFiles[0].text});
   const result=await page.evaluate(async sources=>{
     const core=globalThis.LivingPosterCore;await core.loadFonts(sources);const output=[];
+    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(core.newId()))throw new Error('UUID generation failed in the non-secure probe origin');
     for(const example of core.EXAMPLES) {
       try {
         const compiled=core.compileScene(example.scene),frames=[0,1200,2400,3600,4800,6000].map(timeMs=>core.evaluateScene(compiled,{timeMs,pointer:core.samplePointer(example.scene,timeMs)}));

@@ -1,0 +1,415 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-12T21:00:02.564Z",
+  "conditions": {
+    "browser": "153.0.8010.12",
+    "headless": true,
+    "node": "v24.19.0",
+    "platform": "win32 10.0.22621",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12400",
+    "logicalCpus": 12,
+    "totalMemoryGiB": 32,
+    "durationSeconds": 30,
+    "warmupMs": 1800,
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "cssCanvas": {
+      "width": 540,
+      "height": 675
+    },
+    "canvasBacking": {
+      "width": 1080,
+      "height": 1350
+    },
+    "dpr": 2,
+    "network": "disabled; font bytes embedded",
+    "timing": "performance.now around synchronous evaluator and Canvas commands; requestAnimationFrame callback intervals. These are not physical display presentation times.",
+    "workload": "No model requests initiated by this benchmark. Other processes are not stopped or controlled."
+  },
+  "browserEnvironment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "hardwareConcurrency": 12,
+    "devicePixelRatio": 2,
+    "graphicsRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "fontCount": 6
+  },
+  "results": [
+    {
+      "id": "gravity",
+      "category": "example",
+      "layers": 14,
+      "graphemes": 119,
+      "behaviors": 4,
+      "drawCount": 108,
+      "compileMs": 0.5,
+      "evaluate": {
+        "samples": 1801,
+        "p50Ms": 0,
+        "p95Ms": 0.10000000149011612,
+        "p99Ms": 0.19999999925494194,
+        "maxMs": 0.5,
+        "meanMs": 0.043142698496282265
+      },
+      "paint": {
+        "samples": 1801,
+        "p50Ms": 0.3999999985098839,
+        "p95Ms": 0.7000000029802322,
+        "p99Ms": 1.1000000014901161,
+        "maxMs": 2.7000000029802322,
+        "meanMs": 0.4385341476527007
+      },
+      "evaluateAndPaint": {
+        "samples": 1801,
+        "p50Ms": 0.5,
+        "p95Ms": 0.8000000007450581,
+        "p99Ms": 1.199999999254942,
+        "maxMs": 2.800000000745058,
+        "meanMs": 0.481676846148983
+      },
+      "rafInterval": {
+        "samples": 1801,
+        "p50Ms": 16.69999999999891,
+        "p95Ms": 16.799999999999272,
+        "p99Ms": 16.80000000000109,
+        "maxMs": 16.80000000000291,
+        "meanMs": 16.666018878400887
+      },
+      "boundsCorrections": 0,
+      "target": {
+        "evaluatePaintP95Ms": 12,
+        "rafP95Ms": 20
+      },
+      "meetsTimingTargets": true
+    },
+    {
+      "id": "panic-return",
+      "category": "example",
+      "layers": 12,
+      "graphemes": 132,
+      "behaviors": 2,
+      "drawCount": 119,
+      "compileMs": 0.6000000014901161,
+      "evaluate": {
+        "samples": 1802,
+        "p50Ms": 0.09999999776482582,
+        "p95Ms": 0.10000000149011612,
+        "p99Ms": 0.19999999925494194,
+        "maxMs": 0.5,
+        "meanMs": 0.05849056603897623
+      },
+      "paint": {
+        "samples": 1802,
+        "p50Ms": 0.4000000022351742,
+        "p95Ms": 0.6000000014901161,
+        "p99Ms": 0.7000000029802322,
+        "maxMs": 0.9000000022351742,
+        "meanMs": 0.44234184236095164
+      },
+      "evaluateAndPaint": {
+        "samples": 1802,
+        "p50Ms": 0.5,
+        "p95Ms": 0.6999999992549419,
+        "p99Ms": 0.8000000007450581,
+        "maxMs": 1.199999999254942,
+        "meanMs": 0.5008324083999279
+      },
+      "rafInterval": {
+        "samples": 1802,
+        "p50Ms": 16.69999999999709,
+        "p95Ms": 16.700000000004366,
+        "p99Ms": 16.80000000000291,
+        "maxMs": 16.80000000000291,
+        "meanMs": 16.665982241953387
+      },
+      "boundsCorrections": 0,
+      "target": {
+        "evaluatePaintP95Ms": 12,
+        "rafP95Ms": 20
+      },
+      "meetsTimingTargets": true
+    },
+    {
+      "id": "after-hours",
+      "category": "example",
+      "layers": 12,
+      "graphemes": 124,
+      "behaviors": 2,
+      "drawCount": 113,
+      "compileMs": 0.5,
+      "evaluate": {
+        "samples": 1802,
+        "p50Ms": 0,
+        "p95Ms": 0.10000000149011612,
+        "p99Ms": 0.19999999925494194,
+        "maxMs": 13.399999998509884,
+        "meanMs": 0.047669256354096065
+      },
+      "paint": {
+        "samples": 1802,
+        "p50Ms": 0.4000000022351742,
+        "p95Ms": 0.6000000014901161,
+        "p99Ms": 0.8000000007450581,
+        "maxMs": 9.900000002235174,
+        "meanMs": 0.4388457269580429
+      },
+      "evaluateAndPaint": {
+        "samples": 1802,
+        "p50Ms": 0.5,
+        "p95Ms": 0.6999999992549419,
+        "p99Ms": 0.8999999985098839,
+        "maxMs": 23.300000000745058,
+        "meanMs": 0.486514983312139
+      },
+      "rafInterval": {
+        "samples": 1802,
+        "p50Ms": 16.69999999999709,
+        "p95Ms": 16.70000000001164,
+        "p99Ms": 16.80000000000291,
+        "maxMs": 16.80000000000291,
+        "meanMs": 16.666037735849056
+      },
+      "boundsCorrections": 0,
+      "target": {
+        "evaluatePaintP95Ms": 12,
+        "rafP95Ms": 20
+      },
+      "meetsTimingTargets": true
+    },
+    {
+      "id": "frequency",
+      "category": "example",
+      "layers": 11,
+      "graphemes": 106,
+      "behaviors": 5,
+      "drawCount": 101,
+      "compileMs": 0.6999999992549419,
+      "evaluate": {
+        "samples": 1800,
+        "p50Ms": 0,
+        "p95Ms": 0.10000000149011612,
+        "p99Ms": 0.20000000298023224,
+        "maxMs": 0.3999999985098839,
+        "meanMs": 0.05022222221518556
+      },
+      "paint": {
+        "samples": 1800,
+        "p50Ms": 0.3999999985098839,
+        "p95Ms": 0.6000000014901161,
+        "p99Ms": 0.8000000007450581,
+        "maxMs": 1.9000000022351742,
+        "meanMs": 0.4099444444498254
+      },
+      "evaluateAndPaint": {
+        "samples": 1800,
+        "p50Ms": 0.5,
+        "p95Ms": 0.6999999992549419,
+        "p99Ms": 0.8999999985098839,
+        "maxMs": 2,
+        "meanMs": 0.460166666665011
+      },
+      "rafInterval": {
+        "samples": 1800,
+        "p50Ms": 16.69999999999709,
+        "p95Ms": 16.79999999998836,
+        "p99Ms": 16.80000000000291,
+        "maxMs": 33.39999999999418,
+        "meanMs": 16.67527777777778
+      },
+      "boundsCorrections": 0,
+      "target": {
+        "evaluatePaintP95Ms": 12,
+        "rafP95Ms": 20
+      },
+      "meetsTimingTargets": true
+    },
+    {
+      "id": "small-worlds",
+      "category": "example",
+      "layers": 14,
+      "graphemes": 82,
+      "behaviors": 2,
+      "drawCount": 78,
+      "compileMs": 1,
+      "evaluate": {
+        "samples": 1801,
+        "p50Ms": 0,
+        "p95Ms": 0.10000000149011612,
+        "p99Ms": 0.19999999925494194,
+        "maxMs": 1.199999999254942,
+        "meanMs": 0.04186563019427176
+      },
+      "paint": {
+        "samples": 1801,
+        "p50Ms": 0.3999999985098839,
+        "p95Ms": 0.5999999977648258,
+        "p99Ms": 0.8999999985098839,
+        "maxMs": 3.800000000745058,
+        "meanMs": 0.38173237091953194
+      },
+      "evaluateAndPaint": {
+        "samples": 1801,
+        "p50Ms": 0.3999999985098839,
+        "p95Ms": 0.6000000014901161,
+        "p99Ms": 0.9000000022351742,
+        "maxMs": 3.800000000745058,
+        "meanMs": 0.4235980011138037
+      },
+      "rafInterval": {
+        "samples": 1801,
+        "p50Ms": 16.699999999982538,
+        "p95Ms": 16.70000000001164,
+        "p99Ms": 16.800000000017462,
+        "maxMs": 16.800000000017462,
+        "meanMs": 16.666018878400887
+      },
+      "boundsCorrections": 0,
+      "target": {
+        "evaluatePaintP95Ms": 12,
+        "rafP95Ms": 20
+      },
+      "meetsTimingTargets": true
+    },
+    {
+      "id": "personal-space",
+      "category": "example",
+      "layers": 10,
+      "graphemes": 112,
+      "behaviors": 4,
+      "drawCount": 101,
+      "compileMs": 1.0999999977648258,
+      "evaluate": {
+        "samples": 1801,
+        "p50Ms": 0,
+        "p95Ms": 0.10000000149011612,
+        "p99Ms": 0.19999999925494194,
+        "maxMs": 0.7999999970197678,
+        "meanMs": 0.04602998333969161
+      },
+      "paint": {
+        "samples": 1801,
+        "p50Ms": 0.4000000022351742,
+        "p95Ms": 0.6000000014901161,
+        "p99Ms": 0.7999999970197678,
+        "maxMs": 1.199999999254942,
+        "meanMs": 0.4199333703646986
+      },
+      "evaluateAndPaint": {
+        "samples": 1801,
+        "p50Ms": 0.5,
+        "p95Ms": 0.6999999992549419,
+        "p99Ms": 0.8000000007450581,
+        "maxMs": 1.3999999985098839,
+        "meanMs": 0.4659633537043902
+      },
+      "rafInterval": {
+        "samples": 1801,
+        "p50Ms": 16.699999999982538,
+        "p95Ms": 16.70000000001164,
+        "p99Ms": 16.800000000017462,
+        "maxMs": 16.800000000017462,
+        "meanMs": 16.666018878400887
+      },
+      "boundsCorrections": 0,
+      "target": {
+        "evaluatePaintP95Ms": 12,
+        "rafP95Ms": 20
+      },
+      "meetsTimingTargets": true
+    },
+    {
+      "id": "typical-24-400-60",
+      "category": "typical",
+      "layers": 24,
+      "graphemes": 400,
+      "behaviors": 60,
+      "drawCount": 400,
+      "compileMs": 1.699999999254942,
+      "evaluate": {
+        "samples": 1801,
+        "p50Ms": 0.30000000074505806,
+        "p95Ms": 0.4000000022351742,
+        "p99Ms": 0.5,
+        "maxMs": 0.8000000007450581,
+        "meanMs": 0.3019433648411861
+      },
+      "paint": {
+        "samples": 1801,
+        "p50Ms": 1.199999999254942,
+        "p95Ms": 1.5,
+        "p99Ms": 1.699999999254942,
+        "maxMs": 2.699999999254942,
+        "meanMs": 1.1719044974898047
+      },
+      "evaluateAndPaint": {
+        "samples": 1801,
+        "p50Ms": 1.5,
+        "p95Ms": 1.8999999985098839,
+        "p99Ms": 2.100000001490116,
+        "maxMs": 3.5,
+        "meanMs": 1.4738478623309907
+      },
+      "rafInterval": {
+        "samples": 1801,
+        "p50Ms": 16.699999999982538,
+        "p95Ms": 16.70000000001164,
+        "p99Ms": 16.800000000017462,
+        "maxMs": 16.800000000017462,
+        "meanMs": 16.666074403109388
+      },
+      "boundsCorrections": 2851,
+      "target": {
+        "evaluatePaintP95Ms": 12,
+        "rafP95Ms": 20
+      },
+      "meetsTimingTargets": true
+    },
+    {
+      "id": "limit-64-1024-256",
+      "category": "limit",
+      "layers": 64,
+      "graphemes": 1024,
+      "behaviors": 256,
+      "drawCount": 1024,
+      "compileMs": 4.100000001490116,
+      "evaluate": {
+        "samples": 1802,
+        "p50Ms": 1,
+        "p95Ms": 1.300000000745058,
+        "p99Ms": 1.5,
+        "maxMs": 2,
+        "meanMs": 1.0330188679658745
+      },
+      "paint": {
+        "samples": 1802,
+        "p50Ms": 2.300000000745058,
+        "p95Ms": 3.300000000745058,
+        "p99Ms": 3.600000001490116,
+        "maxMs": 4.5,
+        "meanMs": 2.4041065482565354
+      },
+      "evaluateAndPaint": {
+        "samples": 1802,
+        "p50Ms": 3.399999998509884,
+        "p95Ms": 4.5,
+        "p99Ms": 4.900000002235174,
+        "maxMs": 5.900000002235174,
+        "meanMs": 3.43712541622241
+      },
+      "rafInterval": {
+        "samples": 1802,
+        "p50Ms": 16.699999999982538,
+        "p95Ms": 16.70000000001164,
+        "p99Ms": 16.800000000017462,
+        "maxMs": 16.800000000017462,
+        "meanMs": 16.665982241953387
+      },
+      "boundsCorrections": 35087,
+      "target": {
+        "rafP95Ms": 34
+      },
+      "meetsTimingTargets": true
+    }
+  ]
+}

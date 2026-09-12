@@ -88,7 +88,15 @@ export const SceneSchema = RawSceneSchema.superRefine((s,ctx)=>{
   }
 });
 export function validateScene(value:unknown):Scene { return SceneSchema.parse(value); }
-export function newId():string { return globalThis.crypto.randomUUID(); }
+export function newId():string {
+  if(typeof globalThis.crypto?.randomUUID==='function')return globalThis.crypto.randomUUID();
+  // getRandomValues remains available on deliberate plain-HTTP LAN origins.
+  // Use the same UUIDv4 entropy/version contract without relying on secure-context-only randomUUID.
+  if(!globalThis.crypto?.getRandomValues)throw new Error('This browser cannot generate secure scene IDs.');
+  const bytes=globalThis.crypto.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]!&0x0f)|0x40;bytes[8]=(bytes[8]!&0x3f)|0x80;
+  const hex=Array.from(bytes,byte=>byte.toString(16).padStart(2,'0')).join('');
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
 export function cloneScene(scene:Scene):Scene { return structuredClone(scene); }
 export function reviseScene(scene:Scene):Scene { const next=cloneScene(scene);next.revision={id:newId(),parentId:scene.revision.id};return next; }
 export function defaultBehavior(type:BehaviorType,durationMs:number,layer?:Layer):Behavior {

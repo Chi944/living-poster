@@ -3,7 +3,7 @@ import fc from 'fast-check';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {sha256} from '../packages/core/src/hash';
-import {EXAMPLES,validateScene,cloneScene,reviseScene,applyOperations,defaultBehavior,compileScene,evaluateScene,hitTest,samplePointer,closePointerLoop,type Scene,type Behavior,type Layer,type GlyphMeasurer} from '../packages/core/src';
+import {EXAMPLES,validateScene,cloneScene,reviseScene,newId,applyOperations,defaultBehavior,compileScene,evaluateScene,hitTest,samplePointer,closePointerLoop,type Scene,type Behavior,type Layer,type GlyphMeasurer} from '../packages/core/src';
 
 const measure:GlyphMeasurer=(_id,size,text)=>({width:size*.55*text.length,left:0,right:text===' '?0:size*.52*text.length,ascent:size*.72,descent:size*.02});
 function fixture():Scene {
@@ -72,6 +72,7 @@ describe('atomic narrow commands',()=>{
   it('retains behavior arrays when changing base layout and typography',()=>{const s=cloneScene(EXAMPLES[2]!.scene),l=s.layers.find(l=>l.id==='after-headline')!;const next=applyOperations(s,[{type:'setLayout',layerId:l.id,changes:{x:100}},{type:'setTypography',layerId:l.id,changes:{fontSize:190}}]);expect(next.scene.layers.find(n=>n.id===l.id)!.behaviors).toEqual(l.behaviors);});
   it('validates reorder references and puts null at the front of paint order',()=>{const s=fixture();expect(()=>applyOperations(s,[{type:'reorderLayer',layerId:'subject',beforeLayerId:'missing'}])).toThrow();expect(applyOperations(s,[{type:'reorderLayer',layerId:'subject',beforeLayerId:null}]).scene.layers.map(l=>l.id)).toEqual(['anchor','subject']);});
   it('revising identical content does not reuse identity',()=>{const s=fixture(),a=reviseScene(s),b=reviseScene(s);expect(a.revision.id).not.toBe(b.revision.id);expect(a.layers).toEqual(s.layers);});
+  it('creates unique UUIDv4 revisions on HTTP LAN origins without randomUUID',()=>{const random=globalThis.crypto.getRandomValues.bind(globalThis.crypto);vi.stubGlobal('crypto',{getRandomValues:random});try{const ids=Array.from({length:100},()=>newId());expect(new Set(ids).size).toBe(100);ids.forEach(id=>expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/));expect(reviseScene(fixture()).revision.id).toMatch(/^[0-9a-f-]{36}$/);}finally{vi.unstubAllGlobals();}});
 });
 
 describe('font asset loading',()=>{
