@@ -191,6 +191,12 @@ describe('local-model-only provider and structured output',()=>{
     vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify({remote_host:'https://ollama.com'}),{status:200,headers:{'content-type':'application/json'}})));
     await expect(createOllamaProvider('http://127.0.0.1:11434','local-alias').generate(input(),new AbortController().signal)).rejects.toThrow('Cloud');vi.unstubAllGlobals();
   });
+  it('reports invalid model JSON actions concisely without returning validation internals',async()=>{
+    const mockedFetch=vi.fn(async(url:string|URL|Request)=>new Response(JSON.stringify(String(url).endsWith('/api/show')?{}:{done:true,done_reason:'stop',message:{content:JSON.stringify({plan:'An invalid model proposal.',kind:'edit',actions:[{action:'unavailable-action',layerId:'headline'}]})}}),{status:200,headers:{'content-type':'application/json'}}));
+    vi.stubGlobal('fetch',mockedFetch);
+    try {await expect(createOllamaProvider('http://127.0.0.1:11434','qwen3:4b').generate(input(),new AbortController().signal)).rejects.toThrow('The local model proposed an invalid action or layer reference. Try a narrower instruction; your poster is unchanged.');expect(mockedFetch).toHaveBeenCalledTimes(2);}
+    finally {vi.unstubAllGlobals();}
+  });
   it('translates actual model intents into narrow edits while preserving every unrelated property',()=>{
     const result=interpretReply({kind:'edit',actions:[{action:'animate',layerId:'headline',motion:'float'},{action:'move',layerId:'caption',axis:'y',delta:40}]},input());
     expect(result.kind).toBe('edit');if(result.kind!=='edit')throw new Error('Wrong result');expect(result.operations).toHaveLength(2);
