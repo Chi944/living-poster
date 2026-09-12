@@ -191,6 +191,14 @@ describe('local-model-only provider and structured output',()=>{
     vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify({remote_host:'https://ollama.com'}),{status:200,headers:{'content-type':'application/json'}})));
     await expect(createOllamaProvider('http://127.0.0.1:11434','local-alias').generate(input(),new AbortController().signal)).rejects.toThrow('Cloud');vi.unstubAllGlobals();
   });
+  it('distinguishes a missing local model from a temporarily unavailable Ollama server',async()=>{
+    try {
+      for(const [status,message] of [[404,'The selected local model is not installed.'],[503,'Ollama could not inspect the local model (HTTP 503). Try again after Ollama is ready.']] as const) {
+        vi.stubGlobal('fetch',vi.fn(async()=>new Response('{}',{status})));
+        await expect(createOllamaProvider('http://127.0.0.1:11434','qwen3:4b').generate(input(),new AbortController().signal)).rejects.toThrow(message);
+      }
+    }finally{vi.unstubAllGlobals();}
+  });
   it('reports invalid model JSON actions concisely without returning validation internals',async()=>{
     const mockedFetch=vi.fn(async(url:string|URL|Request)=>new Response(JSON.stringify(String(url).endsWith('/api/show')?{}:{done:true,done_reason:'stop',message:{content:JSON.stringify({plan:'An invalid model proposal.',kind:'edit',actions:[{action:'unavailable-action',layerId:'headline'}]})}}),{status:200,headers:{'content-type':'application/json'}}));
     vi.stubGlobal('fetch',mockedFetch);

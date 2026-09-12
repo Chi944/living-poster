@@ -144,7 +144,7 @@ export function createOllamaProvider(url:string,model:string):LocalProvider {
     async generate(input,signal) {
       const messages=buildModelMessages(input);
       const show=await fetchLocal('/api/show',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({model}),signal});
-      if(!show.ok) throw new Error('The selected local model is not installed.');
+      if(!show.ok)throw new Error(show.status===404?'The selected local model is not installed.':`Ollama could not inspect the local model (HTTP ${show.status}). Try again after Ollama is ready.`);
       const metadata=await show.json() as Record<string,unknown>;
       if(metadata.remote_host || metadata.remote_model || JSON.stringify(metadata).includes('://ollama.com')) throw new Error('Cloud-backed models are disabled.');
       const response=await fetchLocal('/api/chat',{method:'POST',headers:{'content-type':'application/json'},signal,body:JSON.stringify({
