@@ -4,6 +4,8 @@ A typography instrument where words float, orbit, ripple, scatter, pulse, swing,
 
 **[Open the live studio](https://living-poster.vercel.app)** · [Public GitHub repository](https://github.com/Chi944/living-poster)
 
+**[Try the temporary demo](https://living-poster.vercel.app/demo)** to explore typography and motion without saving anything. Demo edits stay in the current tab and reset on reload, Reset demo, or a new visit. The demo cannot open any saved library or connect to AI. Exported files are downloaded only when requested and remain on the visitor’s own device.
+
 ![The Living Poster studio](docs/assets/studio.png)
 
 [Watch the original 60-second demo](docs/assets/living-poster-demo.mp4) · [Explore 25 editable templates](tests/core-artifacts/gallery.png)
@@ -25,6 +27,8 @@ Living Poster runs in your browser on free static hosting, or as a local applica
 The Vercel build is a static website: `npm run build:hosted` produces `dist/hosted`. It uses no server functions, managed database, paid model, analytics service, or API secret. `vercel.json` configures the build and presentation routes. The linked project uses the free Hobby plan.
 
 **There is no password in the browser edition.** Projects and immutable revisions stay in IndexedDB in your browser profile. Clearing site data removes the library. Download scene JSON files for backups or to move between devices; browser storage is not cloud account sync.
+
+The portfolio links to `/demo`, a separate temporary mode. It bypasses IndexedDB recovery, disables library, share and AI requests before any transport is opened, and uses the bundled starter scene. Normal `/` studio storage remains unchanged. Returning through browser history also starts a fresh demo; the demo never reads or overwrites an existing draft, even in the same browser profile.
 
 Sharing creates an immutable compressed snapshot inside a URL fragment. A recipient can open that link on another device without your browser running. The fragment contains the poster and is not sent to the Vercel server. Anyone with the full link can read it; removing an entry from your library cannot revoke copies. Animated HTML export is another portable, fully offline option.
 

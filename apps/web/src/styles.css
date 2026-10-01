@@ -2348,6 +2348,9 @@ h3 {
   font-size: 11px;
   color: #66705c;
 }
+.studio[data-demo] .tool-tabs {
+  grid-template-columns: 1.35fr 1fr 1fr;
+}
 .tool-tabs button[aria-selected="true"] {
   background: #262724;
   color: #fff;

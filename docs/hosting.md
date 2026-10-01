@@ -4,6 +4,14 @@ Living Poster has two deployment modes. Both use the same editor, scene validato
 
 Production: **https://living-poster.vercel.app**. The production URL is public and requires no Vercel login.
 
+## Portfolio demo
+
+Use **https://living-poster.vercel.app/demo** for a temporary, public playground. Manual editing, templates, motion, undo/redo, scene imports and explicit file downloads work. Save, library, sharing and local AI connections are unavailable. All editing state lives in the page’s memory and is discarded on reload, Reset demo, tab close, or a fresh visit. A page restored from the browser’s back/forward cache reloads before it can resume the old demo.
+
+This route does not open IndexedDB, localStorage or sessionStorage. The draft-storage methods return before opening a database, and the API adapter rejects every request except the in-memory capability description before it imports the hosted runtime or fetches a local server. The normal studio at `/` retains its existing browser library. URL fragments do not import scenes on `/demo`; an explicitly imported scene remains only in memory. No model, owner key, database, function or server mutation is involved. Ordinary static files still use the hosting account’s free bandwidth allowance.
+
+`tests/hosted-e2e/demo.spec.ts` seeds an ordinary studio library, makes every demo storage operation fail if attempted, then verifies editing, reset/reload/history navigation, tab isolation and the unchanged library. Explicitly downloaded files remain under the visitor’s control, as with any download.
+
 | Feature                   | Browser edition on Vercel                                   | Native local edition                                      |
 | ------------------------- | ----------------------------------------------------------- | --------------------------------------------------------- |
 | Storage                   | IndexedDB in this browser profile                           | SQLite on your computer plus browser draft recovery       |

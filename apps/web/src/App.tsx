@@ -56,6 +56,7 @@ import { Inspector } from "./Inspector";
 import { AiComposer } from "./AiComposer";
 import { Timeline } from "./Timeline";
 import { HostedConnector } from "./HostedConnector";
+import { isPublicDemo, DEMO_STATUS } from "./demo-mode";
 import { TemplateBrowser } from "./TemplateBrowser";
 import { exportPng, exportHtml, downloadScene } from "./exports";
 function Modal({
@@ -813,6 +814,14 @@ export function App() {
   const [toolPanel, setToolPanel] = useState<
     "style" | "layout" | "motion" | "ai"
   >("style");
+  const editingTools = (
+    [
+      ["style", "Text & style"],
+      ["layout", "Layout"],
+      ["motion", "Motion"],
+      ["ai", "AI"],
+    ] as const
+  ).filter(([id]) => !isPublicDemo || id !== "ai");
   const chooseTool = (panel: typeof toolPanel) => {
     setToolPanel(panel);
     document.querySelector(".tool-content")?.scrollTo(0, 0);
@@ -1000,17 +1009,21 @@ export function App() {
     }
   };
   return (
-    <div className="studio">
+    <div className="studio" data-demo={isPublicDemo || undefined}>
       <header className="topbar">
         <h1 className="sr-only">Living Poster Studio</h1>
-        <a className="brand" href="/" aria-label="Living Poster home">
+        <a
+          className="brand"
+          href={isPublicDemo ? "/demo" : "/"}
+          aria-label="Living Poster home"
+        >
           <span className="brand-icon">
             L<span>p</span>
             <i />
           </span>
           <span>
             living<span>poster</span>
-            <sup>STUDIO</sup>
+            <sup>{isPublicDemo ? "DEMO" : "STUDIO"}</sup>
           </span>
         </a>
         <div className="topbar-divider" />
@@ -1022,15 +1035,17 @@ export function App() {
             maxLength={100}
             onChange={(e) => useEditor.setState({ name: e.target.value })}
           />
-          <button
-            aria-label="Open project library"
-            disabled={!capabilities}
-            onClick={() =>
-              setDialog(capabilities?.authenticated ? "library" : "auth")
-            }
-          >
-            <ChevronDown size={13} />
-          </button>
+          {!isPublicDemo && (
+            <button
+              aria-label="Open project library"
+              disabled={!capabilities}
+              onClick={() =>
+                setDialog(capabilities?.authenticated ? "library" : "auth")
+              }
+            >
+              <ChevronDown size={13} />
+            </button>
+          )}
           <span className="save-status">
             <i
               className={
@@ -1039,7 +1054,7 @@ export function App() {
                   : ""
               }
             />
-            {saveState}
+            {isPublicDemo ? DEMO_STATUS : saveState}
           </span>
         </div>
         <div className="topbar-actions">
@@ -1063,31 +1078,39 @@ export function App() {
               <Redo2 size={17} />
             </button>
           </div>
-          <button
-            className="button library-button"
-            disabled={!capabilities}
-            onClick={() =>
-              setDialog(capabilities?.authenticated ? "library" : "auth")
-            }
-          >
-            <FolderOpen size={14} />
-            Library
-          </button>
-          <button
-            className="button save-button"
-            disabled={!capabilities}
-            onClick={() => void save()}
-          >
-            Save
-          </button>
-          <button
-            className="button"
-            disabled={shareBusy || !capabilities}
-            onClick={() => void share()}
-          >
-            <Link size={14} />
-            Share
-          </button>
+          {isPublicDemo ? (
+            <button className="button" onClick={() => window.location.reload()}>
+              Reset demo
+            </button>
+          ) : (
+            <>
+              <button
+                className="button library-button"
+                disabled={!capabilities}
+                onClick={() =>
+                  setDialog(capabilities?.authenticated ? "library" : "auth")
+                }
+              >
+                <FolderOpen size={14} />
+                Library
+              </button>
+              <button
+                className="button save-button"
+                disabled={!capabilities}
+                onClick={() => void save()}
+              >
+                Save
+              </button>
+              <button
+                className="button"
+                disabled={shareBusy || !capabilities}
+                onClick={() => void share()}
+              >
+                <Link size={14} />
+                Share
+              </button>
+            </>
+          )}
           <button
             className="button primary"
             onClick={() => setDialog("export")}
@@ -1188,14 +1211,7 @@ export function App() {
           aria-label="Layer properties and language editing"
         >
           <div className="tool-tabs" role="tablist" aria-label="Editing tools">
-            {(
-              [
-                ["style", "Text & style"],
-                ["layout", "Layout"],
-                ["motion", "Motion"],
-                ["ai", "AI"],
-              ] as const
-            ).map(([id, label], index) => (
+            {editingTools.map(([id, label], index) => (
               <button
                 key={id}
                 id={`tool-${id}`}
@@ -1205,7 +1221,7 @@ export function App() {
                 tabIndex={toolPanel === id ? 0 : -1}
                 onClick={() => chooseTool(id)}
                 onKeyDown={(event) => {
-                  const ids = ["style", "layout", "motion", "ai"] as const;
+                  const ids = editingTools.map(([tool]) => tool);
                   if (
                     ["ArrowLeft", "ArrowRight", "Home", "End"].includes(
                       event.key,
@@ -1217,8 +1233,12 @@ export function App() {
                       event.key === "Home"
                         ? 0
                         : event.key === "End"
-                          ? 3
-                          : (index + (event.key === "ArrowRight" ? 1 : 3)) % 4;
+                          ? ids.length - 1
+                          : (index +
+                              (event.key === "ArrowRight"
+                                ? 1
+                                : ids.length - 1)) %
+                            ids.length;
                     chooseTool(ids[next]);
                     document.getElementById(`tool-${ids[next]}`)?.focus();
                   }
@@ -1247,24 +1267,30 @@ export function App() {
                 }}
               />
             </div>
-            <div hidden={toolPanel !== "ai"}>
-              <AiComposer
-                capabilities={capabilities}
-                onAuthenticate={() => {
-                  if (!capabilities) return;
-                  setDialog(
-                    capabilities.runtime === "browser" ? "settings" : "auth",
-                  );
-                }}
-              />
-            </div>
+            {!isPublicDemo && (
+              <div hidden={toolPanel !== "ai"}>
+                <AiComposer
+                  capabilities={capabilities}
+                  onAuthenticate={() => {
+                    if (!capabilities) return;
+                    setDialog(
+                      capabilities.runtime === "browser" ? "settings" : "auth",
+                    );
+                  }}
+                />
+              </div>
+            )}
           </div>
         </aside>
       </main>
       <Timeline onPreview={() => setMobileView("canvas")} />
       <div className="statusbar" role="status" aria-label="Studio status">
         <span>
-          <i /> {notice || "A typography workbench for the way you feel."}
+          <i />{" "}
+          {notice ||
+            (isPublicDemo
+              ? "Try the tools. Changes stay in this tab and disappear on reload."
+              : "A typography workbench for the way you feel.")}
         </span>
         <span>
           {FONT_OPTIONS.length} font styles · {EXAMPLES.length} templates
@@ -1319,21 +1345,31 @@ export function App() {
       {dialog === "settings" && (
         <Modal title="Inside the studio" onClose={close}>
           <div className="modal-body">
-            <p className="modal-lead">Entirely yours.</p>
+            <p className="modal-lead">
+              {isPublicDemo
+                ? "A fresh canvas, every visit."
+                : "Entirely yours."}
+            </p>
             <dl className="canvas-facts">
               <div>
                 <dt>Edition</dt>
                 <dd>
                   Free ·{" "}
-                  {capabilities?.runtime === "browser" ? "browser" : "local"}
+                  {isPublicDemo
+                    ? "temporary demo"
+                    : capabilities?.runtime === "browser"
+                      ? "browser"
+                      : "local"}
                 </dd>
               </div>
               <div>
                 <dt>Storage</dt>
                 <dd>
-                  {capabilities?.runtime === "browser"
-                    ? "This browser · IndexedDB"
-                    : "SQLite + device recovery"}
+                  {isPublicDemo
+                    ? "This tab only · no saved data"
+                    : capabilities?.runtime === "browser"
+                      ? "This browser · IndexedDB"
+                      : "SQLite + device recovery"}
                 </dd>
               </div>
               <div>
@@ -1346,27 +1382,37 @@ export function App() {
               </div>
               <div>
                 <dt>Library</dt>
-                <dd>{capabilities?.authenticated ? "Unlocked" : "Locked"}</dd>
+                <dd>
+                  {isPublicDemo
+                    ? "Not connected"
+                    : capabilities?.authenticated
+                      ? "Unlocked"
+                      : "Locked"}
+                </dd>
               </div>
             </dl>
             <p className="small-note">
-              {capabilities?.runtime === "browser"
-                ? "No password is needed here. Your library is saved in this browser profile. Export scene files to keep a backup or continue on another device."
-                : "Share links work while this server is reachable. Download an HTML poster for a presentation that works anywhere, offline."}
+              {isPublicDemo
+                ? "Nothing is saved automatically. Reloading, resetting or closing this tab discards your edits. This demo cannot read or change any saved library, connect to AI, or change the original templates. Files you explicitly download stay on your device."
+                : capabilities?.runtime === "browser"
+                  ? "No password is needed here. Your library is saved in this browser profile. Export scene files to keep a backup or continue on another device."
+                  : "Share links work while this server is reachable. Download an HTML poster for a presentation that works anywhere, offline."}
             </p>
-            {capabilities?.runtime === "browser" && (
+            {!isPublicDemo && capabilities?.runtime === "browser" && (
               <HostedConnector
                 capabilities={capabilities}
                 onChanged={refreshCapabilities}
               />
             )}
             <div className="settings-actions">
-              <button
-                className="button"
-                onClick={() => void refreshCapabilities()}
-              >
-                Refresh connection
-              </button>
+              {!isPublicDemo && (
+                <button
+                  className="button"
+                  onClick={() => void refreshCapabilities()}
+                >
+                  Refresh connection
+                </button>
+              )}
               <label className="button">
                 <Upload size={14} />
                 Import scene

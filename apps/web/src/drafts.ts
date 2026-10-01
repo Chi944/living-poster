@@ -1,4 +1,5 @@
 import { openDB } from "idb";
+import { isPublicDemo } from "./demo-mode";
 import type { Scene } from "../../../packages/core/src";
 export type OutboxItem = {
   id: string;
@@ -25,11 +26,13 @@ const db = () =>
     },
   });
 export async function recoverDraft(): Promise<Recovery | undefined> {
+  if (isPublicDemo) return undefined;
   const d = await db();
   return d.get("workspace", "current");
 }
 export type ArchivedDraft = Recovery & { updatedAt: number };
 export async function recentDrafts(): Promise<ArchivedDraft[]> {
+  if (isPublicDemo) return [];
   const d = await db();
   const rows = await d.getAll("workspace");
   return rows
@@ -38,6 +41,7 @@ export async function recentDrafts(): Promise<ArchivedDraft[]> {
 }
 let chain: Promise<unknown> = Promise.resolve();
 export function archiveDraft(draft: Recovery): Promise<void> {
+  if (isPublicDemo) return Promise.resolve();
   const copy = { ...structuredClone(draft), updatedAt: Date.now() };
   const next = chain
     .catch(() => {})
@@ -53,6 +57,7 @@ export function updateArchivedHead(
   projectId: string,
   serverHead: string,
 ): Promise<void> {
+  if (isPublicDemo) return Promise.resolve();
   const next = chain
     .catch(() => {})
     .then(async () => {
@@ -69,6 +74,7 @@ export function updateArchivedHead(
   return next;
 }
 export function persistDraft(draft: Recovery): Promise<void> {
+  if (isPublicDemo) return Promise.resolve();
   const copy = structuredClone(draft);
   const next = chain
     .catch(() => {})

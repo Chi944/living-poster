@@ -1,3 +1,5 @@
+import { isPublicDemo } from "./demo-mode";
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -10,6 +12,30 @@ export async function api<T = any>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  // Gate before the hosted module is imported or the local API is fetched.
+  // Hiding buttons alone is not the storage/network isolation boundary.
+  if (isPublicDemo) {
+    if (
+      path === "/capabilities" &&
+      (!options.method || options.method === "GET")
+    )
+      return {
+        free: true,
+        authenticated: false,
+        needsSetup: false,
+        runtime: "browser",
+        storage: "memory",
+        ai: {
+          available: false,
+          model: "None",
+          reason: "This temporary demo uses manual editing only.",
+        },
+      } as T;
+    throw new ApiError(
+      "This temporary demo cannot access libraries, shares or AI connections.",
+      403,
+    );
+  }
   if (import.meta.env.VITE_HOSTED === "true") {
     const { hostedRequest } = await import("./hosted-api");
     try {

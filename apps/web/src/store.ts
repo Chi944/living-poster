@@ -13,6 +13,7 @@ import {
   type Frame,
 } from "../../../packages/core/src";
 import { api, post, ApiError, type Project } from "./api";
+import { isPublicDemo, DEMO_STATUS } from "./demo-mode";
 import {
   persistDraft,
   recoverDraft,
@@ -107,7 +108,7 @@ export const useEditor = create<EditorState>((set, get) => ({
   recording: false,
   pausedPointer: undefined,
   outbox: [],
-  saveState: "Saved on this device",
+  saveState: isPublicDemo ? DEMO_STATUS : "Saved on this device",
   recovered: false,
   enterEditMode() {
     const state = get();
@@ -433,6 +434,7 @@ export const useEditor = create<EditorState>((set, get) => ({
     return true;
   },
   async enqueueSave(label) {
+    if (isPublicDemo) return;
     const state = get();
     if (state.gesture) return;
     if (
@@ -466,6 +468,7 @@ export const useEditor = create<EditorState>((set, get) => ({
     await get().sync();
   },
   async sync() {
+    if (isPublicDemo) return;
     await syncOutbox();
   },
 }));
@@ -571,6 +574,14 @@ async function syncOutbox() {
   }
 }
 export async function initializeRecovery() {
+  if (isPublicDemo) {
+    // A back/forward-cache restore can retain a JS heap. Treat it like a fresh
+    // visit too; the normal studio continues to recover its own saved draft.
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) window.location.reload();
+    });
+    return;
+  }
   try {
     const saved = await recoverDraft();
     if (saved) {
