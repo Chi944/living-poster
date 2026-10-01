@@ -4,7 +4,7 @@
 
 ## Version and validation
 
-New revisions use `schemaVersion: 1`, `rendererVersion: "1.2.0"`. Legacy 1.0.0 and 1.1.0 scenes remain readable with the original six font faces; edits create a fresh 1.2.0 revision. Renderer 1.0.0 retains its portrait format and original six motion types. The additional motions and formats require at least 1.1.0, and added font references require 1.2.0 even when no visible layer uses them. Unknown versions fail validation. Previously exported HTML files retain their embedded renderer. Scene and nested objects use strict Zod schemas, so unknown properties fail instead of being silently discarded.
+New revisions use `schemaVersion: 1`, `rendererVersion: "1.3.0"`. Legacy 1.0.0 and 1.1.0 scenes remain readable with the original six font faces; 1.2.0 scenes retain all 19 faces. Edits create a fresh 1.3.0 revision. Renderer 1.0.0 retains its portrait format and original six motion types. The additional motions and formats require at least 1.1.0, and added font references require at least 1.2.0 even when no visible layer uses them. Pointer pressure and magnetic turning require 1.3.0. Unknown versions fail validation. Previously exported HTML files retain their embedded renderer. Scene and nested objects use strict Zod schemas, so unknown properties fail instead of being silently discarded.
 
 `validateScene(value)` performs structural and semantic validation in both Node and the browser. `compileScene(scene)` additionally checks font-dependent geometry in the browser. Compile only after `await loadFonts()`. The server does not substitute a second font rasterizer.
 
@@ -150,4 +150,10 @@ const selectedLayerId = hitTest(frame, x, y);
 
 Frames contain `width`, `height`, solid `background`, ordered `units`, per-layer `bounds`, `baseBounds`, `boundsCorrections`, `glyphCount`, and `behaviorCount`. The same evaluator and painter power previews, PNGs, shares, and offline HTML. Given identical compiled scene, renderer/font build, absolute time, and pointer input, evaluated transforms are repeatable. Browser/OS text rasterization may differ; universal PNG byte identity is not claimed.
 
-Verification includes `tests/core.test.ts`, `tests/fonts-v3.test.ts`, and `node tests/core-browser-probe.mjs`. The browser probe checks actual bundled font geometry and exact loop endpoints for all 22 compositions in all four formats: 88 format variants. It generates `tests/core-artifacts/gallery.png`. Historical renderer timing results in `tests/core-artifacts/performance.json` cover the original six examples and are not measurements of every new font or template.
+Verification includes `tests/core.test.ts`, `tests/fonts-v3.test.ts`, `tests/core-v4.test.ts`, and `node tests/core-browser-probe.mjs`. The browser probe checks actual bundled font geometry and exact loop endpoints for all 25 compositions in all four formats: 100 format variants. It generates `tests/core-artifacts/gallery.png`. Historical renderer timing results in `tests/core-artifacts/performance.json` cover the original six examples and are not measurements of every new font or template.
+
+## Pointer motion added in renderer 1.3.0
+
+`pressure` uses glyph scope on text layers. Its parameters are `radius` (40–600) and `amount` (0–0.6). Glyphs expand around their ink centers with smooth radial falloff multiplied by pointer presence. `pointerTurn` supports layer or glyph scope with `radius` (40–1,000) and `angleDeg` (0–90). It uses a bounded directional response, with center softening and rear-direction attenuation to avoid abrupt turns. Both are neutral with an absent pointer and outside their active time window. They share the same hit testing, bounds enforcement, recorded pointer loops, PNG rendering and offline player as existing motion.
+
+The editor's Motion playground evaluates a separate scene copy. Preview time, demo pointer and recipe selection never enter the saved scene. Apply replaces only the selected layer's behaviors in one undoable revision; live pointer interaction must be recorded or frozen for repeatable export.

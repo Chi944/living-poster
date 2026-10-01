@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { FONT_MANIFEST } from "./font-manifest";
 
-export const CURRENT_RENDERER_VERSION = "1.2.0" as const;
+export const CURRENT_RENDERER_VERSION = "1.3.0" as const;
 export const CANVAS_PRESETS = [
   { id: "portrait", label: "Portrait", width: 1080, height: 1350 },
   { id: "square", label: "Square", width: 1080, height: 1080 },
@@ -202,6 +202,32 @@ export const BehaviorSchema = z.discriminatedUnion("type", [
         .strict(),
     })
     .strict(),
+  z
+    .object({
+      ...common,
+      type: z.literal("pressure"),
+      scope: z.literal("glyph"),
+      params: z
+        .object({
+          radius: number.min(40).max(600),
+          amount: number.min(0).max(0.6),
+        })
+        .strict(),
+    })
+    .strict(),
+  z
+    .object({
+      ...common,
+      type: z.literal("pointerTurn"),
+      scope: z.enum(["layer", "glyph"]),
+      params: z
+        .object({
+          radius: number.min(40).max(1000),
+          angleDeg: number.min(0).max(90),
+        })
+        .strict(),
+    })
+    .strict(),
 ]);
 export type Behavior = z.infer<typeof BehaviorSchema>;
 export type BehaviorType = Behavior["type"];
@@ -276,7 +302,12 @@ export const PointerSchema = z.discriminatedUnion("mode", [
 const RawSceneSchema = z
   .object({
     schemaVersion: z.literal(1),
-    rendererVersion: z.enum(["1.0.0", "1.1.0", CURRENT_RENDERER_VERSION]),
+    rendererVersion: z.enum([
+      "1.0.0",
+      "1.1.0",
+      "1.2.0",
+      CURRENT_RENDERER_VERSION,
+    ]),
     id,
     revision: z.object({ id, parentId: id.nullable() }).strict(),
     seed: number.int().min(0).max(4294967295),
@@ -331,10 +362,21 @@ export const SceneSchema = RawSceneSchema.superRefine((s, ctx) => {
   const fail = (message: string, path: (string | number)[] = []) =>
     ctx.addIssue({ code: "custom", message, path });
   if (
-    s.rendererVersion !== CURRENT_RENDERER_VERSION &&
+    ["1.0.0", "1.1.0"].includes(s.rendererVersion) &&
     s.fonts.some((font) => !FONT_IDS.slice(0, 6).includes(font.id))
   )
     fail("Expanded font library requires renderer 1.2.0", ["rendererVersion"]);
+  if (
+    s.rendererVersion !== CURRENT_RENDERER_VERSION &&
+    s.layers.some((layer) =>
+      layer.behaviors.some((behavior) =>
+        ["pressure", "pointerTurn"].includes(behavior.type),
+      ),
+    )
+  )
+    fail("Pointer pressure and turn require renderer 1.3.0", [
+      "rendererVersion",
+    ]);
   if (
     !CANVAS_PRESETS.some(
       (preset) =>
@@ -515,6 +557,20 @@ export function defaultBehavior(
 ): Behavior {
   const c = { id: newId(), enabled: true, startMs: 0, endMs: durationMs };
   switch (type) {
+    case "pressure":
+      return {
+        ...c,
+        type,
+        scope: "glyph",
+        params: { radius: 320, amount: 0.35 },
+      };
+    case "pointerTurn":
+      return {
+        ...c,
+        type,
+        scope: layer?.kind === "text" ? "glyph" : "layer",
+        params: { radius: 480, angleDeg: 65 },
+      };
     case "float":
       return {
         ...c,

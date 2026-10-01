@@ -266,7 +266,12 @@ export function compileScene(
       const pulse = layer.behaviors.find(
         (behavior) => behavior.enabled && behavior.type === "pulse",
       );
-      const maxScale = pulse?.type === "pulse" ? 1 + pulse.params.amount : 1;
+      const pressure = layer.behaviors.find(
+        (behavior) => behavior.enabled && behavior.type === "pressure",
+      );
+      const maxScale =
+        (pulse?.type === "pulse" ? 1 + pulse.params.amount : 1) *
+        (pressure?.type === "pressure" ? 1 + pressure.params.amount : 1);
       if (
         Math.hypot(unit.width, unit.height) * maxScale >
         Math.min(scene.artboard.width, scene.artboard.height) - 32
@@ -323,6 +328,41 @@ function phase(b: Behavior, t: number): number | null {
   return !b.enabled || t < b.startMs || t >= b.endMs
     ? null
     : (t - b.startMs) / (b.endMs - b.startMs);
+}
+function pointerInfluence(
+  pointer: PointerSample | null,
+  x: number,
+  y: number,
+  radius: number,
+): number {
+  if (!pointer) return 0;
+  return (
+    clamp(pointer.presence, 0, 1) *
+    smooth(1 - Math.hypot(pointer.x - x, pointer.y - y) / radius)
+  );
+}
+/** A bounded directional pull with no singularity at the center or rear seam. */
+function pointerAngle(
+  pointer: PointerSample | null,
+  x: number,
+  y: number,
+  rotationDeg: number,
+  radius: number,
+  maxAngle: number,
+): number {
+  const influence = pointerInfluence(pointer, x, y, radius);
+  if (!pointer || influence === 0) return 0;
+  const local = rotate(pointer.x - x, pointer.y - y, -rotationDeg * DEG);
+  const distance = Math.hypot(local.x, local.y);
+  if (distance === 0) return 0;
+  const rear = smooth(1 + local.x / distance);
+  const softenedDistance = distance / Math.sqrt(distance * distance + 256);
+  return (
+    clamp(Math.atan2(local.y, local.x) / DEG, -maxAngle, maxAngle) *
+    influence *
+    rear *
+    softenedDistance
+  );
 }
 function scatterEnvelope(
   u: number,
@@ -488,6 +528,24 @@ export function evaluateScene(
     }
     const offset = limit(dx, dy, 240);
     commonAngle = clamp(commonAngle, -25, 25);
+    const turn = l.behaviors.find(
+      (behavior) =>
+        behavior.type === "pointerTurn" && phase(behavior, t) !== null,
+    );
+    const layerTurn =
+      turn?.type === "pointerTurn" && turn.scope === "layer"
+        ? pointerAngle(
+            input.pointer,
+            l.layout.x + offset.x,
+            l.layout.y + offset.y,
+            l.layout.rotationDeg + commonAngle,
+            turn.params.radius,
+            turn.params.angleDeg,
+          )
+        : 0;
+    const pressure = l.behaviors.find(
+      (behavior) => behavior.type === "pressure" && phase(behavior, t) !== null,
+    );
     // Breathe around the ink's center so left-aligned text does not drift as it scales.
     const scaleOrigin = base
       ? rotate(
@@ -552,17 +610,36 @@ export function evaluateScene(
         p = rotate(
           scaleOrigin.x + (unit.x + local.x - scaleOrigin.x) * commonScale,
           scaleOrigin.y + (unit.y + local.y - scaleOrigin.y) * commonScale,
-          (l.layout.rotationDeg + commonAngle) * DEG,
+          (l.layout.rotationDeg + commonAngle + layerTurn) * DEG,
         );
       let x = l.layout.x + p.x + offset.x,
         y = l.layout.y + p.y + offset.y;
-      const rotationDeg =
-          l.layout.rotationDeg + clamp(commonAngle + gAngle, -25, 25),
+      const baseRotation =
+        l.layout.rotationDeg + clamp(commonAngle + gAngle, -25, 25) + layerTurn;
+      const glyphTurn =
+        turn?.type === "pointerTurn" && turn.scope === "glyph"
+          ? pointerAngle(
+              input.pointer,
+              x,
+              y,
+              baseRotation,
+              turn.params.radius,
+              turn.params.angleDeg,
+            )
+          : 0;
+      const scale =
+        commonScale *
+        (pressure?.type === "pressure"
+          ? 1 +
+            pressure.params.amount *
+              pointerInfluence(input.pointer, x, y, pressure.params.radius)
+          : 1);
+      const rotationDeg = baseRotation + glyphTurn,
         box = unitBounds(
           x,
           y,
-          unit.width * commonScale,
-          unit.height * commonScale,
+          unit.width * scale,
+          unit.height * scale,
           rotationDeg * DEG,
         );
       const correctionX =
@@ -589,7 +666,7 @@ export function evaluateScene(
         x,
         y,
         rotationDeg,
-        scale: commonScale,
+        scale,
         fill: l.fill,
         opacity: l.opacity * opacity,
         bounds: box,

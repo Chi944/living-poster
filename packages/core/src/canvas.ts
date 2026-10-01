@@ -66,6 +66,10 @@ export function resizeScene(
           behavior.params.radius = Math.max(40, behavior.params.radius * scale);
           behavior.params.maxDistance *= scale;
           break;
+        case "pressure":
+        case "pointerTurn":
+          behavior.params.radius = Math.max(40, behavior.params.radius * scale);
+          break;
         case "bounce":
           behavior.params.height *= scale;
           break;

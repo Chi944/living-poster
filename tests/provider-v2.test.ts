@@ -7,6 +7,7 @@ import {
 } from "../apps/api/src/provider";
 import {
   applyOperations,
+  CURRENT_RENDERER_VERSION,
   EXAMPLES,
   resizeScene,
 } from "../packages/core/src/index";
@@ -49,7 +50,7 @@ describe("extended local model vocabulary", () => {
       const next = applyOperations(request.scene, reply.operations, {
         allowTextChanges: false,
       }).scene;
-      expect(next.rendererVersion).toBe("1.2.0");
+      expect(next.rendererVersion).toBe(CURRENT_RENDERER_VERSION);
       const behavior = next.layers[0].behaviors.find(
         (behavior) => behavior.type === motion,
       )!;

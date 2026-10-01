@@ -871,7 +871,7 @@ const sundayEdit = scene(
   ],
   1200101,
   portrait,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const betweenLines = scene(
@@ -944,7 +944,7 @@ const betweenLines = scene(
   ],
   1200102,
   portrait,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const formFunction = scene(
@@ -996,7 +996,7 @@ const formFunction = scene(
   ],
   1200103,
   portrait,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const freshPress = scene(
@@ -1054,7 +1054,7 @@ const freshPress = scene(
   ],
   1200201,
   square,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const objectsOfJoy = scene(
@@ -1112,7 +1112,7 @@ const objectsOfJoy = scene(
   ],
   1200202,
   square,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const playDate = scene(
@@ -1162,7 +1162,7 @@ const playDate = scene(
   ],
   1200203,
   square,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const nightGarden = scene(
@@ -1267,7 +1267,7 @@ const nightGarden = scene(
   ],
   1200301,
   story,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const softMornings = scene(
@@ -1358,7 +1358,7 @@ const softMornings = scene(
   ],
   1200302,
   story,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const studioSale = scene(
@@ -1418,7 +1418,7 @@ const studioSale = scene(
   ],
   1200303,
   story,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const fieldNotes = scene(
@@ -1523,7 +1523,7 @@ const fieldNotes = scene(
   ],
   1200401,
   landscape,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const offGrid = scene(
@@ -1584,7 +1584,7 @@ const offGrid = scene(
   ],
   1200402,
   landscape,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
 );
 
 const makeNoise = scene(
@@ -1650,7 +1650,350 @@ const makeNoise = scene(
   ],
   1200403,
   landscape,
-  CURRENT_RENDERER_VERSION,
+  "1.2.0",
+);
+
+// Original interactive studies: bundled fonts, editable vectors and recorded
+// pointer paths keep the preview and the self-contained export in agreement.
+function recordedOrbit(
+  target: Scene,
+  x: number,
+  y: number,
+  radiusX: number,
+  radiusY: number,
+): Scene {
+  target.pointer = {
+    mode: "recorded",
+    seamPolicy: "blend-250ms",
+    samples: closePointerLoop(
+      Array.from({ length: 121 }, (_, index) => {
+        const angle = (index / 120) * Math.PI * 2;
+        return {
+          timeMs: index * 50,
+          x: x + radiusX * Math.sin(angle),
+          y: y + radiusY * Math.cos(angle),
+          presence: 1,
+        };
+      }),
+      6000,
+    ),
+  };
+  return validateScene(target);
+}
+
+const underPressure = recordedOrbit(
+  scene(
+    "under-pressure",
+    "#101B2E",
+    [
+      text(
+        "pressure-series",
+        "INTERACTION STUDIES",
+        78,
+        104,
+        24,
+        "#8ABAFF",
+        mono,
+      ),
+      text("pressure-index", "01 / 03", 1002, 104, 24, "#8ABAFF", {
+        ...mono,
+        align: "right",
+      }),
+      shape("pressure-rule-left", "rect", 309, 155, 462, 4, "#536783"),
+      shape("pressure-rule-right", "rect", 771, 155, 462, 4, "#536783"),
+      text("pressure-caption", "A LITTLE CLOSER.", 78, 268, 28, "#F3F6FF", {
+        ...mono,
+        trackingEm: 0.04,
+      }),
+      text("pressure-under", "UNDER", 540, 615, 274, "#F3F6FF", {
+        ...centered,
+        fontId: "barlow-bold",
+        trackingEm: 0.01,
+        behaviors: [
+          motion(
+            "pressure-under-response",
+            "pressure",
+            { radius: 350, amount: 0.3 },
+            "glyph",
+          ),
+        ],
+      }),
+      text("pressure-title", "PRESSURE", 540, 834, 211, "#8ABAFF", {
+        ...centered,
+        fontId: "barlow-bold",
+        trackingEm: 0.06,
+        behaviors: [
+          motion(
+            "pressure-title-response",
+            "pressure",
+            { radius: 350, amount: 0.24 },
+            "glyph",
+          ),
+        ],
+      }),
+      text(
+        "pressure-description",
+        "TYPE THAT FEELS\nYOUR PRESENCE.",
+        82,
+        1053,
+        42,
+        "#F3F6FF",
+        {
+          fontId: "dm-regular",
+          trackingEm: -0.015,
+          lineHeight: 1.3,
+        },
+      ),
+      shape("pressure-signal", "ellipse", 957, 1074, 86, 86, "#8ABAFF", {
+        behaviors: [
+          motion("pressure-signal-breathe", "pulse", {
+            amount: 0.08,
+            cycles: 1,
+          }),
+        ],
+      }),
+      shape("pressure-signal-center", "ellipse", 957, 1074, 24, 24, "#101B2E"),
+      text(
+        "pressure-footer",
+        "FOLLOW THE FEELING",
+        78,
+        1258,
+        22,
+        "#8ABAFF",
+        mono,
+      ),
+      text("pressure-loop", "6 SEC / LOOP", 1002, 1258, 22, "#8ABAFF", {
+        ...mono,
+        align: "right",
+      }),
+    ],
+    1300101,
+    { width: 1080, height: 1350 },
+    CURRENT_RENDERER_VERSION,
+  ),
+  540,
+  661,
+  300,
+  144,
+);
+
+const fieldStudy = recordedOrbit(
+  scene(
+    "field-study",
+    "#101B2E",
+    [
+      text(
+        "field-study-series",
+        "INTERACTION STUDIES / 02",
+        84,
+        105,
+        25,
+        "#8ABAFF",
+        mono,
+      ),
+      text(
+        "field-study-label",
+        "DIRECTION IS A FEELING.",
+        84,
+        261,
+        28,
+        "#F3F6FF",
+        {
+          fontId: "dm-regular",
+        },
+      ),
+      text("field-study-field", "FIELD", 73, 505, 246, "#F3F6FF", {
+        fontId: "barlow-bold",
+        trackingEm: 0,
+      }),
+      text("field-study-title", "STUDY", 73, 728, 246, "#8ABAFF", {
+        fontId: "barlow-bold",
+        trackingEm: 0,
+      }),
+      text(
+        "field-study-note",
+        "Small gestures.\nA shared direction.",
+        84,
+        845,
+        36,
+        "#D8E4F7",
+        {
+          fontId: "dm-regular",
+          lineHeight: 1.4,
+        },
+      ),
+      shape("field-study-divider", "rect", 857, 560, 4, 640, "#415471"),
+      ...Array.from({ length: 24 }, (_, index) => {
+        const column = index % 6;
+        const row = Math.floor(index / 6);
+        return shape(
+          `needle-${row + 1}-${column + 1}`,
+          "rect",
+          1001 + column * 137,
+          272 + row * 185,
+          87,
+          12,
+          ["#8ABAFF", "#92E6E8", "#5F91CB"][(column + row) % 3]!,
+          {
+            cornerRadius: 6,
+            behaviors: [
+              motion(`turn-${index}`, "pointerTurn", {
+                radius: 510,
+                angleDeg: 90,
+              }),
+            ],
+          },
+        );
+      }),
+      text(
+        "field-study-field-label",
+        "MOVE THROUGH THE FIELD",
+        1001,
+        950,
+        23,
+        "#92E6E8",
+        mono,
+      ),
+      text(
+        "field-study-footer",
+        "A STUDY OF INVISIBLE FORCES",
+        84,
+        1007,
+        22,
+        "#8ABAFF",
+        mono,
+      ),
+      text("field-study-loop", "6 SEC / LOOP", 1836, 1007, 22, "#8ABAFF", {
+        ...mono,
+        align: "right",
+      }),
+    ],
+    1300102,
+    landscape,
+    CURRENT_RENDERER_VERSION,
+  ),
+  1343,
+  549,
+  288,
+  243,
+);
+
+function passFloat(id: string): Behavior[] {
+  return [
+    motion(`${id}-float`, "float", {
+      amplitudeX: 16,
+      amplitudeY: 10,
+      cycles: 1,
+      phase: 0,
+      rotationAmplitudeDeg: 0,
+    }),
+  ];
+}
+
+const openStudio = recordedOrbit(
+  scene(
+    "open-studio",
+    "#101B2E",
+    [
+      text(
+        "studio-pass-header",
+        "DESIGN / IN GOOD COMPANY",
+        78,
+        99,
+        23,
+        "#8ABAFF",
+        mono,
+      ),
+      text("studio-pass-index", "03", 1002, 99, 23, "#8ABAFF", {
+        ...mono,
+        align: "right",
+      }),
+      shape("studio-pass-ribbon", "rect", 540, 275, 48, 326, "#8ABAFF", {
+        behaviors: passFloat("studio-pass-ribbon"),
+      }),
+      shape("studio-pass-ribbon-stitch", "rect", 540, 275, 5, 326, "#F3F6FF", {
+        behaviors: passFloat("studio-pass-ribbon-stitch"),
+      }),
+      shape("studio-pass-shadow", "rect", 557, 767, 640, 640, "#203651", {
+        cornerRadius: 22,
+        behaviors: passFloat("studio-pass-shadow"),
+      }),
+      shape("studio-pass-card", "rect", 540, 748, 640, 640, "#F3F6FF", {
+        cornerRadius: 22,
+        behaviors: passFloat("studio-pass-card"),
+      }),
+      shape("studio-pass-slot", "rect", 540, 457, 110, 16, "#101B2E", {
+        cornerRadius: 8,
+        behaviors: passFloat("studio-pass-slot"),
+      }),
+      text("studio-pass-access", "ALL IDEAS WELCOME", 267, 541, 23, "#254363", {
+        ...mono,
+        behaviors: passFloat("studio-pass-access"),
+      }),
+      text("studio-pass-open", "OPEN", 258, 704, 147, "#101B2E", {
+        fontId: "barlow-bold",
+        trackingEm: 0.01,
+        behaviors: passFloat("studio-pass-open"),
+      }),
+      text("studio-pass-title", "STUDIO", 258, 850, 147, "#101B2E", {
+        fontId: "barlow-bold",
+        trackingEm: 0.01,
+        behaviors: passFloat("studio-pass-title"),
+      }),
+      shape("studio-pass-rule", "rect", 540, 891, 540, 4, "#9EB5D0", {
+        behaviors: passFloat("studio-pass-rule"),
+      }),
+      text(
+        "studio-pass-details",
+        "SATURDAY / 12:00—18:00\nWORKROOM 03",
+        267,
+        947,
+        24,
+        "#254363",
+        {
+          ...mono,
+          lineHeight: 1.55,
+          behaviors: passFloat("studio-pass-details"),
+        },
+      ),
+      shape("studio-pass-dial", "ellipse", 787, 1007, 54, 54, "#254363", {
+        behaviors: passFloat("studio-pass-dial"),
+      }),
+      shape("studio-pass-needle", "rect", 787, 1007, 36, 7, "#92E6E8", {
+        cornerRadius: 3,
+        behaviors: [
+          ...passFloat("studio-pass-needle"),
+          motion("studio-pass-pointer-turn", "pointerTurn", {
+            radius: 400,
+            angleDeg: 80,
+          }),
+        ],
+      }),
+      text("studio-pass-number", "VISITOR / 003", 267, 1031, 20, "#254363", {
+        ...mono,
+        behaviors: passFloat("studio-pass-number"),
+      }),
+      text(
+        "studio-pass-footer",
+        "COME CURIOUS. LEAVE INSPIRED.",
+        540,
+        1249,
+        24,
+        "#8ABAFF",
+        {
+          ...mono,
+          ...centered,
+        },
+      ),
+    ],
+    1300103,
+    { width: 1080, height: 1350 },
+    CURRENT_RENDERER_VERSION,
+  ),
+  717,
+  933,
+  160,
+  104,
 );
 
 export const EXAMPLES: PosterExample[] = [
@@ -1950,5 +2293,61 @@ export const EXAMPLES: PosterExample[] = [
     suggestedInstruction: "Make NOISE. wave more strongly.",
     thumbnailTimeMs: 0,
     scene: makeNoise,
+  },
+  {
+    id: "under-pressure",
+    title: "UNDER PRESSURE",
+    category: "Art & type",
+    tags: [
+      "interactive",
+      "reel study",
+      "pressure",
+      "blue",
+      "dark",
+      "typography",
+    ],
+    description:
+      "Electric-blue letters grow near the pointer. A recorded gesture makes the typography breathe in every exported loop.",
+    suggestedInstruction: "Make PRESSURE react more strongly to the pointer.",
+    thumbnailTimeMs: 1500,
+    scene: underPressure,
+  },
+  {
+    id: "field-study",
+    title: "FIELD STUDY",
+    category: "Art & type",
+    tags: [
+      "interactive",
+      "reel study",
+      "magnetic",
+      "pointer",
+      "blue",
+      "landscape",
+      "geometric",
+    ],
+    description:
+      "A field of 24 editable cyan and blue needles follows your direction, with a recorded path ready to play or export.",
+    suggestedInstruction: "Make the field respond from farther away.",
+    thumbnailTimeMs: 1500,
+    scene: fieldStudy,
+  },
+  {
+    id: "open-studio",
+    title: "OPEN STUDIO",
+    category: "Art & type",
+    tags: [
+      "interactive",
+      "reel study",
+      "event",
+      "badge",
+      "float",
+      "blue",
+      "invitation",
+    ],
+    description:
+      "An editable hanging event pass with coordinated floating layers and a small pointer-responsive compass. Flat vectors, no physics setup.",
+    suggestedInstruction: "Change the event details on the pass.",
+    thumbnailTimeMs: 1500,
+    scene: openStudio,
   },
 ];

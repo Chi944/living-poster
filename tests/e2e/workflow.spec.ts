@@ -133,7 +133,7 @@ test("searchable templates, shape creation, behavior controls and recorded point
   await page.getByRole("button", { name: "Browse all examples" }).click();
   await expect(page.locator(".example-grid button")).toHaveCount(6);
   await expect(page.locator(".template-filter-row")).toContainText(
-    "22 templates",
+    "25 templates",
   );
   await page
     .getByRole("textbox", { name: "Search templates", exact: true })

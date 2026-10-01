@@ -91,7 +91,7 @@ describe("expanded free bundled font library", () => {
       const scene = fixture(FONT_IDS.slice(0, 6));
       scene.rendererVersion = rendererVersion;
       expect(validateScene(scene).rendererVersion).toBe(rendererVersion);
-      expect(reviseScene(scene).rendererVersion).toBe("1.2.0");
+      expect(reviseScene(scene).rendererVersion).toBe(CURRENT_RENDERER_VERSION);
       expect(scene.rendererVersion).toBe(rendererVersion);
     }
   });
@@ -137,7 +137,7 @@ describe("expanded free bundled font library", () => {
         changes: { fontId: "dm-bold" },
       },
     ]).scene;
-    expect(next.rendererVersion).toBe("1.2.0");
+    expect(next.rendererVersion).toBe(CURRENT_RENDERER_VERSION);
     expect(next.fonts).toEqual([
       { id: "space-regular", assetHash: "bundled-v1" },
       { id: "dm-bold", assetHash: "bundled-v1" },

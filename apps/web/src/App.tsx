@@ -1237,6 +1237,7 @@ export function App() {
               <Inspector
                 panel={toolPanel === "ai" ? "style" : toolPanel}
                 ready={ready}
+                onPreview={() => setMobileView("canvas")}
               />
             </div>
             <div hidden={toolPanel !== "ai"}>

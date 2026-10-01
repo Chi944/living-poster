@@ -18,8 +18,9 @@ import {
   type TextLayer,
 } from "../../../packages/core/src";
 import { useEditor, updateLayer } from "./store";
-import { MOTION_RECIPES, recipeBehaviors } from "./motion-recipes";
+import { MOTION_RECIPES } from "./motion-recipes";
 import { FontPicker } from "./FontPicker";
+import { MotionPlayground, applyMotionRecipe } from "./MotionPlayground";
 const invalidate = () => {
   useEditor.getState().enterEditMode();
   useEditor.setState((s) => ({ mutationEpoch: s.mutationEpoch + 1 }));
@@ -166,6 +167,8 @@ const motionNames: Record<BehaviorType, string> = {
   pendulum: "Pendulum",
   bounce: "Bounce",
   reveal: "Reveal",
+  pressure: "Text pressure",
+  pointerTurn: "Magnetic turn",
 };
 const paramNames: Record<string, string> = {
   amplitudeX: "Horizontal",
@@ -286,7 +289,9 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
             }
           />
         </div>
-        {["scatter", "bounce", "reveal"].includes(behavior.type) &&
+        {["scatter", "bounce", "reveal", "pointerTurn"].includes(
+          behavior.type,
+        ) &&
           layer.kind === "text" && (
             <label className="field">
               <span>Apply to</span>
@@ -297,7 +302,8 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
                     if (
                       b.type === "scatter" ||
                       b.type === "bounce" ||
-                      b.type === "reveal"
+                      b.type === "reveal" ||
+                      b.type === "pointerTurn"
                     )
                       b.scope = e.target.value as "layer" | "glyph";
                   })
@@ -331,7 +337,12 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
               ) : (
                 <NumberField
                   key={key}
-                  label={paramNames[key] ?? key}
+                  label={
+                    (["pressure", "pointerTurn"].includes(behavior.type) &&
+                      controls.find((control) => control.key === key)?.label) ||
+                    paramNames[key] ||
+                    key
+                  }
                   value={value as number}
                   min={
                     controls.find((control) => control.key === key)?.min ??
@@ -427,9 +438,11 @@ function MotionCard({ behavior, layer }: { behavior: Behavior; layer: Layer }) {
 export function Inspector({
   panel,
   ready,
+  onPreview,
 }: {
   panel: "style" | "layout" | "motion";
   ready: boolean;
+  onPreview?: () => void;
 }) {
   const selected = useEditor((s) => s.selected),
     scene = useEditor((s) => s.scene),
@@ -777,37 +790,26 @@ export function Inspector({
         id="motion-recipes"
         hidden={panel !== "motion"}
       >
+        <MotionPlayground
+          layerId={layer.id}
+          ready={ready}
+          onApply={onPreview}
+        />
         <div className="section-caption">
           TRY A MOVEMENT <span>12 RECIPES</span>
         </div>
         <div className="motion-recipes">
           {MOTION_RECIPES.filter(
-            (recipe) => !recipe.textOnly || layer.kind === "text",
+            (recipe) =>
+              !["pressure", "pointer-turn"].includes(recipe.id) &&
+              (!recipe.textOnly || layer.kind === "text"),
           ).map((recipe) => (
             <button
               key={recipe.id}
               title={recipe.description}
               aria-label={`Apply ${recipe.label} animation`}
               onClick={() => {
-                const applied = updateLayer(
-                  layer.id,
-                  (draft) => {
-                    draft.behaviors = recipeBehaviors(
-                      recipe.id,
-                      draft,
-                      scene.timeline.durationMs,
-                      scene.artboard,
-                    );
-                  },
-                  `${recipe.label} applied · click the canvas to edit, or Undo to restore the previous motion.`,
-                );
-                if (applied) {
-                  useEditor.setState({
-                    timeMs: 0,
-                    ...(recipe.id === "repel" ? { livePointer: true } : {}),
-                  });
-                  useEditor.getState().setPlayback(true);
-                }
+                if (applyMotionRecipe(layer.id, recipe.id)) onPreview?.();
               }}
             >
               <span aria-hidden="true">{recipe.symbol}</span>
@@ -840,7 +842,8 @@ export function Inspector({
               .filter(
                 (type) =>
                   !layer.behaviors.some((b) => b.type === type) &&
-                  (layer.kind === "text" || type !== "wave"),
+                  (layer.kind === "text" ||
+                    !["wave", "pressure"].includes(type)),
               )
               .map((type) => (
                 <button

@@ -19,6 +19,8 @@ const MOTIONS = [
   "pendulum",
   "bounce",
   "reveal",
+  "pressure",
+  "pointerTurn",
 ] as const;
 
 /** One scalar change per action avoids optional properties being hallucinated
@@ -214,7 +216,7 @@ DECISION: Use kind=edit when targets and supported changes are clear. Use kind=c
 CLARIFICATION CHECK: Before any edit, identify evidence for each target. A singular pronoun or vague reference with no selection and no identifying description is unresolved: ask which layer. Never choose the headline simply because no target was given. When quoted/literal wording matches multiple layers, ask which occurrence unless selection or an explicit size/location qualifier makes it unique; do not silently choose the biggest. If an instruction names neither a concrete change nor an identifiable target, ask for direction. If a required colour, destination or other essential value is missing, ask for it. Requests naming a supported motion and an unambiguous target can use balanced motion defaults and need no clarification. Unsupported required effects take priority over ambiguous targeting: return unsupported.
 ACTIONS: Each action changes ONLY one property. Emit the minimum actions needed. All unmentioned properties, layers and words must stay identical. A request to preserve an already-still layer needs no action. Never rewrite unless explicitly asked and permitted.
 MOTION DEFAULTS: Resolve the target before planning motion. A motion name or descriptive comparison cannot identify a missing target; an unresolved target still requires kind=clarify. For kind=edit with resolved targets, the editor supplies complete defaults when you emit animate. Add motionParameter only when the user explicitly supplies a number; descriptive comparisons do not request numeric changes and you must not invent numeric defaults.
-animate adds/enables one named motion with balanced defaults: float is layer drift, wave is letter motion, orbit moves around a nearby point, scatter departs then reassembles, attract pulls toward an anchor, repel responds to the pointer, pulse breathes in scale, pendulum swings in rotation, bounce hops in a staggered rhythm, reveal fades letters in and out. New motion numeric controls: pulse amount 0..0.35; pendulum angleDeg 0..25; bounce height 0..120; reveal minOpacity 0..1; bounce/reveal stagger 0..1; pulse/pendulum/bounce cycles 1..4. For an orbit with no explicitly named anchor, emit only animate/orbit: its nearby point is automatic. Do not invent another layer as the orbit center. A layer orbit anchor must be within 120 pixels; if an explicitly requested anchor is farther away, ask whether to move closer. Repel always uses the pointer: emit animate/repel, never anchor and never a center point. For attraction toward a named layer use anchor on each MOVING layer with anchorLayerId naming the stationary destination; anchor creates the motion automatically. Use motionParameter only for explicitly requested numeric tuning; never invent zero-valued parameters. Keep existing motion when editing type/layout. Use move with delta for relative movement (positive y is down); position for absolute coordinates. Typography numbers are absolute values.
+animate adds/enables one named motion with balanced defaults: float is layer drift, wave is letter motion, orbit moves around a nearby point, scatter departs then reassembles, attract pulls toward an anchor, repel responds to the pointer, pulse breathes in scale, pendulum swings in rotation, bounce hops in a staggered rhythm, reveal fades letters in and out, pressure grows individual text glyphs near the pointer (text only), pointerTurn magnetically turns letters or shapes toward the pointer. New motion numeric controls: pulse amount 0..0.35; pendulum angleDeg 0..25; bounce height 0..120; reveal minOpacity 0..1; bounce/reveal stagger 0..1; pulse/pendulum/bounce cycles 1..4; pressure radius 40..600 and amount 0..0.6; pointerTurn radius 40..1000 and angleDeg 0..90. For an orbit with no explicitly named anchor, emit only animate/orbit: its nearby point is automatic. Do not invent another layer as the orbit center. A layer orbit anchor must be within 120 pixels; if an explicitly requested anchor is farther away, ask whether to move closer. Repel, pressure and pointerTurn use the pointer, never anchor or a center point. For attraction toward a named layer use anchor on each MOVING layer with anchorLayerId naming the stationary destination; anchor creates the motion automatically. Use motionParameter only for explicitly requested numeric tuning; never invent zero-valued parameters. Keep existing motion when editing type/layout. Use move with delta for relative movement (positive y is down); position for absolute coordinates. Typography numbers are absolute values.
 OUTPUT FORMAT (replace placeholders with real values):
 {"plan":"Brief list of all requested changes and exact targets","kind":"edit","actions":[ACTION,...]}
 {"plan":"Identify the information missing","kind":"clarify","question":"One question about the missing information"}
@@ -231,7 +233,7 @@ ACTION formats; include ONLY the fields shown for that action:
 {"action":"align","layerId":"ID","value":"left" or "center" or "right"}
 {"action":"font","layerId":"ID","value":"BUNDLED_FONT_ID"}
 BUNDLED FONT CATALOG: ${FONT_OPTIONS.map((font) => `${font.label} = ${font.id}`).join(", ")}.
-{"action":"animate","layerId":"ID","motion":"float" or "orbit" or "wave" or "scatter" or "attract" or "repel" or "pulse" or "pendulum" or "bounce" or "reveal"}
+{"action":"animate","layerId":"ID","motion":"float" or "orbit" or "wave" or "scatter" or "attract" or "repel" or "pulse" or "pendulum" or "bounce" or "reveal" or "pressure" or "pointerTurn"}
 {"action":"anchor","layerId":"MOVING_ID","motion":"attract" or "orbit","anchorLayerId":"DESTINATION_ID"}
 {"action":"motionParameter","layerId":"ID","motion":"MOTION","parameter":"PARAMETER_FROM_EXISTING_BEHAVIOR","value":NUMBER}
 {"action":"stop","layerId":"ID","motion":"all" or "MOTION"}
@@ -244,29 +246,169 @@ Return JSON only.`;
  * Unlike a characters/4 estimate this rejects oversized requests before Ollama
  * can silently truncate layer IDs or the user's instruction. */
 export function buildModelMessages(input: AiInput) {
+  const payload = {
+    instruction: input.instruction,
+    selectedLayerIds: input.selectedLayerIds,
+    allowTextChanges: input.allowTextChanges,
+    scene: {
+      artboard: input.scene.artboard,
+      timeline: input.scene.timeline,
+      layers: input.scene.layers,
+    },
+  };
   const messages = [
     { role: "system", content: SYSTEM_PROMPT },
     {
       role: "user",
-      content: JSON.stringify({
-        instruction: input.instruction,
-        selectedLayerIds: input.selectedLayerIds,
-        allowTextChanges: input.allowTextChanges,
-        scene: {
-          artboard: input.scene.artboard,
-          timeline: input.scene.timeline,
-          layers: input.scene.layers,
-        },
-      }),
+      content: JSON.stringify(payload),
     },
   ];
-  if (
+  const byteCount = () =>
     messages.reduce(
       (bytes, message) =>
         bytes + new TextEncoder().encode(message.content).byteLength,
       0,
-    ) > 13000
-  )
+    );
+  // Small posters keep their complete context. For larger posters, omit only
+  // exact defaults and declare their values: no target or meaningful value is lost.
+  if (byteCount() > 13000) {
+    const omittedDefaults = {
+      layer: { visible: true, locked: false, opacity: 1, behaviors: [] },
+      layout: { rotationDeg: 0 },
+      behavior: {
+        enabled: true,
+        startMs: 0,
+        endMs: input.scene.timeline.durationMs,
+      },
+    };
+    const layers = input.scene.layers.map((layer) => {
+      const compact = structuredClone(layer) as Record<string, unknown>;
+      if (layer.visible) delete compact.visible;
+      if (!layer.locked) delete compact.locked;
+      if (layer.opacity === 1) delete compact.opacity;
+      const layout = compact.layout as Record<string, unknown>;
+      if (layer.layout.rotationDeg === 0) delete layout.rotationDeg;
+      if (!layer.behaviors.length) delete compact.behaviors;
+      else
+        compact.behaviors = layer.behaviors.map((behavior) => {
+          const motion = structuredClone(behavior) as Record<string, unknown>;
+          if (behavior.enabled) delete motion.enabled;
+          if (behavior.startMs === 0) delete motion.startMs;
+          if (behavior.endMs === input.scene.timeline.durationMs)
+            delete motion.endMs;
+          return motion;
+        });
+      return compact;
+    });
+    messages[0]!.content +=
+      "\nCOMPACT SCENE: omittedDefaults declares values of omitted layer, layout and behavior fields. Restore these defaults when reading the scene; all layers and all non-default values remain present.";
+    messages[1]!.content = JSON.stringify({
+      ...payload,
+      omittedDefaults,
+      scene: { ...payload.scene, layers },
+    });
+    if (byteCount() > 13000) {
+      // Repeated grid motions can share values while keeping each original ID.
+      // This is context serialization only: saved scenes and edit validation stay strict.
+      const counts = new Map<string, number>();
+      const keyOf = (motion: Record<string, unknown>) => {
+        const { id: _id, ...values } = motion;
+        return JSON.stringify(values);
+      };
+      for (const layer of layers)
+        for (const motion of (layer.behaviors ?? []) as Record<
+          string,
+          unknown
+        >[]) {
+          const key = keyOf(motion);
+          counts.set(key, (counts.get(key) ?? 0) + 1);
+        }
+      const keys = new Map<string, string>();
+      const motionPresets: Record<string, Record<string, unknown>> = {};
+      for (const layer of layers)
+        if (layer.behaviors)
+          layer.behaviors = (layer.behaviors as Record<string, unknown>[]).map(
+            (motion) => {
+              const key = keyOf(motion);
+              if ((counts.get(key) ?? 0) < 2) return motion;
+              let preset = keys.get(key);
+              if (!preset) {
+                preset = `motion${keys.size + 1}`;
+                keys.set(key, preset);
+                motionPresets[preset] = JSON.parse(key);
+              }
+              return { id: motion.id, preset };
+            },
+          );
+      if (keys.size) {
+        messages[0]!.content +=
+          "\nmotionPresets holds shared behavior values. Expand each behavior {id,preset} from motionPresets[preset], retain its own id, then restore omittedDefaults.";
+        messages[1]!.content = JSON.stringify({
+          ...payload,
+          omittedDefaults,
+          motionPresets,
+          scene: { ...payload.scene, layers },
+        });
+      }
+      if (byteCount() > 13000) {
+        const sharedValues = (layer: Record<string, unknown>) => {
+          const { id: _id, name: _name, layout: _layout, ...values } = layer;
+          if (Array.isArray(values.behaviors))
+            values.behaviors = values.behaviors.map((behavior) => {
+              const { id: _behaviorId, ...motion } = behavior;
+              return motion;
+            });
+          return values;
+        };
+        const repetitions = new Map<string, number>();
+        for (const layer of layers) {
+          if (layer.kind !== "shape") continue;
+          const key = JSON.stringify(sharedValues(layer));
+          repetitions.set(key, (repetitions.get(key) ?? 0) + 1);
+        }
+        const names = new Map<string, string>();
+        const layerPresets: Record<string, Record<string, unknown>> = {};
+        const packed = layers.map((layer) => {
+          // Keep every text string and its typography inline for target resolution.
+          if (layer.kind !== "shape") return layer;
+          const values = sharedValues(layer),
+            key = JSON.stringify(values);
+          if ((repetitions.get(key) ?? 0) < 2) return layer;
+          let preset = names.get(key);
+          if (!preset) {
+            preset = `l${names.size + 1}`;
+            names.set(key, preset);
+            layerPresets[preset] = values;
+          }
+          return {
+            id: layer.id,
+            name: layer.name,
+            layout: layer.layout,
+            layerPreset: preset,
+            ...(layer.behaviors
+              ? {
+                  behaviorIds: (
+                    layer.behaviors as Record<string, unknown>[]
+                  ).map((behavior) => behavior.id),
+                }
+              : {}),
+          };
+        });
+        if (names.size) {
+          messages[0]!.content +=
+            "\nExpand layerPreset from layerPresets, retaining id/name/layout. behaviorIds supplies the original IDs in behavior order. Then expand motion presets and defaults.";
+          messages[1]!.content = JSON.stringify({
+            ...payload,
+            omittedDefaults,
+            ...(keys.size ? { motionPresets } : {}),
+            layerPresets,
+            scene: { ...payload.scene, layers: packed },
+          });
+        }
+      }
+    }
+  }
+  if (byteCount() > 13000)
     throw new Error(
       "The scene and instruction are too large for the local model context. Use a smaller poster or a shorter instruction; manual editing remains available.",
     );
@@ -310,7 +452,7 @@ function interpretActions(raw: unknown, input: AiInput): AiResult {
     return {
       kind: "unsupported",
       explanation:
-        "That request needs an effect outside this editor. Supported tools are text, rectangles, ellipses, typography, colour, layout, and float, orbit, wave, scatter, attract, pointer-repel, pulse, pendulum, bounce or reveal motion.",
+        "That request needs an effect outside this editor. Supported tools are text, rectangles, ellipses, typography, colour, layout, and float, orbit, wave, scatter, attract, pointer-repel, pulse, pendulum, bounce, reveal, pointer-pressure or pointer-turn motion.",
     };
   if (parsed.kind !== "edit") return parsed;
   const operations: EditOperation[] = [];

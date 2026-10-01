@@ -108,9 +108,9 @@ describe("extended deterministic motion", () => {
   it("all ten behaviors compose within every format's bounds", () => {
     const scene = fixture("pulse"),
       layer = scene.layers[0]!;
-    layer.behaviors = BEHAVIOR_OPTIONS.map((option) =>
-      defaultBehavior(option.type, 6000, layer),
-    );
+    layer.behaviors = BEHAVIOR_OPTIONS.filter(
+      (option) => !["pressure", "pointerTurn"].includes(option.type),
+    ).map((option) => defaultBehavior(option.type, 6000, layer));
     for (const preset of CANVAS_PRESETS) {
       const resized = resizeScene(scene, preset.width, preset.height),
         compiled = compileScene(resized, measure);

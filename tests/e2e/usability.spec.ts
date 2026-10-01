@@ -193,13 +193,13 @@ test("templates are searchable and paginated without a long gallery", async ({
   await page.setViewportSize({ width: 1366, height: 768 });
   await open(page);
   await page.getByRole("button", { name: "Browse all examples" }).click();
-  await expect(page.getByText("22 templates", { exact: true })).toBeVisible();
+  await expect(page.getByText("25 templates", { exact: true })).toBeVisible();
   await expect(page.locator(".example-grid > button")).toHaveCount(6);
   await expect(
     page.getByRole("button", { name: "Next template page" }),
   ).toBeInViewport();
   await page.getByRole("button", { name: "Next template page" }).click();
-  await expect(page.getByText("Page 2 of 4", { exact: true })).toBeVisible();
+  await expect(page.getByText("Page 2 of 5", { exact: true })).toBeVisible();
   await page.getByLabel("Search templates").fill("night garden");
   await expect(page.locator(".example-grid > button")).toHaveCount(1);
   await expect(page.getByText("Page 1 of 1", { exact: true })).toBeVisible();

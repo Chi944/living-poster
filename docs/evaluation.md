@@ -1,6 +1,16 @@
 # Evaluation and release evidence
 
-## Version 1.2 fonts, templates and editor
+## Version 1.3 reel study and motion playground · 1 October 2026
+
+The release adds original Text pressure and Magnetic turn behaviors, an isolated motion-preview dialog, and three editable templates. The source observations and boundaries are documented in the [reel study](reel-study-2026-10-01.md).
+
+Final local verification passes **153 unit/integration tests**, **56 native browser tests**, and **6 hosted browser tests**. Native and static production builds, formatting and diff checks pass. The dependency audit reports zero vulnerabilities after four compatible dependency updates. All 25 templates match five exact evaluated frames in offline HTML exports; all 19 bundled faces replay offline.
+
+The actual-font geometry probe validates all 25 templates across four canvas formats, for **100 variants**, with exact loop endpoints and zero bounds corrections at the sampled times. Preview tests cover cancelling without changing the scene, applying only selected motion, restoring it with one Undo, editing afterward, keyboard access, and desktop/mobile accessibility. Scatter's applied scene matches its preview pixel-for-pixel at an intermediate frame, and Play resumes automatic pointer movement after keyboard positioning. The modal starts paused and the mobile preview and Apply control fit a 390 × 844 viewport.
+
+The local provider's structured vocabulary includes both new motion types. Controlled tests verify range/scope validation, exact reconstruction of compact scene context, retention of every layer identity, and rejection of oversized requests. **No model inference was run for this release.** Historical model-quality results below describe earlier provider versions, not the new vocabulary or compact context. All new features use the existing free browser stack; no paid calls or source media are shipped.
+
+## Version 1.2 fonts, templates and editor (historical)
 
 Version 1.2 passes **122 unit/integration tests**, **47 native browser tests**, and **6 hosted browser tests** against the locally served browser build. This includes font hash/coverage checks, legacy renderer compatibility, atomic font changes, tabbed editing, font search and automatic size fitting with Undo, template search/filtering, mobile workspace views, browser persistence and portable sharing.
 
@@ -8,7 +18,7 @@ All 22 template exports match five exact evaluated frames in the tested browser.
 
 The live local Qwen3 4B font evaluation passed **7/8** cases, with **8.94 seconds p95 latency** and **$0 API cost**. The request for Libre Baskerville Regular produced an invalid action/reference and was safely rejected with the poster unchanged. That font remains available through the manual picker. The retained [font evaluation report](../evals/results/2026-09-12T22-27-57-082Z-qwen3-4b.json) records every outcome, latency, token count and provider/fixture hash. No paid API, cloud model or generation credit was used. Independent human creative review remains pending.
 
-The current provider also passed **19/20** cases in the existing release holdout, with **19 valid results**, **3.047 seconds p95 latency**, and **$0 API cost**. `release-10` produced an invalid action/reference and was rejected without changing the scene. The [current holdout report](../evals/results/2026-09-12T22-36-05-299Z-qwen3-4b.json) retains that failure. The historical 20/20 result below belongs to the previous 1.1 provider run.
+The 1.2 provider also passed **19/20** cases in the existing release holdout, with **19 valid results**, **3.047 seconds p95 latency**, and **$0 API cost**. `release-10` produced an invalid action/reference and was rejected without changing the scene. The [1.2 holdout report](../evals/results/2026-09-12T22-36-05-299Z-qwen3-4b.json) retains that failure. The historical 20/20 result below belongs to the previous 1.1 provider run.
 
 The updated benchmark completed a functional smoke run across 24 cases: all 22 templates and the two stress fixtures, using all 19 fonts and each scene's actual canvas dimensions. This smoke run verifies that the expanded benchmark runs; it does not replace the historical full-duration performance measurements below.
 

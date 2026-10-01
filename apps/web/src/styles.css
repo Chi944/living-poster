@@ -2406,6 +2406,284 @@ h3 {
 .tool-content .motion-recipes button > span:last-child {
   font-size: 10px;
 }
+.motion-playground-launch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 15px 12px;
+  border-radius: 7px;
+  text-align: left;
+  background: #15243b;
+  color: #f3f6ff;
+}
+.motion-playground-launch > span {
+  flex: 1;
+}
+.motion-playground-launch strong {
+  display: block;
+  font-size: 13px;
+}
+.motion-playground-launch small {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #bed1ef;
+}
+.motion-dialog {
+  width: min(970px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid #314158;
+  border-radius: 12px;
+  background: #101b2e;
+  color: #f3f6ff;
+  box-shadow: 0 25px 110px #080e1c66;
+}
+.motion-dialog::backdrop {
+  background: #101827aa;
+  backdrop-filter: blur(5px);
+}
+.motion-dialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #314158;
+}
+.motion-dialog h2 {
+  font-size: 20px;
+  letter-spacing: -0.03em;
+}
+.motion-dialog header p {
+  color: #b9c9df;
+  font-size: 12px;
+  margin-top: 5px;
+}
+.motion-dialog button:focus-visible,
+.motion-dialog select:focus-visible,
+.motion-dialog canvas:focus-visible,
+.motion-dialog input:focus-visible {
+  outline: 2px solid #8abaff;
+  outline-offset: 3px;
+}
+.motion-dialog .icon-button {
+  color: #f3f6ff;
+  flex-shrink: 0;
+}
+.motion-lab-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 305px;
+}
+.motion-lab-stage {
+  padding: 24px;
+  min-width: 0;
+  background: #0b1423;
+}
+.motion-preview-holder {
+  height: min(48dvh, 450px);
+  min-height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.motion-preview {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  touch-action: none;
+  border-radius: 3px;
+}
+.motion-preview-transport {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding-top: 18px;
+}
+.motion-preview-transport button {
+  min-width: 36px;
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #43546c;
+  border-radius: 50%;
+  color: #f3f6ff;
+}
+.motion-preview-transport input {
+  flex: 1;
+  min-width: 0;
+  accent-color: #8abaff;
+}
+.motion-preview-transport > span {
+  width: 34px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: #b9c9df;
+}
+.motion-preview-hint {
+  min-height: 34px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: #b9c9df;
+  line-height: 1.5;
+}
+.motion-lab-controls {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.motion-category {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  color: #b9c9df;
+}
+.motion-category select {
+  width: 185px;
+  padding: 9px;
+  background: #1b2b43;
+  color: #f3f6ff;
+  border: 1px solid #43546c;
+  border-radius: 4px;
+}
+.motion-lab-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.motion-lab-choices button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  min-height: 69px;
+  padding: 9px 4px;
+  border: 1px solid #43546c;
+  border-radius: 5px;
+  color: #dbe7f8;
+  font-size: 11px;
+}
+.motion-lab-choices button > span {
+  font-size: 22px;
+  color: #8abaff;
+}
+.motion-lab-choices button[aria-pressed="true"] {
+  background: #26486e;
+  border-color: #8abaff;
+  color: #fff;
+}
+.motion-lab-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #b9c9df;
+}
+.motion-lab-pagination button {
+  width: 32px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: #f3f6ff;
+}
+.motion-recipe-detail {
+  border-top: 1px solid #314158;
+  padding-top: 16px;
+}
+.motion-recipe-detail > span {
+  color: #8abaff;
+  font-size: 10px;
+}
+.motion-recipe-detail h3 {
+  margin: 7px 0;
+  font-size: 21px;
+  letter-spacing: -0.03em;
+}
+.motion-recipe-detail p,
+.motion-apply-note {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #b9c9df;
+}
+.motion-apply-note {
+  margin-top: auto;
+}
+.motion-dialog .motion-apply {
+  background: #8abaff;
+  color: #101b2e;
+  border: 0;
+  justify-content: center;
+  min-height: 42px;
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .motion-dialog {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+  .motion-dialog > header {
+    padding: 14px 16px;
+  }
+  .motion-dialog h2 {
+    font-size: 18px;
+  }
+  .motion-dialog header p {
+    font-size: 10px;
+  }
+  .motion-lab-body {
+    grid-template-columns: 1fr;
+  }
+  .motion-lab-stage {
+    padding: 12px 16px;
+  }
+  .motion-preview-holder {
+    height: 23dvh;
+    min-height: 135px;
+  }
+  .motion-preview-transport {
+    padding-top: 8px;
+  }
+  .motion-preview-hint {
+    min-height: 0;
+    margin-top: 6px;
+    font-size: 10px;
+  }
+  .motion-lab-controls {
+    padding: 12px 16px 16px;
+    gap: 9px;
+  }
+  .motion-lab-choices {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .motion-lab-choices button {
+    min-height: 54px;
+    gap: 3px;
+    font-size: 10px;
+  }
+  .motion-lab-choices button > span {
+    font-size: 18px;
+  }
+  .motion-recipe-detail {
+    padding-top: 9px;
+  }
+  .motion-recipe-detail h3 {
+    margin: 4px 0;
+    font-size: 18px;
+  }
+  .motion-apply-note {
+    font-size: 10px;
+  }
+}
 .font-trigger {
   display: flex;
   align-items: center;

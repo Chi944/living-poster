@@ -15,6 +15,26 @@ export interface BehaviorOption {
 }
 export const BEHAVIOR_OPTIONS: readonly BehaviorOption[] = [
   {
+    type: "pressure",
+    label: "Pointer pressure",
+    description: "Grow nearby letters as the pointer moves over them.",
+    scopes: ["glyph"],
+    controls: [
+      { key: "radius", label: "Reach", min: 40, max: 600, step: 1 },
+      { key: "amount", label: "Expansion", min: 0, max: 0.6, step: 0.01 },
+    ],
+  },
+  {
+    type: "pointerTurn",
+    label: "Pointer turn",
+    description: "Turn letters or shapes gently toward a nearby pointer.",
+    scopes: ["layer", "glyph"],
+    controls: [
+      { key: "radius", label: "Reach", min: 40, max: 1000, step: 1 },
+      { key: "angleDeg", label: "Turn angle", min: 0, max: 90, step: 1 },
+    ],
+  },
+  {
     type: "float",
     label: "Float",
     description: "Drift gently through the air.",

@@ -11,7 +11,25 @@ export const MOTION_RECIPES: {
   symbol: string;
   types: BehaviorType[];
   textOnly?: boolean;
+  pointer?: boolean;
 }[] = [
+  {
+    id: "pressure",
+    label: "Text pressure",
+    description: "Letters expand near your pointer, then settle back",
+    symbol: "Aa",
+    types: ["pressure"],
+    textOnly: true,
+    pointer: true,
+  },
+  {
+    id: "pointer-turn",
+    label: "Magnetic turn",
+    description: "Letters and shapes turn gently toward your pointer",
+    symbol: "↗",
+    types: ["pointerTurn"],
+    pointer: true,
+  },
   {
     id: "drift",
     label: "Soft drift",
@@ -97,6 +115,7 @@ export const MOTION_RECIPES: {
     description: "Move away from your pointer",
     symbol: "↗",
     types: ["repel"],
+    pointer: true,
   },
 ];
 
@@ -125,6 +144,7 @@ export function recipeBehaviors(
       behavior.params.stagger = 0.35;
     }
     if (behavior.type === "scatter") behavior.params.radius = 74;
+    if (behavior.type === "pressure") behavior.params.amount = 0.2;
     if (behavior.type === "wave") {
       behavior.params.amplitude = id === "ripple" ? 15 : 32;
       behavior.params.wavelength = 7;
