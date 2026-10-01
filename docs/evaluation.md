@@ -1,5 +1,15 @@
 # Evaluation and release evidence
 
+## Version 1.3.1 motion control fixes · 1 October 2026
+
+User-reported inactive controls exposed gaps in the previous browser coverage. The previous tests selected a layer first and explicitly pressed Play; they did not prove that clicking a recipe produced visible motion, that Restart preserved playback, or that touch could manipulate a live pointer without starting a layer drag.
+
+New regressions cover the empty-selection Motion entry, adding a behavior with a visible preview, all 14 recipes changing actual lettering, centered Magnetic/Attract motion, pointer demos near edge and aligned layers, active fixed-pointer capture and export, playback restart, and touch/pen interaction. Tests compare actual poster ink rather than counting a moving cursor or advancing playhead as animation. Existing editing, Undo, scene isolation, offline export, accessibility and mobile checks remain required.
+
+The fixes preserve saved scene data and renderer 1.3.0. Motion playback starts from explicit recipe, Add behavior, or Live pointer actions; merely opening the playground remains paused. No model calls, paid services or new dependencies are involved.
+
+Final local verification passes **153 unit/integration tests**, **72 native browser tests**, and **6 hosted browser tests**. Both production builds, TypeScript, formatting and diff checks pass. The 16 new browser regressions cover reproduced failures and adjacent interactions; the recipe sweep verifies visible lettering changes for all 14 recipes without counting the demo cursor.
+
 ## Version 1.3 reel study and motion playground · 1 October 2026
 
 The release adds original Text pressure and Magnetic turn behaviors, an isolated motion-preview dialog, and three editable templates. The source observations and boundaries are documented in the [reel study](reel-study-2026-10-01.md).

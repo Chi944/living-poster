@@ -12,6 +12,8 @@ A typography instrument where words float, orbit, ripple, scatter, pulse, swing,
 
 Version 1.3 adds a **Motion playground**: preview 14 recipes on your own poster before applying one, including new **Text pressure** and **Magnetic turn** interactions. Three new compositions bring the library to 25 editable templates. Read the [reel study and original adaptations](docs/reel-study-2026-10-01.md).
 
+Version 1.3.1 fixes motion controls: the Motion tab offers a direct layer choice, clicking a recipe starts its preview, and pointer previews follow the selected layer. Restart keeps playback running. Live pointer supports touch and pen; use **Edit canvas** to return to moving layers. Fixed-pointer exports retain the last active pointer position.
+
 ![Preview motion directly on your poster](docs/assets/motion-playground.png)
 
 Choose from 19 font styles across 10 free families in a compact editor organized into **Text & style**, **Layout**, **Motion**, and **AI** tabs. Search fonts and templates directly; on small screens, switch between **Canvas**, **Layers**, and **Tools** instead of scrolling through the whole studio.
@@ -56,7 +58,7 @@ Open http://127.0.0.1:5175. The API runs on port 4317. The checked-in fonts are 
 1. Choose **New canvas** for a blank portrait, square, story or landscape canvas, or browse 25 templates. Search by name, mood or occasion, filter by format or category, and use the six-card pages. The artboard format selector proportionately fits an existing composition to another format.
 2. Select a layer and use **Text & style** for wording, typeface, color and size. The typeface picker previews your words, searches family names, and filters font styles. Wider type is reduced in size when needed to fit the canvas; **Undo** restores the previous font and size together. Double-click canvas text to open its editing field directly.
 3. Use **Layout** for position and rotation. Click or Shift-click layers on the canvas or layer list, drag to position them, or use arrow keys for 1-unit nudges and Shift+arrow for 10.
-4. In **Motion**, open the **Motion playground** to preview 14 recipes before applying one. Filter by pointer response, typography or ambient motion; play, scrub, move over the preview, or focus it and use arrow keys. **Apply** changes the selected layer's motion in one undoable step; closing leaves the poster unchanged. The compact panel also keeps twelve quick recipes and twelve individual motion types for fine tuning. Click an animated layer or use **Edit canvas** to freeze the frame and edit.
+4. In **Motion**, choose a layer if none is selected, then open the **Motion playground**. Clicking a recipe starts its preview; use Pause or scrub to inspect a frame. Filter by pointer response, typography or ambient motion; move over the preview or focus it and use arrow keys. **Apply** changes the selected layer's motion in one undoable step; closing leaves the poster unchanged. The compact panel also keeps twelve quick recipes and twelve individual motion types for fine tuning. Adding a behavior starts playback. Live pointer responds to hovering or touch/pen drags; use **Edit canvas** to freeze the frame and move layers.
 5. Open **AI** to describe a change through your local model. Valid edits apply as one undoable operation and highlight affected layers. Material ambiguity asks for clarification; unsupported requests explain an alternative.
 6. Save revisions, share a read-only snapshot, or download a PNG, scene JSON, or animated HTML file.
 

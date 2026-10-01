@@ -1,7 +1,7 @@
 import { Pause, Play, RotateCcw, MousePointer2, Circle, X } from "lucide-react";
 import { closePointerLoop } from "../../../packages/core/src";
 import { useEditor } from "./store";
-import { pointerRef } from "./CanvasStage";
+import { getFixedPointerSample } from "./pointer-input";
 export function Timeline({ onPreview }: { onPreview?: () => void } = {}) {
   const playing = useEditor((s) => s.playing),
     time = useEditor((s) => s.timeMs),
@@ -35,8 +35,10 @@ export function Timeline({ onPreview }: { onPreview?: () => void } = {}) {
           className="icon-button"
           aria-label="Restart playback"
           onClick={() => {
-            useEditor.getState().cancelRecording();
+            const state = useEditor.getState();
+            if (state.recording) state.cancelRecording();
             useEditor.setState({ timeMs: 0, pausedPointer: undefined });
+            if (state.playing && !state.recording) onPreview?.();
           }}
         >
           <RotateCcw size={15} />
@@ -109,13 +111,16 @@ export function Timeline({ onPreview }: { onPreview?: () => void } = {}) {
           aria-label="Pointer mode"
           value={live ? "live" : pointer.mode}
           onChange={(e) => {
-            useEditor.getState().cancelRecording();
+            if (useEditor.getState().recording)
+              useEditor.getState().cancelRecording();
             const mode = e.target.value;
             if (mode === "live") {
               useEditor.setState({
                 livePointer: true,
                 pausedPointer: undefined,
               });
+              useEditor.getState().setPlayback(true);
+              onPreview?.();
               return;
             }
             useEditor.setState({ livePointer: false });
@@ -123,11 +128,7 @@ export function Timeline({ onPreview }: { onPreview?: () => void } = {}) {
               useEditor.getState().commit((s) => {
                 s.pointer = {
                   mode: "fixed",
-                  sample: pointerRef.current ?? {
-                    x: s.artboard.width / 2,
-                    y: s.artboard.height / 2,
-                    presence: 1,
-                  },
+                  sample: getFixedPointerSample(s.artboard),
                 };
               }, "Pointer frozen");
             if (mode === "disabled")

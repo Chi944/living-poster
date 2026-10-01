@@ -7,12 +7,12 @@ import {
   closePointerLoop,
   samplePointer,
   type Scene,
-  type PointerSample,
   type Frame,
   type RecordedSample,
 } from "../../../packages/core/src";
 import { useEditor, previewPointerRef } from "./store";
-export const pointerRef: { current: PointerSample | null } = { current: null };
+import { pointerRef, updatePointerSample } from "./pointer-input";
+export { pointerRef } from "./pointer-input";
 export function PosterPreview({
   scene,
   timeMs = 0,
@@ -57,12 +57,15 @@ export function CanvasStage({
   const canvas = useRef<HTMLCanvasElement>(null),
     frame = useRef<Frame | null>(null),
     drag = useRef<{ x: number; y: number; id: number } | null>(null),
+    previewTouch = useRef<number | null>(null),
     record = useRef<RecordedSample[]>([]),
     lastRecord = useRef(-1);
   const scene = useEditor((s) => s.scene),
     selected = useEditor((s) => s.selected),
     affected = useEditor((s) => s.affected),
-    recording = useEditor((s) => s.recording);
+    recording = useEditor((s) => s.recording),
+    playing = useEditor((s) => s.playing),
+    livePointer = useEditor((s) => s.livePointer);
   const [error, setError] = useState(""),
     [fit, setFit] = useState(0);
   const holder = useRef<HTMLDivElement>(null);
@@ -241,6 +244,16 @@ export function CanvasStage({
       presence: 1,
     };
   };
+  const finishTouchPreview = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (previewTouch.current !== event.pointerId) return false;
+    previewTouch.current = null;
+    updatePointerSample(
+      pointerRef.current ? { ...pointerRef.current, presence: 0 } : null,
+    );
+    if (event.currentTarget.hasPointerCapture(event.pointerId))
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    return true;
+  };
   return (
     <div className="stage" ref={holder}>
       <div className="stage-meta">
@@ -272,9 +285,18 @@ export function CanvasStage({
               scene.artboard.height * fit,
             ) * Math.min(devicePixelRatio, 2),
           )}
-          aria-label="Poster artboard. Click to pause and select, drag to move, double-click text to edit."
+          aria-label={
+            playing && livePointer
+              ? "Poster artboard. Hover or touch-drag to try live motion. Mouse click or Edit canvas pauses to select and move layers."
+              : "Poster artboard. Click to pause and select, drag to move, double-click text to edit."
+          }
           tabIndex={0}
           onPointerDown={(event) => {
+            if (
+              previewTouch.current !== null &&
+              previewTouch.current !== event.pointerId
+            )
+              return;
             // Commit pending fields before selection can unmount their editor.
             const active = document.activeElement;
             if (
@@ -283,8 +305,21 @@ export function CanvasStage({
             )
               active.blur();
             const p = point(event);
-            pointerRef.current = p;
-            // Recording uses movement only. A deliberate click always returns to editing.
+            updatePointerSample(p);
+            const current = useEditor.getState();
+            // Touch and pen have no hover: dragging is their live pointer input.
+            // The explicit Edit canvas control switches back to layer dragging.
+            if (
+              event.pointerType !== "mouse" &&
+              current.playing &&
+              current.livePointer
+            ) {
+              event.preventDefault();
+              previewTouch.current = event.pointerId;
+              event.currentTarget.setPointerCapture(event.pointerId);
+              return;
+            }
+            // A deliberate mouse click always returns to editing.
             useEditor.getState().enterEditMode();
             const state = useEditor.getState();
             if (!ready) return;
@@ -335,14 +370,20 @@ export function CanvasStage({
             });
           }}
           onPointerMove={(event) => {
+            if (
+              previewTouch.current !== null &&
+              previewTouch.current !== event.pointerId
+            )
+              return;
             const p = point(event);
-            pointerRef.current = p;
+            updatePointerSample(p);
             if (drag.current && useEditor.getState().gesture)
               useEditor
                 .getState()
                 .moveGesture(p.x - drag.current.x, p.y - drag.current.y);
           }}
           onPointerUp={(event) => {
+            if (finishTouchPreview(event)) return;
             if (drag.current) {
               useEditor.getState().endGesture();
               drag.current = null;
@@ -350,14 +391,19 @@ export function CanvasStage({
                 event.currentTarget.releasePointerCapture(event.pointerId);
             }
           }}
-          onPointerCancel={() => {
+          onPointerCancel={(event) => {
+            if (finishTouchPreview(event)) return;
             useEditor.getState().endGesture(true);
             drag.current = null;
           }}
+          onLostPointerCapture={finishTouchPreview}
           onPointerLeave={() => {
-            pointerRef.current = pointerRef.current
-              ? { ...pointerRef.current, presence: 0 }
-              : null;
+            if (previewTouch.current !== null) return;
+            updatePointerSample(
+              pointerRef.current
+                ? { ...pointerRef.current, presence: 0 }
+                : null,
+            );
           }}
         />
         {!ready && <div className="canvas-message">Setting the type…</div>}
@@ -380,6 +426,8 @@ export function CanvasStage({
                 Cancel
               </button>
             </>
+          ) : playing && livePointer ? (
+            "HOVER OR TOUCH · EDIT CANVAS TO MOVE"
           ) : selected.length ? (
             `${selected.length} LAYER${selected.length > 1 ? "S" : ""} SELECTED`
           ) : (

@@ -50,7 +50,8 @@ import {
   persistCurrent,
 } from "./store";
 import { recentDrafts, type ArchivedDraft } from "./drafts";
-import { CanvasStage, PosterPreview, pointerRef } from "./CanvasStage";
+import { CanvasStage, PosterPreview } from "./CanvasStage";
+import { getFixedPointerSample } from "./pointer-input";
 import { Inspector } from "./Inspector";
 import { AiComposer } from "./AiComposer";
 import { Timeline } from "./Timeline";
@@ -578,11 +579,7 @@ function ExportDialog({ onClose }: { onClose: () => void }) {
               if (pointerMode === "fixed")
                 scene.pointer = {
                   mode: "fixed",
-                  sample: pointerRef.current ?? {
-                    x: scene.artboard.width / 2,
-                    y: scene.artboard.height / 2,
-                    presence: 1,
-                  },
+                  sample: getFixedPointerSample(scene.artboard),
                 };
               if (pointerMode === "disabled")
                 scene.pointer = { mode: "disabled" };
@@ -680,7 +677,11 @@ function LayersPanel({
         <span>{layers.length.toString().padStart(2, "0")}</span>
       </div>
       <div className="add-layer-buttons">
-        <button className="button" onClick={() => add("text")}>
+        <button
+          id="add-text-layer"
+          className="button"
+          onClick={() => add("text")}
+        >
           <Type size={14} />
           Text
           <Plus size={11} />
@@ -1238,6 +1239,12 @@ export function App() {
                 panel={toolPanel === "ai" ? "style" : toolPanel}
                 ready={ready}
                 onPreview={() => setMobileView("canvas")}
+                onOpenLayers={() => {
+                  setMobileView("layers");
+                  requestAnimationFrame(() =>
+                    document.getElementById("add-text-layer")?.focus(),
+                  );
+                }}
               />
             </div>
             <div hidden={toolPanel !== "ai"}>

@@ -149,6 +149,29 @@ export function recipeBehaviors(
       behavior.params.amplitude = id === "ripple" ? 15 : 32;
       behavior.params.wavelength = 7;
     }
+    if (behavior.type === "attract") {
+      // A centered layer already sits on the default attract anchor. Keep the
+      // recipe's anchor nearby so choosing Magnetic always demonstrates a pull.
+      const width = artboard?.width ?? 1080;
+      const height = artboard?.height ?? 1350;
+      behavior.params.anchor = {
+        type: "point",
+        x: Math.max(
+          16,
+          Math.min(
+            width - 16,
+            layer.layout.x + (layer.layout.x < width / 2 ? 120 : -120),
+          ),
+        ),
+        y: Math.max(
+          16,
+          Math.min(
+            height - 16,
+            layer.layout.y + (layer.layout.y < height / 2 ? 80 : -80),
+          ),
+        ),
+      };
+    }
     return behavior;
   });
 }

@@ -18,7 +18,7 @@ import {
   type TextLayer,
 } from "../../../packages/core/src";
 import { useEditor, updateLayer } from "./store";
-import { MOTION_RECIPES } from "./motion-recipes";
+import { MOTION_RECIPES, recipeBehaviors } from "./motion-recipes";
 import { FontPicker } from "./FontPicker";
 import { MotionPlayground, applyMotionRecipe } from "./MotionPlayground";
 const invalidate = () => {
@@ -439,10 +439,12 @@ export function Inspector({
   panel,
   ready,
   onPreview,
+  onOpenLayers,
 }: {
   panel: "style" | "layout" | "motion";
   ready: boolean;
   onPreview?: () => void;
+  onOpenLayers?: () => void;
 }) {
   const selected = useEditor((s) => s.selected),
     scene = useEditor((s) => s.scene),
@@ -455,6 +457,47 @@ export function Inspector({
     change((l) => {
       if (l.kind === "text") fn(l);
     });
+  if (!layer && panel === "motion")
+    return (
+      <div className="inspector-scroll">
+        <div className="panel-heading">
+          <SlidersHorizontal size={14} />
+          <h2>Motion</h2>
+        </div>
+        <section className="inspector-section">
+          <p className="small-note">
+            {scene.layers.length
+              ? "Choose the text or shape you want to animate, then try a recipe in the playground."
+              : "Add text or a shape to this canvas to start exploring motion."}
+          </p>
+          {scene.layers.length > 0 ? (
+            <label className="field">
+              <span>Layer to animate</span>
+              <select
+                value=""
+                onChange={(event) =>
+                  useEditor.getState().select(event.target.value)
+                }
+              >
+                <option value="" disabled>
+                  Choose a layer…
+                </option>
+                {[...scene.layers].reverse().map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                    {item.visible ? "" : " (hidden)"}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <button className="button" onClick={onOpenLayers}>
+              <Plus size={14} /> Open layer tools
+            </button>
+          )}
+        </section>
+      </div>
+    );
   if (!layer)
     return (
       <div className="inspector-scroll">
@@ -818,7 +861,7 @@ export function Inspector({
           ))}
         </div>
         <p className="small-note">
-          Replaces this layer’s motion. Click the canvas to pause and edit.
+          Replaces this layer’s motion. Use Edit canvas to pause and edit.
         </p>
       </section>
       <section className="inspector-section" hidden={panel !== "motion"}>
@@ -849,17 +892,34 @@ export function Inspector({
                 <button
                   key={type}
                   onClick={() => {
-                    change((l) => {
+                    const applied = change((l) => {
                       l.behaviors.push(
-                        defaultBehavior(
-                          type,
-                          scene.timeline.durationMs,
-                          l,
-                          scene.artboard,
-                        ),
+                        type === "attract"
+                          ? recipeBehaviors(
+                              "magnetic",
+                              l,
+                              scene.timeline.durationMs,
+                              scene.artboard,
+                            )[0]!
+                          : defaultBehavior(
+                              type,
+                              scene.timeline.durationMs,
+                              l,
+                              scene.artboard,
+                            ),
                       );
                     });
                     setAddMotion(false);
+                    if (applied) {
+                      useEditor.setState({
+                        timeMs: 0,
+                        ...(["repel", "pressure", "pointerTurn"].includes(type)
+                          ? { livePointer: true }
+                          : {}),
+                      });
+                      useEditor.getState().setPlayback(true);
+                      onPreview?.();
+                    }
                   }}
                 >
                   {motionNames[type]}

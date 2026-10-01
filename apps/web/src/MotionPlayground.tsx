@@ -40,7 +40,7 @@ export function applyMotionRecipe(
             scene.artboard,
           );
     },
-    `${recipe.label} applied · click the canvas to edit, or Undo to restore the previous motion.`,
+    `${recipe.label} applied · use Edit canvas to edit, or Undo to restore the previous motion.`,
   );
   if (applied) {
     useEditor.setState({
@@ -54,12 +54,16 @@ export function applyMotionRecipe(
 
 function Preview({
   scene,
+  layerId,
+  replay,
   playing,
   pointerEffect,
   time,
   onTime,
 }: {
   scene: Scene;
+  layerId: string;
+  replay: number;
   playing: boolean;
   pointerEffect: boolean;
   time: number;
@@ -69,12 +73,39 @@ function Preview({
   const clock = useRef(time);
   const pointer = useRef<PointerSample | null>(null);
   const compiled = useMemo(() => compileScene(scene), [scene]);
+  const target = compiled.layers.find((item) => item.layer.id === layerId);
+  const ink = target?.baseBounds;
+  const pointerBehavior = target?.layer.behaviors.find((behavior) =>
+    ["pressure", "pointerTurn", "repel"].includes(behavior.type),
+  );
+  const radius =
+    pointerBehavior && "radius" in pointerBehavior.params
+      ? pointerBehavior.params.radius
+      : 280;
+  // Glyph effects follow the visible ink; whole-layer effects measure distance
+  // from the layout pivot, which can sit at the edge of aligned text.
+  const usesLayerPivot = target && pointerBehavior?.scope === "layer";
+  const center = {
+    x: usesLayerPivot
+      ? target.layer.layout.x
+      : ink
+        ? ink.x + ink.width / 2
+        : scene.artboard.width / 2,
+    y: usesLayerPivot
+      ? target.layer.layout.y
+      : ink
+        ? ink.y + ink.height / 2
+        : scene.artboard.height / 2,
+  };
   useEffect(() => {
     clock.current = time;
   }, [time]);
   useEffect(() => {
     if (playing) pointer.current = null;
   }, [playing]);
+  useEffect(() => {
+    pointer.current = null;
+  }, [replay, scene]);
   useEffect(() => {
     let animation = 0,
       last = performance.now(),
@@ -88,8 +119,27 @@ function Preview({
       if (!document.hidden && canvas.current) {
         const phase = (clock.current / scene.timeline.durationMs) * Math.PI * 2;
         const demoPointer = {
-          x: scene.artboard.width * (0.5 + Math.sin(phase) * 0.28),
-          y: scene.artboard.height * (0.5 + Math.cos(phase) * 0.12),
+          x: Math.max(
+            0,
+            Math.min(
+              scene.artboard.width,
+              center.x +
+                Math.sin(phase) *
+                  Math.min((ink?.width ?? 200) * 0.45, radius * 0.6),
+            ),
+          ),
+          y: Math.max(
+            0,
+            Math.min(
+              scene.artboard.height,
+              center.y +
+                Math.cos(phase) *
+                  Math.min(
+                    Math.max((ink?.height ?? 100) * 0.55, 32),
+                    radius * 0.3,
+                  ),
+            ),
+          ),
           presence: 1,
         };
         const activePointer = pointerEffect
@@ -143,7 +193,17 @@ function Preview({
     };
     animation = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animation);
-  }, [compiled, scene, playing, pointerEffect, onTime]);
+  }, [
+    compiled,
+    scene,
+    playing,
+    pointerEffect,
+    onTime,
+    center.x,
+    center.y,
+    ink,
+    radius,
+  ]);
   return (
     <canvas
       ref={canvas}
@@ -177,8 +237,8 @@ function Preview({
         event.preventDefault();
         event.stopPropagation();
         const old = pointer.current ?? {
-          x: scene.artboard.width / 2,
-          y: scene.artboard.height / 2,
+          x: center.x,
+          y: center.y,
           presence: 1,
         };
         pointer.current = {
@@ -230,6 +290,7 @@ export function MotionPlayground({
   const [page, setPage] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
+  const [replay, setReplay] = useState(0);
   const recipe = MOTION_RECIPES.find((item) => item.id === recipeId)!;
   const layer = source?.layers.find((item) => item.id === layerId);
   const choices = MOTION_RECIPES.filter(
@@ -332,6 +393,8 @@ export function MotionPlayground({
                 {preview.scene ? (
                   <Preview
                     scene={preview.scene}
+                    layerId={layerId}
+                    replay={replay}
                     playing={playing}
                     pointerEffect={!!recipe.pointer}
                     time={time}
@@ -365,6 +428,7 @@ export function MotionPlayground({
                 <span>{(time / 1000).toFixed(1)}s</span>
               </div>
               <p className="motion-preview-hint">
+                Previewing “{layer?.name}”.{" "}
                 {recipe.pointer
                   ? "Move over the preview, or focus it and use arrow keys. Play moves the demo pointer."
                   : "Play or scrub to see the full loop."}
@@ -383,7 +447,9 @@ export function MotionPlayground({
                 >
                   <option value="all">All motion</option>
                   <option value="pointer">Pointer responsive</option>
-                  <option value="type">Typography</option>
+                  {layer?.kind === "text" && (
+                    <option value="type">Typography</option>
+                  )}
                   <option value="ambient">Ambient motion</option>
                 </select>
               </label>
@@ -396,6 +462,8 @@ export function MotionPlayground({
                     onClick={() => {
                       setRecipeId(item.id);
                       setTime(0);
+                      setReplay((value) => value + 1);
+                      setPlaying(true);
                     }}
                   >
                     <span aria-hidden="true">{item.symbol}</span>
